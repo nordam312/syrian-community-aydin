@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { Trash2, Edit, Plus, ImagePlus, Eye } from 'lucide-react';
+import { API_URL } from '@/config';
+import { STORAGE_URL } from '@/config';
 
 interface Banner {
 	id: number;
@@ -37,7 +39,7 @@ const BannerImageManager = () => {
 
 	const fetchBanners = async () => {
 		try {
-			const response = await axios.get('http://127.0.0.1:8000/api/banners');
+			const response = await axios.get(`${API_URL}/api/banners`);
 			setBanners(response.data);
 		} catch (error) {
 			toast({
@@ -62,7 +64,7 @@ const BannerImageManager = () => {
 		try {
 			if (editingBanner) {
 				await axios.post(
-					`http://127.0.0.1:8000/api/banners/${editingBanner.id}`,
+					`${API_URL}/banners/${editingBanner.id}`,
 					formDataToSend,
 					{
 						headers: {
@@ -73,7 +75,7 @@ const BannerImageManager = () => {
 				);
 				toast({ title: 'تم التحديث بنجاح', variant: 'success' });
 			} else {
-				await axios.post('http://127.0.0.1:8000/api/banners', formDataToSend, {
+				await axios.post(`${API_URL}/banners`, formDataToSend, {
 					headers: {
 						Authorization: `Bearer ${userToken}`,
 						'Content-Type': 'multipart/form-data',
@@ -99,7 +101,7 @@ const BannerImageManager = () => {
 		if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) return;
 
 		try {
-			await axios.delete(`http://127.0.0.1:8000/api/banners/${id}`, {
+			await axios.delete(`${API_URL}/banners/${id}`, {
 				headers: { Authorization: `Bearer ${userToken}` },
 			});
 			toast({ title: 'تم الحذف بنجاح', variant: 'success' });
@@ -155,7 +157,7 @@ const BannerImageManager = () => {
 					<Card key={banner.id} className="overflow-hidden">
 						<div className="aspect-video relative">
 							<img
-								src={`http://127.0.0.1:8000/storage/${banner.image}`}
+								src={`${STORAGE_URL}/storage/${banner.image}`}
 								alt={banner.title}
 								className="w-full h-full object-cover"
 							/>

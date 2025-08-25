@@ -35,6 +35,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import BannerImageManager from './BannerImageManager';
 import LogoManager from './LogoManager';
+import { API_URL } from '@/config';
 
 function formatDate(dateStr: string) {
 	const date = new Date(dateStr);
@@ -105,15 +106,12 @@ const AdminDashboard = () => {
 	const fetchDashboardData = useCallback(async () => {
 		try {
 			// احضار احصائيات الداشبورد
-			const statsRes = await axios.get(
-				'http://127.0.0.1:8000/api/dashboard/stats',
-				{
-					headers: {
-						Authorization: `Bearer ${userToken}`,
-						Accept: 'application/json',
-					},
+			const statsRes = await axios.get(`${API_URL}/dashboard/stats`, {
+				headers: {
+					Authorization: `Bearer ${userToken}`,
+					Accept: 'application/json',
 				},
-			);
+			});
 			// console.log(statsRes.data)
 			setStats({
 				totalUsers: statsRes.data.total_users ?? 0,
@@ -243,7 +241,7 @@ const AdminDashboard = () => {
 		try {
 			const token = sessionStorage.getItem('userToken');
 			const response = await axios.post(
-				'http://127.0.0.1:8000/api/logout',
+				`${API_URL}/logout`,
 				{},
 				{
 					headers: { Authorization: `Bearer ${token}` },
@@ -283,12 +281,9 @@ const AdminDashboard = () => {
 
 		try {
 			const token = sessionStorage.getItem('userToken');
-			const response = await axios.delete(
-				`http://127.0.0.1:8000/api/users/${userToDelete}`,
-				{
-					headers: { Authorization: `Bearer ${token}` },
-				},
-			);
+			const response = await axios.delete(`${API_URL}/users/${userToDelete}`, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
 			toast({
 				title: 'تم حذف العضو',
 				description: response.data.message,
