@@ -327,14 +327,14 @@ GET /settings/public
 
 ## رموز الاستجابة
 
--   `200` - نجح الطلب
--   `201` - تم الإنشاء بنجاح
--   `400` - خطأ في البيانات المرسلة
--   `401` - غير مصرح (يحتاج تسجيل دخول)
--   `403` - ممنوع (يحتاج صلاحيات admin)
--   `404` - غير موجود
--   `422` - خطأ في التحقق من البيانات
--   `500` - خطأ في الخادم
+- `200` - نجح الطلب
+- `201` - تم الإنشاء بنجاح
+- `400` - خطأ في البيانات المرسلة
+- `401` - غير مصرح (يحتاج تسجيل دخول)
+- `403` - ممنوع (يحتاج صلاحيات admin)
+- `404` - غير موجود
+- `422` - خطأ في التحقق من البيانات
+- `500` - خطأ في الخادم
 
 ## أمثلة الاستجابة
 
@@ -401,11 +401,11 @@ php artisan serve
 
 ### Admin:
 
--   Email: `admin@syriancommunity.com`
--   Password: `admin123`
+- Email: `admin@syriancommunity.com`
+- Password: `admin123`
 
 ### مستخدمين تجريبيين:
 
--   Email: `ahmed@example.com` / Password: `password`
--   Email: `fatima@example.com` / Password: `password`
--   Email: `mohammed@example.com` / Password: `password`
+- Email: `ahmed@example.com` / Password: `password`
+- Email: `fatima@example.com` / Password: `password`
+- Email: `mohammed@example.com` / Password: `password`
