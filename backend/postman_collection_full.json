@@ -1,0 +1,164 @@
+{
+  "info": {
+    "_postman_id": "aydin-community-hub-apis-full",
+    "name": "Aydin Syria Community Hub API (All Routes)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for all backend API routes."
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"student_id\": \"b2180.060001\",\n  \"phone\": \"1234567890\",\n  \"major\": \"Computer Science\",\n  \"academic_year\": 2\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/register", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "register"] } }
+        },
+        {
+          "name": "Login",
+          "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"login\": \"test@example.com\",\n  \"password\": \"password123\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/login", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "login"] } }
+        },
+        {
+          "name": "Logout (Protected)",
+          "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/logout", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "logout"] } }
+        },
+        {
+          "name": "Get User (Protected)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/user", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "user"] } }
+        }
+      ]
+    },
+    {
+      "name": "Event",
+      "item": [
+        {
+          "name": "Add Event Attendee (Protected)",
+          "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/events/1/attendees", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "events", "1", "attendees"] } }
+        },
+        {
+          "name": "Remove Event Attendee (Protected)",
+          "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/events/1/attendees", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "events", "1", "attendees"] } }
+        },
+        {
+          "name": "Events Resource (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/events", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "events"] } }
+        },
+        {
+          "name": "Update Event Attendee Status (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/events/1/attendees/status", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "events", "1", "attendees", "status"] } }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Dashboard (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/admin/dashboard", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "admin", "dashboard"] } }
+        },
+        {
+          "name": "Dashboard Stats (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/dashboard/stats", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "dashboard", "stats"] } }
+        },
+        {
+          "name": "Dashboard User Stats (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/dashboard/user-stats", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "dashboard", "user-stats"] } }
+        },
+        {
+          "name": "Dashboard Event Stats (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/dashboard/event-stats", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "dashboard", "event-stats"] } }
+        },
+        {
+          "name": "Users Resource (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/users", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "users"] } }
+        },
+        {
+          "name": "User Stats (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/users/stats", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "users", "stats"] } }
+        }
+      ]
+    },
+    {
+      "name": "Content",
+      "item": [
+        {
+          "name": "Content Index (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/content", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content"] } }
+        },
+        {
+          "name": "Content Update (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"key\": \"value\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/content", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content"] } }
+        },
+        {
+          "name": "Content Update Home (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"home\": \"new home content\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/content/home", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content", "home"] } }
+        },
+        {
+          "name": "Content Update About (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"about\": \"new about content\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/content/about", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content", "about"] } }
+        },
+        {
+          "name": "Content Update Contact (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"contact\": \"new contact content\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/content/contact", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content", "contact"] } }
+        },
+        {
+          "name": "Content Update Social (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"social\": \"new social content\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/content/social", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content", "social"] } }
+        },
+        {
+          "name": "Content Public (General)",
+          "request": { "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/content/public", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content", "public"] } }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Settings Index (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/settings", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings"] } }
+        },
+        {
+          "name": "Settings Update (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"key\": \"value\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/settings", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings"] } }
+        },
+        {
+          "name": "Settings Get Group (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/settings/group1", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings", "group1"] } }
+        },
+        {
+          "name": "Settings Get Key (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/settings/key/site_name", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings", "key", "site_name"] } }
+        },
+        {
+          "name": "Settings Set (Admin)",
+          "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"key\": \"site_name\",\n  \"value\": \"Aydin Hub\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/settings", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings"] } }
+        },
+        {
+          "name": "Settings Delete (Admin)",
+          "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/settings/site_name", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings", "site_name"] } }
+        },
+        {
+          "name": "Settings Site (Admin)",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/settings/site", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings", "site"] } }
+        },
+        {
+          "name": "Settings Update Site (Admin)",
+          "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer <token>" }, { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"site_name\": \"Aydin Hub\"\n}" }, "url": { "raw": "http://127.0.0.1:8000/api/settings/site", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings", "site"] } }
+        },
+        {
+          "name": "Settings Public (General)",
+          "request": { "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/settings/public", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "settings", "public"] } }
+        }
+      ]
+    },
+    {
+      "name": "General",
+      "item": [
+        {
+          "name": "Content Public (General)",
+          "request": { "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": { "raw": "http://127.0.0.1:8000/api/content/public", "protocol": "http", "host": ["127.0.0.1"], "port": "8000", "path": ["api", "content", "public"] } }
+        }
+      ]
+    }
+  ]
+}
