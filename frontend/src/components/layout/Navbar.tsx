@@ -4,7 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import axios from 'axios';
+import { API_URL } from '@/config';
+import { useNavigate } from 'react-router-dom';
+
 const Navbar = () => {
+	const navigate = useNavigate();
+
 	const [isOpen, setIsOpen] = useState(false);
 	const location = useLocation();
 	const { user, isAuthenticated, logout } = useAuth();
@@ -24,22 +29,19 @@ const Navbar = () => {
 	const handleLogout = async () => {
 		const token = sessionStorage.getItem('userToken');
 		try {
-			await axios.post(
-				'http://127.0.0.1:8000/api/logout',
-				{},
-				{
-					headers: { Authorization: `Bearer ${token}` },
-				},
-			);
+			await axios.post(`${API_URL}/logout`,{}, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			
 		} catch (error) {
 			// يمكنك عرض رسالة خطأ هنا إذا أردت
 		}
 		sessionStorage.removeItem('userData');
 		sessionStorage.removeItem('userToken');
-		window.location.reload();
 		logout();
 		closeMenu();
 		getNavLinks();
+		navigate('/');
 	};
 
 	// روابط مختلفة حسب حالة تسجيل الدخول

@@ -18,7 +18,7 @@ const Banner = () => {
 			setIsLoading(true);
 			const response = await axios.get<BannerItem[]>(`${API_URL}/banners`);
 			setBanners(response.data);
-			console.log(response.data);
+			// console.log(response.data);
 		} catch (error) {
 			console.error('Error fetching banners:', error);
 		} finally {
@@ -73,13 +73,13 @@ const Banner = () => {
 				<h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-lg animate-fade-in">
 					Syrian Community in Aydın
 				</h1>
-				<p
+				{/* <p
 					className="text-lg md:text-xl max-w-2xl drop-shadow-md animate-fade-in"
 					style={{ animationDelay: '0.2s' }}
 				>
 					Building connections, supporting our community, and preserving our
 					culture
-				</p>
+				</p> */}
 			</div>
 		</div>
 	);

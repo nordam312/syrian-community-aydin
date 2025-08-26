@@ -9,6 +9,7 @@ import GpaCalculator from './pages/GpaCalculator';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
+import EventPage from './components/event/eventPage';
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
 					<Route path="/admin" element={<Admin />} />
 					<Route path="/auth" element={<Auth />} />
 					<Route path="*" element={<NotFound />} />
+					<Route path="/events/:id" element={<EventPage />} />
 				</Routes>
 			</BrowserRouter>
 		</TooltipProvider>
