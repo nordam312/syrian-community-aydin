@@ -97,63 +97,62 @@ class LogoController extends Controller
     /**
      * Update the specified logo.
      */
-    public function update(Request $request, Logo $logo)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'alt_text' => 'nullable|string|max:255',
-            'position' => 'nullable|in:header,footer,mobile',
-            'is_active' => 'boolean',
+public function update(Request $request, Logo $logo)
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'sometimes|string|max:255',
+        'image_path' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'alt_text' => 'nullable|string|max:255',
+        'position' => 'nullable|in:header,footer,mobile',
+        'is_active' => 'boolean',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'message' => 'Validation error',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    try {
+        // نسحب كل الحقول الممكن تعديلها
+        $updateData = $request->only(['name', 'alt_text', 'position', 'is_active']);
+
+        // الصورة
+        if ($request->hasFile('image_path')) {
+            if ($logo->image_path) {
+                Storage::disk('public')->delete($logo->image_path);
+            }
+
+            $imagePath = $request->file('image_path')->store('logos', 'public');
+            $updateData['image_path'] = $imagePath;
+
+            $imageInfo = getimagesize(storage_path('app/public/' . $imagePath));
+            $updateData['width'] = $imageInfo[0] ?? null;
+            $updateData['height'] = $imageInfo[1] ?? null;
+        }
+
+        // التفعيل
+        if ($request->has('is_active') && filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN)) {
+            Logo::where('position', $logo->position)
+                ->where('id', '!=', $logo->id)
+                ->update(['is_active' => false]);
+        }
+
+        $logo->update($updateData);
+
+        return response()->json([
+            'message' => 'Logo updated successfully',
+            'logo' => $logo
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $updateData = $request->only(['name', 'alt_text', 'position', 'is_active']);
-
-            // Handle image update
-            if ($request->hasFile('image')) {
-                // Delete old image
-                if ($logo->image_path) {
-                    Storage::disk('public')->delete($logo->image_path);
-                }
-
-                $imagePath = $request->file('image')->store('logos', 'public');
-                $updateData['image_path'] = $imagePath;
-
-                // Update dimensions
-                $imageInfo = getimagesize(storage_path('app/public/' . $imagePath));
-                $updateData['width'] = $imageInfo[0] ?? null;
-                $updateData['height'] = $imageInfo[1] ?? null;
-            }
-
-            // Handle activation/deactivation
-            if ($request->has('is_active') && $request->is_active) {
-                Logo::where('position', $logo->position)
-                    ->where('id', '!=', $logo->id)
-                    ->update(['is_active' => false]);
-            }
-
-            $logo->update($updateData);
-
-            return response()->json([
-                'message' => 'Logo updated successfully',
-                'logo' => $logo
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error updating logo',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error updating logo',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Remove the specified logo.

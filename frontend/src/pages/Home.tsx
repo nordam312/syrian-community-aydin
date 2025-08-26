@@ -12,20 +12,22 @@ const Home = () => {
 			<Banner />
 			<Logo />
 
-			<section className="section bg-white pt-20">
+			<section className="section bg-white pt-28 pb-20 ">
 				<div className="page-container text-center">
 					<h2 className="section-title">
-						Welcome to the Syrian Community in Aydın
+						مرحباً بكم في الجالية السورية في أيدن
 					</h2>
 					<p className="max-w-2xl mx-auto text-lg text-gray-700 mb-6">
-						We are dedicated to supporting Syrian students and families in
-						Aydın, promoting cultural exchange, and building a strong and
-						connected community.
+						.نحن هنا لدعم الطلاب في أيدين، وتعزيز التبادل الثقافي، وبناء مجتمع
+						قوي ومترابط
 					</p>
 					<div className="flex justify-center">
+						{/* <Link to="/about">
+    						<Button className="bg-syria-green-500 hover:bg-syria-green-600">تعرف على المزيد عنا</Button>
+            				</Link> */}
 						<Link to="/about">
-							<Button className="bg-syria-green-500 hover:bg-syria-green-600">
-								Learn More About Us
+							<Button className="border border-syria-green-900 text-syria-green-900 hover:bg-syria-green-900 hover:text-white">
+								تعرف على المزيد عنا
 							</Button>
 						</Link>
 					</div>
