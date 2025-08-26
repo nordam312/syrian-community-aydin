@@ -90,7 +90,12 @@ const AdminDashboard = () => {
 		image: null as File | null,
 	});
 	const navigate = useNavigate();
-	const [activeTab, setActiveTab] = useState('overview');
+	// استرجاع التاب المحفوظ من localStorage أو استخدام 'overview' كافتراضي
+	const [activeTab, setActiveTab] = useState(() => {
+		const savedTab = localStorage.getItem('adminDashboardActiveTab');
+		const validTabs = ['overview', 'users', 'events', 'content', 'settings'];
+		return savedTab && validTabs.includes(savedTab) ? savedTab : 'overview';
+	});
 	const { toast } = useToast();
 
 	// بيانات من الباكيند
@@ -470,7 +475,11 @@ const AdminDashboard = () => {
 			{/* Main Content */}
 			<Tabs
 				value={activeTab}
-				onValueChange={setActiveTab}
+				onValueChange={(value) => {
+					setActiveTab(value);
+					// حفظ التاب النشط في localStorage
+					localStorage.setItem('adminDashboardActiveTab', value);
+				}}
 				className="space-y-4"
 			>
 				<TabsList className="grid w-full grid-cols-5">
@@ -718,88 +727,6 @@ const AdminDashboard = () => {
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-6">
-								<div>
-									<h3 className="text-lg font-medium mb-4">معلومات الموقع</h3>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<div>
-											<Label>اسم الموقع</Label>
-											<Input 
-												value={siteSettings.site_name} 
-												onChange={(e) => setSiteSettings({...siteSettings, site_name: e.target.value})}
-												placeholder="المجتمع السوري في أيدن" 
-											/>
-										</div>
-										<div>
-											<Label>وصف الموقع</Label>
-											<Input 
-												value={siteSettings.site_description} 
-												onChange={(e) => setSiteSettings({...siteSettings, site_description: e.target.value})}
-												placeholder="مجتمع داعم للطلاب السوريين في أيدن" 
-											/>
-										</div>
-									</div>
-								</div>
-
-								<div>
-									<h3 className="text-lg font-medium mb-4">معلومات التواصل</h3>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<div>
-											<Label>البريد الإلكتروني</Label>
-											<Input 
-												value={siteSettings.contact_email} 
-												onChange={(e) => setSiteSettings({...siteSettings, contact_email: e.target.value})}
-												placeholder="info@syriancommunity.com" 
-											/>
-										</div>
-										<div>
-											<Label>رقم الهاتف</Label>
-											<Input 
-												value={siteSettings.contact_phone} 
-												onChange={(e) => setSiteSettings({...siteSettings, contact_phone: e.target.value})}
-												placeholder="+90 555 123 4567" 
-											/>
-										</div>
-										<div>
-											<Label>العنوان</Label>
-											<Input 
-												value={siteSettings.contact_address} 
-												onChange={(e) => setSiteSettings({...siteSettings, contact_address: e.target.value})}
-												placeholder="أيدن، تركيا" 
-											/>
-										</div>
-									</div>
-								</div>
-
-								<div>
-									<h3 className="text-lg font-medium mb-4">وسائل التواصل الاجتماعي</h3>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<div>
-											<Label>فيسبوك</Label>
-											<Input 
-												value={siteSettings.social_facebook} 
-												onChange={(e) => setSiteSettings({...siteSettings, social_facebook: e.target.value})}
-												placeholder="https://facebook.com/..." 
-											/>
-										</div>
-										<div>
-											<Label>انستغرام</Label>
-											<Input 
-												value={siteSettings.social_instagram} 
-												onChange={(e) => setSiteSettings({...siteSettings, social_instagram: e.target.value})}
-												placeholder="https://instagram.com/..." 
-											/>
-										</div>
-										<div>
-											<Label>تلغرام</Label>
-											<Input 
-												value={siteSettings.social_telegram} 
-												onChange={(e) => setSiteSettings({...siteSettings, social_telegram: e.target.value})}
-												placeholder="https://t.me/..." 
-											/>
-										</div>
-									</div>
-								</div>
-
 								<div>
 									<h3 className="text-lg font-medium mb-4">إعدادات الأمان</h3>
 									<div className="space-y-4">
