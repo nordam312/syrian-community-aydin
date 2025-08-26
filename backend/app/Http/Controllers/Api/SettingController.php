@@ -92,6 +92,13 @@ class SettingController extends Controller
         ]);
     }
 
+
+
+
+// ===============================================================================================
+
+
+
     // إعدادات خاصة بالموقع
     public function getSiteSettings()
     {

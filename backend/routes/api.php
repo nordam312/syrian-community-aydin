@@ -75,7 +75,7 @@ Route::get('/logos/{id}', [LogoController::class, 'show']);
 // Routes للإدارة (إضافة/تعديل/حذف)
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/logos', [LogoController::class, 'store']);
-    Route::put('/logos/{logo}', [LogoController::class, 'update']);
+    Route::post('/logos/{logo}', [LogoController::class, 'update']);
     Route::delete('/logos/{logo}', [LogoController::class, 'destroy']);
 });
 
