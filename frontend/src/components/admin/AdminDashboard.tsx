@@ -7,6 +7,7 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
+
 	CardHeader,
 	CardTitle,
 } from '../ui/card';
@@ -33,9 +34,8 @@ import {
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import BannerImageManager from './BannerImageManager';
-import LogoManager from './LogoManager';
 import { API_URL } from '@/config';
+import ContentManager from './ContentManager';
 
 function formatDate(dateStr: string) {
 	const date = new Date(dateStr);
@@ -101,6 +101,21 @@ const AdminDashboard = () => {
 	const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger refresh
 	const userDataRaw = sessionStorage.getItem('userData');
 	const userToken = sessionStorage.getItem('userToken');
+	
+	// إعدادات الموقع
+	const [siteSettings, setSiteSettings] = useState({
+		site_name: '',
+		site_description: '',
+		contact_email: '',
+		contact_phone: '',
+		contact_address: '',
+		social_facebook: '',
+		social_instagram: '',
+		social_telegram: '',
+		enable_registration: true,
+		email_verification: false,
+		maintenance_mode: false
+	});
 
 	// دالة لجلب بيانات الداشبورد يمكن استدعاؤها من أي مكان
 	const fetchDashboardData = useCallback(async () => {
@@ -176,11 +191,69 @@ const AdminDashboard = () => {
 		}
 	}, [userToken, toast]);
 
+	// دالة لجلب إعدادات الموقع
+	const fetchSiteSettings = useCallback(async () => {
+		try {
+			const response = await axios.get(`${API_URL}/settings/site`, {
+				headers: {
+					Authorization: `Bearer ${userToken}`,
+					Accept: 'application/json',
+				},
+			});
+			setSiteSettings(response.data);
+		} catch (error: unknown) {
+			let errorMsg = 'حدث خطأ في جلب إعدادات الموقع';
+			if (axios.isAxiosError(error)) {
+				errorMsg = error.response?.data?.message || error.message;
+			} else if (error instanceof Error) {
+				errorMsg = error.message;
+			}
+			toast({
+				title: 'خطأ في جلب إعدادات الموقع',
+				description: errorMsg,
+				variant: 'destructive',
+			});
+		}
+	}, [userToken, toast]);
+
+	// دالة لحفظ إعدادات الموقع
+	const saveSiteSettings = async () => {
+		try {
+			const response = await axios.put(
+				`${API_URL}/settings/site`,
+				siteSettings,
+				{
+					headers: {
+						Authorization: `Bearer ${userToken}`,
+						Accept: 'application/json',
+					},
+				}
+			);
+			toast({
+				title: 'تم الحفظ',
+				description: 'تم حفظ إعدادات الموقع بنجاح',
+			});
+		} catch (error: unknown) {
+			let errorMsg = 'حدث خطأ في حفظ إعدادات الموقع';
+			if (axios.isAxiosError(error)) {
+				errorMsg = error.response?.data?.message || error.message;
+			} else if (error instanceof Error) {
+				errorMsg = error.message;
+			}
+			toast({
+				title: 'خطأ في حفظ إعدادات الموقع',
+				description: errorMsg,
+				variant: 'destructive',
+			});
+		}
+	};
+
 	useEffect(() => {
 		if (userToken) {
 			fetchDashboardData();
+			fetchSiteSettings();
 		}
-	}, [userToken, toast, refreshTrigger, fetchDashboardData]); // Add fetchDashboardData to dependencies
+	}, [userToken, toast, refreshTrigger, fetchDashboardData, fetchSiteSettings]); // Add fetchSiteSettings to dependencies
 
 	// دالة فتح النموذج
 	const openEventForm = () => setShowEventForm(true);
@@ -308,13 +381,6 @@ const AdminDashboard = () => {
 		}
 	};
 
-	const handleSave = () => {
-		toast({
-			title: 'تم الحفظ بنجاح',
-			description: 'تم حفظ جميع التغييرات',
-			variant: 'success',
-		});
-	};
 
 	return (
 		<div className="w-full space-y-6">
@@ -635,84 +701,13 @@ const AdminDashboard = () => {
 					</Card>
 				</TabsContent>
 
-				{/* Content Tab */}
+				{/* Content Management Tab */}
 				<TabsContent value="content" className="space-y-6">
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-						<Card>
-							<CardHeader>
-								<CardTitle>محتوى الصفحة الرئيسية</CardTitle>
-								<CardDescription>
-									تعديل النصوص والرسائل في الصفحة الرئيسية
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="space-y-4">
-									<div>
-										<Label>عنوان الترحيب</Label>
-										<Input placeholder="أدخل عنوان الترحيب..." />
-									</div>
-									<div>
-										<Label>وصف المجتمع</Label>
-										<Textarea placeholder="أدخل وصف المجتمع..." rows={4} />
-									</div>
-									<Button onClick={handleSave}>حفظ التغييرات</Button>
-								</div>
-							</CardContent>
-						</Card>
+					<ContentManager />
+					</TabsContent>
 
-						<Card>
-							<CardHeader>
-								<CardTitle>محتوى صفحة من نحن</CardTitle>
-								<CardDescription>تعديل معلومات المجتمع وأهدافه</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="space-y-4">
-									<div>
-										<Label>عنوان الصفحة</Label>
-										<Input placeholder="أدخل عنوان الصفحة..." />
-									</div>
-									<div>
-										<Label>محتوى الصفحة</Label>
-										<Textarea placeholder="أدخل محتوى الصفحة..." rows={6} />
-									</div>
-									<Button onClick={handleSave}>حفظ التغييرات</Button>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
 
-					{/* Banner Images Management */}
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center">
-								<ImagePlus className="mr-2 h-5 w-5" />
-								إدارة صور البانر
-							</CardTitle>
-							<CardDescription>
-								تعديل وتحديث الصور التي تظهر في البانر الرئيسي
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<BannerImageManager />
-						</CardContent>
-					</Card>
 
-					{/* logo Images Management */}
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center">
-								<ImagePlus className="mr-2 h-5 w-5" />
-								إدارة صور الشعار
-							</CardTitle>
-							<CardDescription>
-								تعديل وتحديث الصور التي تظهر في الشعار الصفحة الرئيسية الرئيسي
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<LogoManager />
-						</CardContent>
-					</Card>
-				</TabsContent>
 
 				{/* Settings Tab */}
 				<TabsContent value="settings" className="space-y-6">
@@ -724,23 +719,83 @@ const AdminDashboard = () => {
 						<CardContent>
 							<div className="space-y-6">
 								<div>
+									<h3 className="text-lg font-medium mb-4">معلومات الموقع</h3>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div>
+											<Label>اسم الموقع</Label>
+											<Input 
+												value={siteSettings.site_name} 
+												onChange={(e) => setSiteSettings({...siteSettings, site_name: e.target.value})}
+												placeholder="المجتمع السوري في أيدن" 
+											/>
+										</div>
+										<div>
+											<Label>وصف الموقع</Label>
+											<Input 
+												value={siteSettings.site_description} 
+												onChange={(e) => setSiteSettings({...siteSettings, site_description: e.target.value})}
+												placeholder="مجتمع داعم للطلاب السوريين في أيدن" 
+											/>
+										</div>
+									</div>
+								</div>
+
+								<div>
 									<h3 className="text-lg font-medium mb-4">معلومات التواصل</h3>
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 										<div>
 											<Label>البريد الإلكتروني</Label>
-											<Input placeholder="info@syriancommunity.com" />
+											<Input 
+												value={siteSettings.contact_email} 
+												onChange={(e) => setSiteSettings({...siteSettings, contact_email: e.target.value})}
+												placeholder="info@syriancommunity.com" 
+											/>
 										</div>
 										<div>
 											<Label>رقم الهاتف</Label>
-											<Input placeholder="+90 555 123 4567" />
+											<Input 
+												value={siteSettings.contact_phone} 
+												onChange={(e) => setSiteSettings({...siteSettings, contact_phone: e.target.value})}
+												placeholder="+90 555 123 4567" 
+											/>
 										</div>
 										<div>
 											<Label>العنوان</Label>
-											<Input placeholder="أيدن، تركيا" />
+											<Input 
+												value={siteSettings.contact_address} 
+												onChange={(e) => setSiteSettings({...siteSettings, contact_address: e.target.value})}
+												placeholder="أيدن، تركيا" 
+											/>
+										</div>
+									</div>
+								</div>
+
+								<div>
+									<h3 className="text-lg font-medium mb-4">وسائل التواصل الاجتماعي</h3>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div>
+											<Label>فيسبوك</Label>
+											<Input 
+												value={siteSettings.social_facebook} 
+												onChange={(e) => setSiteSettings({...siteSettings, social_facebook: e.target.value})}
+												placeholder="https://facebook.com/..." 
+											/>
 										</div>
 										<div>
-											<Label>روابط التواصل الاجتماعي</Label>
-											<Input placeholder="رابط فيسبوك" />
+											<Label>انستغرام</Label>
+											<Input 
+												value={siteSettings.social_instagram} 
+												onChange={(e) => setSiteSettings({...siteSettings, social_instagram: e.target.value})}
+												placeholder="https://instagram.com/..." 
+											/>
+										</div>
+										<div>
+											<Label>تلغرام</Label>
+											<Input 
+												value={siteSettings.social_telegram} 
+												onChange={(e) => setSiteSettings({...siteSettings, social_telegram: e.target.value})}
+												placeholder="https://t.me/..." 
+											/>
 										</div>
 									</div>
 								</div>
@@ -755,7 +810,15 @@ const AdminDashboard = () => {
 													السماح للمستخدمين الجدد بالتسجيل
 												</p>
 											</div>
-											<Button variant="outline">مفعل</Button>
+											<div className="flex items-center space-x-2">
+												<input
+													type="checkbox"
+													checked={siteSettings.enable_registration}
+													onChange={(e) => setSiteSettings({...siteSettings, enable_registration: e.target.checked})}
+													id="enable_registration"
+												/>
+												<Label htmlFor="enable_registration">مفعل</Label>
+											</div>
 										</div>
 										<div className="flex items-center justify-between">
 											<div>
@@ -766,13 +829,40 @@ const AdminDashboard = () => {
 													طلب تأكيد البريد الإلكتروني
 												</p>
 											</div>
-											<Button variant="outline">مفعل</Button>
+											<div className="flex items-center space-x-2">
+												<input
+													type="checkbox"
+													checked={siteSettings.email_verification}
+													onChange={(e) => setSiteSettings({...siteSettings, email_verification: e.target.checked})}
+													id="email_verification"
+												/>
+												<Label htmlFor="email_verification">مفعل</Label>
+											</div>
+										</div>
+										<div className="flex items-center justify-between">
+											<div>
+												<p className="font-medium">
+													وضع الصيانة
+												</p>
+												<p className="text-sm text-gray-600">
+													تفعيل وضع الصيانة للموقع
+												</p>
+											</div>
+											<div className="flex items-center space-x-2">
+												<input
+													type="checkbox"
+													checked={siteSettings.maintenance_mode}
+													onChange={(e) => setSiteSettings({...siteSettings, maintenance_mode: e.target.checked})}
+													id="maintenance_mode"
+												/>
+												<Label htmlFor="maintenance_mode">مفعل</Label>
+											</div>
 										</div>
 									</div>
 								</div>
 
 								<Button
-									onClick={handleSave}
+									onClick={saveSiteSettings}
 									className="bg-syria-green-600 hover:bg-syria-green-700"
 								>
 									حفظ الإعدادات

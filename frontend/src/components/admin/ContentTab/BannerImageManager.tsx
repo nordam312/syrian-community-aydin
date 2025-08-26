@@ -35,11 +35,11 @@ const BannerImageManager = () => {
 
 	useEffect(() => {
 		fetchBanners();
-	});
+	}, []);
 
 	const fetchBanners = async () => {
 		try {
-			const response = await axios.get(`${API_URL}/api/banners`);
+			const response = await axios.get(`${API_URL}/banners`);
 			setBanners(response.data);
 		} catch (error) {
 			toast({
@@ -157,7 +157,7 @@ const BannerImageManager = () => {
 					<Card key={banner.id} className="overflow-hidden">
 						<div className="aspect-video relative">
 							<img
-								src={`${STORAGE_URL}/storage/${banner.image}`}
+								src={`${STORAGE_URL}/${banner.image}`}
 								alt={banner.title}
 								className="w-full h-full object-cover"
 							/>
