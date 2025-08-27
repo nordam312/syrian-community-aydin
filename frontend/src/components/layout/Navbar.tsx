@@ -50,6 +50,7 @@ const Navbar = () => {
 			{ name: 'الرئيسية', path: '/' },
 			{ name: 'من نحن', path: '/about' },
 			{ name: 'حاسبة المعدل', path: '/gpa-calculator' },
+			{ name: 'الانتخابات', path: '/elections' },
 		];
 
 		if (isAuthenticated && user?.role === 'admin') {

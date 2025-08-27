@@ -10,7 +10,7 @@ import Admin from './pages/Admin';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
 import EventPage from './components/event/eventPage';
-
+import ElectionsPage from './pages/ElectionsPage'
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -25,6 +25,7 @@ const App = () => (
 					<Route path="/gpa-calculator" element={<GpaCalculator />} />
 					<Route path="/admin" element={<Admin />} />
 					<Route path="/auth" element={<Auth />} />
+					<Route path="/elections" element={<ElectionsPage />} />
 					<Route path="*" element={<NotFound />} />
 					<Route path="/events/:id" element={<EventPage />} />
 				</Routes>

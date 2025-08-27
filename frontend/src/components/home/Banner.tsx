@@ -1,14 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { STORAGE_URL, API_URL } from '@/config';
-
+import {ContentItem} from '@/pages/Home';
 interface BannerItem {
 	id: number;
 	image: string;
 	title: string;
 }
 
-const Banner = () => {
+interface BannerProps {
+	content: ContentItem | null;
+}
+
+// لانو عم نستخدم تايبسكريبت لازم نكتب الكود هكذا اذا عم يجنا بروبس وخاصة انو الكومبوننت من const 
+const Banner: React.FC<BannerProps> = ({ content }) => {
 	const [banners, setBanners] = useState<BannerItem[]>([]);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +51,9 @@ const Banner = () => {
 				<div className="absolute inset-0 flex items-center justify-center bg-syria-green-50">
 					<div className="flex flex-col items-center">
 						<div className="animate-spin rounded-full h-16 w-16 border-4 border-syria-green-200 border-t-transparent mb-4"></div>
-						<p className="text-syria-green-800 font-medium">جاري تحميل البنرات...</p>
+						<p className="text-syria-green-800 font-medium">
+							جاري تحميل البنرات...
+						</p>
 					</div>
 				</div>
 			) : (
@@ -71,7 +78,11 @@ const Banner = () => {
 
 			<div className="absolute inset-0 flex flex-col justify-center items-center text-white p-4 text-center">
 				<h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-lg animate-fade-in">
-					Syrian Community in Aydın
+					{content?.home_title || (
+						<span className="animate-pulse bg-white/40 rounded px-6 py-2">
+							......
+						</span>
+					)}
 				</h1>
 				{/* <p
 					className="text-lg md:text-xl max-w-2xl drop-shadow-md animate-fade-in"

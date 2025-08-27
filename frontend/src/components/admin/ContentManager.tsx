@@ -1,7 +1,7 @@
 import { API_URL } from '@/config';
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { TabsContent } from '../ui/tabs';
 import {
 	Card,
 	CardContent,
@@ -13,7 +13,7 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
-import { ImagePlus } from 'lucide-react';
+import { ImagePlus, Loader2 } from 'lucide-react';
 import { useToast } from '../ui/use-toast';
 import BannerImageManager from './ContentTab/BannerImageManager';
 import LogoManager from './ContentTab/LogoManager';
@@ -35,37 +35,39 @@ interface ContentItem {
 }
 
 const ContentManager = () => {
-	const [contentItems, setContentItems] = useState<ContentItem>(null);
+	const [contentItems, setContentItems] = useState<ContentItem | null>(null);
+	const [loading, setLoading] = useState(false);
+	const [updateLoading, setUpdateLoading] = useState(false);
 	const { toast } = useToast();
 	const userToken = sessionStorage.getItem('userToken');
+
 	const GetContentItems = useCallback(async () => {
+		setLoading(true);
 		try {
 			const response = await axios.get(`${API_URL}/content`, {
-				headers: {
-					Authorization: `Bearer ${userToken}`,
-				},
+				headers: { Authorization: `Bearer ${userToken}` },
 			});
 			setContentItems(response.data);
 		} catch (error) {
 			console.error('Error fetching content items:', error);
+			toast({
+				title: 'خطأ في جلب البيانات',
+				description: 'فشل في جلب محتوى الصفحة',
+				variant: 'destructive',
+			});
+		} finally {
+			setLoading(false);
 		}
-	}, []);
+	}, [userToken, toast]);
 
 	const handleUpdateContentItems = useCallback(
 		async (updatedData: Partial<ContentItem>) => {
-			if (contentItems?.home_description === undefined) {
-				console.log('ما تم تعديل الوصف، ما رح يتغير في DB');
-			} else {
-				console.log('تم تعديل الوصف:', contentItems.home_description);
-			}
-
+			setUpdateLoading(true);
 			try {
-				const response = await axios.put(`${API_URL}/content`, updatedData, {
-					headers: {
-						Authorization: `Bearer ${userToken}`,
-					},
+				await axios.put(`${API_URL}/content`, updatedData, {
+					headers: { Authorization: `Bearer ${userToken}` },
 				});
-				GetContentItems();
+				await GetContentItems();
 				toast({
 					title: 'تم التحديث بنجاح',
 					description: 'تم تحديث محتوى الصفحة بنجاح',
@@ -78,164 +80,287 @@ const ContentManager = () => {
 					description: 'فشل في تحديث محتوى الصفحة',
 					variant: 'destructive',
 				});
+			} finally {
+				setUpdateLoading(false);
 			}
 		},
-		[contentItems, userToken, toast, GetContentItems],
+		[userToken, toast, GetContentItems],
 	);
 
 	useEffect(() => {
 		GetContentItems();
 	}, [GetContentItems]);
 
-	const handleSave = () => {
-		toast({
-			title: 'تم الحفظ بنجاح',
-			description: 'تم حفظ جميع التغييرات',
-			variant: 'success',
-		});
-	};
+	if (loading || !contentItems) {
+		return (
+			<div className="flex justify-center items-center h-64">
+				<Loader2 className="animate-spin h-8 w-8 text-gray-600" />
+			</div>
+		);
+	}
 
 	return (
-		<>
-			{/* Content Tab */}
-			<TabsContent value="content" className="space-y-6">
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>محتوى الصفحة الرئيسية</CardTitle>
-							<CardDescription>
-								تعديل النصوص والرسائل في الصفحة الرئيسية
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								<div>
-									<Label>عنوان الصفحة الرئيسية</Label>
-									<Input
-										placeholder={
-											contentItems?.home_title || 'أدخل عنوان الصفحة...'
-										}
-										className="placeholder:text-gray-400"
-										onChange={(e) =>
-											setContentItems((prev) =>
-												prev ? { ...prev, home_title: e.target.value } : null,
-											)
-										}
-									/>
-								</div>
-								<div>
-									<Label>أدخل وصف الصفحة الرئيسية</Label>
-									<Textarea
-										placeholder={
-											contentItems?.home_description || 'أدخل وصف الصفحة...'
-										}
-										rows={4}
-										className="placeholder:text-gray-400"
-										onChange={(e) =>
-											setContentItems((prev) =>
-												prev
-													? { ...prev, home_description: e.target.value }
-													: null,
-											)
-										}
-									/>
-								</div>
-								{/* 
-                                كنت عم واجه مشكلة بالوصف انه اذا مسحت كلشي وحطيته فاضي وارسلت رح يقبله ك سترنيج فاضي وهي مشكلة لانو رح تتغير القيم لسترينج فاضي
-                                اخترعنا طريقة جديدة للارسال عدلنا القيمة مباشرة بحيث فقط عند الارسال تتعدل لكن بال والجهة مارح يتغير لانو ماعدلناها بالستايت 
-                                
-                                */}
-								<Button
-									onClick={() => {
-										const dataToUpdate: Partial<ContentItem> = {
-											home_title:
-												contentItems?.home_title &&
-												contentItems.home_title.trim() !== ''
-													? contentItems.home_title
-													: undefined, // إذا فارغ، نرسل undefined
-											home_description:
-												contentItems?.home_description &&
-												contentItems.home_description.trim() !== ''
-													? contentItems.home_description
-													: undefined, // إذا فارغ، نرسل undefined
-										};
-
-										// إذا ما في أي شيء للتحديث، نرجع بدون إرسال
-										if (
-											dataToUpdate.home_title === undefined &&
-											dataToUpdate.home_description === undefined
-										) {
-											toast({
-												title: 'لا توجد تغييرات',
-												description: 'لم يتم إدخال أي محتوى لتحديثه',
-												variant: 'warning',
-											});
-											return;
-										}
-
-										handleUpdateContentItems(dataToUpdate);
-									}}
-								>
-									حفظ التغييرات
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>محتوى صفحة من نحن</CardTitle>
-							<CardDescription>تعديل معلومات المجتمع وأهدافه</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								<div>
-									<Label>عنوان الصفحة</Label>
-									<Input placeholder="أدخل عنوان الصفحة..." />
-								</div>
-								<div>
-									<Label>محتوى الصفحة</Label>
-									<Textarea placeholder="أدخل محتوى الصفحة..." rows={6} />
-								</div>
-								<Button onClick={handleSave}>حفظ التغييرات</Button>
-							</div>
-						</CardContent>
-					</Card>
-				</div>
-
-				{/* Banner Images Management */}
+		<TabsContent value="content" className="space-y-6">
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				{/* الصفحة الرئيسية */}
 				<Card>
 					<CardHeader>
-						<CardTitle className="flex items-center">
-							<ImagePlus className="mr-2 h-5 w-5" />
-							إدارة صور البانر
-						</CardTitle>
+						<CardTitle>محتوى الصفحة الرئيسية</CardTitle>
 						<CardDescription>
-							تعديل وتحديث الصور التي تظهر في البانر الرئيسي
+							تعديل النصوص والرسائل في الصفحة الرئيسية
 						</CardDescription>
 					</CardHeader>
-					<CardContent>
-						<BannerImageManager />
+					<CardContent className="space-y-4">
+						<div>
+							<Label>عنوان الصفحة الرئيسية</Label>
+							<Input
+								placeholder="أدخل عنوان الصفحة..."
+								value={contentItems.home_title || ''}
+								onChange={(e) =>
+									setContentItems((prev) =>
+										prev ? { ...prev, home_title: e.target.value } : null,
+									)
+								}
+							/>
+						</div>
+						<div>
+							<Label>وصف الصفحة الرئيسية</Label>
+							<Textarea
+								rows={4}
+								placeholder="أدخل وصف الصفحة..."
+								value={contentItems.home_description || ''}
+								onChange={(e) =>
+									setContentItems((prev) =>
+										prev ? { ...prev, home_description: e.target.value } : null,
+									)
+								}
+							/>
+						</div>
+						<Button
+							className="bg-syria-green-600 hover:bg-syria-green-700"
+							onClick={() =>
+								handleUpdateContentItems({
+									home_title: contentItems.home_title,
+									home_description: contentItems.home_description,
+								})
+							}
+							disabled={updateLoading}
+						>
+							{updateLoading && (
+								<Loader2 className="animate-spin mr-2 h-4 w-4" />
+							)}
+							حفظ التغييرات
+						</Button>
 					</CardContent>
 				</Card>
 
-				{/* logo Images Management */}
+				{/* صفحة من نحن */}
 				<Card>
 					<CardHeader>
-						<CardTitle className="flex items-center">
-							<ImagePlus className="mr-2 h-5 w-5" />
-							إدارة صور الشعار
-						</CardTitle>
-						<CardDescription>
-							تعديل وتحديث الصور التي تظهر في الشعار الصفحة الرئيسية الرئيسي
-						</CardDescription>
+						<CardTitle>محتوى صفحة من نحن</CardTitle>
+						<CardDescription>تعديل معلومات المجتمع وأهدافه</CardDescription>
 					</CardHeader>
-					<CardContent>
-						<LogoManager />
+					<CardContent className="space-y-4">
+						<div>
+							<Label>عنوان الصفحة</Label>
+							<Input
+								placeholder="أدخل عنوان الصفحة..."
+								value={contentItems.about_title || ''}
+								onChange={(e) =>
+									setContentItems((prev) =>
+										prev ? { ...prev, about_title: e.target.value } : null,
+									)
+								}
+							/>
+						</div>
+						<div>
+							<Label>محتوى الصفحة</Label>
+							<Textarea
+								rows={6}
+								placeholder="أدخل محتوى الصفحة..."
+								value={contentItems.about_content || ''}
+								onChange={(e) =>
+									setContentItems((prev) =>
+										prev ? { ...prev, about_content: e.target.value } : null,
+									)
+								}
+							/>
+						</div>
+						<Button
+							className="bg-syria-green-600 hover:bg-syria-green-700"
+							onClick={() =>
+								handleUpdateContentItems({
+									about_title: contentItems.about_title,
+									about_content: contentItems.about_content,
+								})
+							}
+							disabled={updateLoading}
+						>
+							{updateLoading && (
+								<Loader2 className="animate-spin mr-2 h-4 w-4" />
+							)}
+							حفظ التغييرات
+						</Button>
 					</CardContent>
 				</Card>
-			</TabsContent>
-		</>
+			</div>
+
+			{/* معلومات التواصل */}
+			<Card>
+				<CardHeader>
+					<CardTitle>معلومات التواصل</CardTitle>
+					<CardDescription>تحديث البريد، الهاتف، والعنوان</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div>
+						<Label>البريد الإلكتروني</Label>
+						<Input
+							placeholder="أدخل البريد الإلكتروني..."
+							value={contentItems.contact_email || ''}
+							onChange={(e) =>
+								setContentItems((prev) =>
+									prev ? { ...prev, contact_email: e.target.value } : null,
+								)
+							}
+						/>
+					</div>
+					<div>
+						<Label>رقم الهاتف</Label>
+						<Input
+							placeholder="أدخل رقم الهاتف..."
+							value={contentItems.contact_phone || ''}
+							onChange={(e) =>
+								setContentItems((prev) =>
+									prev ? { ...prev, contact_phone: e.target.value } : null,
+								)
+							}
+						/>
+					</div>
+					<div>
+						<Label>العنوان</Label>
+						<Textarea
+							rows={3}
+							placeholder="أدخل العنوان..."
+							value={contentItems.contact_address || ''}
+							onChange={(e) =>
+								setContentItems((prev) =>
+									prev ? { ...prev, contact_address: e.target.value } : null,
+								)
+							}
+						/>
+					</div>
+					<Button
+						className="bg-syria-green-600 hover:bg-syria-green-700"
+						onClick={() =>
+							handleUpdateContentItems({
+								contact_email: contentItems.contact_email,
+								contact_phone: contentItems.contact_phone,
+								contact_address: contentItems.contact_address,
+							})
+						}
+						disabled={updateLoading}
+					>
+						{updateLoading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+						حفظ التغييرات
+					</Button>
+				</CardContent>
+			</Card>
+
+			{/* وسائل التواصل الاجتماعي */}
+			<Card>
+				<CardHeader>
+					<CardTitle>وسائل التواصل الاجتماعي</CardTitle>
+					<CardDescription>
+						تحديث روابط الفيسبوك، إنستغرام، وتليجرام
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div>
+						<Label>فيسبوك</Label>
+						<Input
+							placeholder="أدخل رابط فيسبوك..."
+							value={contentItems.social_facebook || ''}
+							onChange={(e) =>
+								setContentItems((prev) =>
+									prev ? { ...prev, social_facebook: e.target.value } : null,
+								)
+							}
+						/>
+					</div>
+					<div>
+						<Label>إنستغرام</Label>
+						<Input
+							placeholder="أدخل رابط إنستغرام..."
+							value={contentItems.social_instagram || ''}
+							onChange={(e) =>
+								setContentItems((prev) =>
+									prev ? { ...prev, social_instagram: e.target.value } : null,
+								)
+							}
+						/>
+					</div>
+					<div>
+						<Label>تليجرام</Label>
+						<Input
+							placeholder="أدخل رابط تليجرام..."
+							value={contentItems.social_telegram || ''}
+							onChange={(e) =>
+								setContentItems((prev) =>
+									prev ? { ...prev, social_telegram: e.target.value } : null,
+								)
+							}
+						/>
+					</div>
+					<Button
+						className="bg-syria-green-600 hover:bg-syria-green-700"
+						onClick={() =>
+							handleUpdateContentItems({
+								social_facebook: contentItems.social_facebook,
+								social_instagram: contentItems.social_instagram,
+								social_telegram: contentItems.social_telegram,
+							})
+						}
+						disabled={updateLoading}
+					>
+						{updateLoading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+						حفظ التغييرات
+					</Button>
+				</CardContent>
+			</Card>
+
+			{/* Banner Images Management */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center">
+						<ImagePlus className="mr-2 h-5 w-5" />
+						إدارة صور البانر
+					</CardTitle>
+					<CardDescription>
+						تعديل وتحديث الصور التي تظهر في البانر الرئيسي
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<BannerImageManager />
+				</CardContent>
+			</Card>
+
+			{/* Logo Images Management */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center">
+						<ImagePlus className="mr-2 h-5 w-5" />
+						إدارة صور الشعار
+					</CardTitle>
+					<CardDescription>
+						تعديل وتحديث الصور التي تظهر في الشعار الصفحة الرئيسية
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<LogoManager />
+				</CardContent>
+			</Card>
+		</TabsContent>
 	);
 };
+
 export default ContentManager;

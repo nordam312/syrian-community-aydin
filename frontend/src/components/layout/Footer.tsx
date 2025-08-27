@@ -1,23 +1,29 @@
 import { Link } from 'react-router-dom';
+import { ContentItem } from '@/pages/Home';
+import { useEffect, useState } from 'react';
 
-const Footer = () => {
+interface FooterProps {
+	content: ContentItem | null;
+}
+// عم اجبرو يسوي الفوتر Functional Component
+const Footer: React.FC<FooterProps> = ({ content }) => {
 	const currentYear = new Date().getFullYear();
-
 	return (
 		<footer className="bg-syria-green-50 text-gray-700 py-8">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex flex-col md:flex-row justify-between items-center">
-					<div className="mb-4 md:mb-0">
+					<div className="mb-4 md:mb-0" dir="rtl">
 						<h2 className="text-syria-green-700 font-bold text-lg mb-2">
-							Syrian Community in Aydın
+							{content?.about_title || 'Syrian Community in Aydın'}
 						</h2>
-						<p className="text-sm">
-							Supporting and connecting Syrians in Aydın, Turkey
+						<p className="text-sm whitespace-pre-line">
+							{content?.about_content ||
+								'Supporting and connecting Syrians in Aydın, Turkey'}
 						</p>
 					</div>
 
 					<div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
-						<div>
+						{/* <div>
 							<h3 className="font-semibold text-syria-green-600 mb-2">
 								Quick Links
 							</h3>
@@ -47,15 +53,19 @@ const Footer = () => {
 									</Link>
 								</li>
 							</ul>
-						</div>
+						</div> */}
 
-						<div>
+						<div dir="rtl">
 							<h3 className="font-semibold text-syria-green-600 mb-2">
-								Contact
+								تواصل معنا
 							</h3>
 							<ul className="space-y-2 text-sm">
-								<li>Email: contact@syrianaydin.com</li>
-								<li>Location: Aydın, Turkey</li>
+								<li>
+									البريد الإلكتروني:{' '}
+									{content?.contact_email || 'contact@syrianaydin.com'}
+								</li>
+								<li>الموقع: {content?.contact_address || 'أيدن، تركيا'}</li>
+								<li>الهاتف: {content?.contact_phone || 'N/A'}</li>
 							</ul>
 						</div>
 					</div>

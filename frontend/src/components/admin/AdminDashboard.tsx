@@ -388,7 +388,7 @@ const AdminDashboard = () => {
 
 
 	return (
-		<div className="w-full space-y-6">
+		<div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16">
 			{/* Header */}
 			<div className="flex justify-between items-center">
 				<div>
@@ -713,10 +713,7 @@ const AdminDashboard = () => {
 				{/* Content Management Tab */}
 				<TabsContent value="content" className="space-y-6">
 					<ContentManager />
-					</TabsContent>
-
-
-
+				</TabsContent>
 
 				{/* Settings Tab */}
 				<TabsContent value="settings" className="space-y-6">
@@ -741,7 +738,12 @@ const AdminDashboard = () => {
 												<input
 													type="checkbox"
 													checked={siteSettings.enable_registration}
-													onChange={(e) => setSiteSettings({...siteSettings, enable_registration: e.target.checked})}
+													onChange={(e) =>
+														setSiteSettings({
+															...siteSettings,
+															enable_registration: e.target.checked,
+														})
+													}
 													id="enable_registration"
 												/>
 												<Label htmlFor="enable_registration">مفعل</Label>
@@ -760,7 +762,12 @@ const AdminDashboard = () => {
 												<input
 													type="checkbox"
 													checked={siteSettings.email_verification}
-													onChange={(e) => setSiteSettings({...siteSettings, email_verification: e.target.checked})}
+													onChange={(e) =>
+														setSiteSettings({
+															...siteSettings,
+															email_verification: e.target.checked,
+														})
+													}
 													id="email_verification"
 												/>
 												<Label htmlFor="email_verification">مفعل</Label>
@@ -768,9 +775,7 @@ const AdminDashboard = () => {
 										</div>
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="font-medium">
-													وضع الصيانة
-												</p>
+												<p className="font-medium">وضع الصيانة</p>
 												<p className="text-sm text-gray-600">
 													تفعيل وضع الصيانة للموقع
 												</p>
@@ -779,7 +784,12 @@ const AdminDashboard = () => {
 												<input
 													type="checkbox"
 													checked={siteSettings.maintenance_mode}
-													onChange={(e) => setSiteSettings({...siteSettings, maintenance_mode: e.target.checked})}
+													onChange={(e) =>
+														setSiteSettings({
+															...siteSettings,
+															maintenance_mode: e.target.checked,
+														})
+													}
 													id="maintenance_mode"
 												/>
 												<Label htmlFor="maintenance_mode">مفعل</Label>
