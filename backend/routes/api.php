@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\LogoController;
+use App\Http\Controllers\Api\ElectionController;
+
 
 // Routes للمصادقة (عامة)
 Route::post('/register', [AuthController::class, 'register']);
@@ -38,7 +40,6 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 
     // إدارة المحتوى
-    Route::get('content', [ContentController::class, 'index']);
     Route::put('content', [ContentController::class, 'update']);
     Route::put('content/home', [ContentController::class, 'updateHome']);
     Route::put('content/about', [ContentController::class, 'updateAbout']);
@@ -60,7 +61,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 });
 
 // Routes عامة (لا تحتاج مصادقة)
-Route::get('/content/public', [ContentController::class, 'index']);
+Route::get('/content', [ContentController::class, 'index']);
 Route::get('/settings/public', [SettingController::class, 'getSiteSettings']);
 
 // Routes for banners
@@ -89,3 +90,19 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 Route::apiResource('events', EventController::class);
 Route::put('/events/{event}/attendees/status', [EventController::class, 'updateAttendeeStatus']);
 Route::get('/events/{event}/attendees', [EventController::class, 'attendees']);
+
+
+// 🔵 روتات مخصصة للAdminController
+Route::group(['prefix' => 'elections', 'middleware' => ['auth:sanctum', 'admin']], function () {
+    Route::post('/create', [ElectionController::class, 'store']);
+    Route::post('/{election}/candidates', [ElectionController::class, 'addCandidate']);
+});
+
+// 🔵 روتات للتصويت (يجب أن يكون مستخدم مسجل دخوله)
+Route::group(['prefix' => 'elections', 'middleware' => 'auth:sanctum'], function () {
+    Route::get('/{election}/candidates', [ElectionController::class, 'candidates']);
+    Route::post('/{election}/vote', [ElectionController::class, 'vote']);
+});
+
+// 🔵 روت علنٍ (بدون تسجيل) لعرض نتائج الانتخابات
+Route::get('elections/{election}/results', [ElectionController::class, 'results']);
