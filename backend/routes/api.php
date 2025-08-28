@@ -106,3 +106,5 @@ Route::group(['prefix' => 'elections', 'middleware' => 'auth:sanctum'], function
 
 // 🔵 روت علنٍ (بدون تسجيل) لعرض نتائج الانتخابات
 Route::get('elections/{election}/results', [ElectionController::class, 'results']);
+// ✅ عرض جميع الانتخابات
+Route::get('/elections', [ElectionController::class, 'index']);

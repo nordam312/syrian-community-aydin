@@ -15,10 +15,12 @@ return new class extends Migration
         $table->id();
         $table->foreignId('election_id')->constrained()->onDelete('cascade');
         $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        $table->string('display_name'); // الاسم المستعار
         $table->string('position');
         $table->text('bio')->nullable();
         $table->text('platform')->nullable();
         $table->timestamps();
+        $table->unique(['election_id', 'user_id']);
     });
     }
 

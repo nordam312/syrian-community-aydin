@@ -12,6 +12,16 @@ use Illuminate\Validation\ValidationException;
 
 class ElectionController extends Controller
 {
+
+
+    // 🔹 عرض جميع الانتخابات
+    public function index()
+    {
+    $elections = Election::withCount('candidates') // يحسب عدد المرشحين
+                ->withCount('votes')      // يحسب عدد الأصوات (إذا عندك علاقة votes بالانتخابات)
+                ->get();
+        return response()->json($elections);
+    }
     // 🔹 إنشاء انتخابات جديدة
     public function store(Request $request)
     {
@@ -59,25 +69,55 @@ class ElectionController extends Controller
     }
 
     // 🔹 إضافة مرشح إلى انتخابات
+    // public function addCandidate(Request $request, $electionId)
+    // {
+    //     $request->validate([
+    //         'user_id' => 'required|exists:users,id',
+    //         'position' => 'required|string',
+    //         'bio' => 'nullable|string',
+    //         'platform' => 'nullable|string',
+    //     ]);
+
+    //     $candidate = Candidate::create([
+    //         'election_id' => $electionId,
+    //         'user_id' => $request->user_id,
+    //         'position' => $request->position,
+    //         'bio' => $request->bio,
+    //         'platform' => $request->platform,
+    //     ]);
+
+    //     return response()->json($candidate, 201);
+    // }
     public function addCandidate(Request $request, $electionId)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'position' => 'required|string',
-            'bio' => 'nullable|string',
-            'platform' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'display_name' => 'required|string|max:255',
+        'student_id' => 'required|exists:users,student_id',
+        'position' => 'required|string',
+        'bio' => 'nullable|string',
+        'platform' => 'nullable|string',
+    ]);
 
-        $candidate = Candidate::create([
-            'election_id' => $electionId,
-            'user_id' => $request->user_id,
-            'position' => $request->position,
-            'bio' => $request->bio,
-            'platform' => $request->platform,
-        ]);
+    // جلب الـ user_id من جدول users عن طريق student_number
+    $user = User::where('student_id', $request->student_id)->first();
 
-        return response()->json($candidate, 201);
+    if (!$user) {
+        return response()->json(['error' => 'الطالب غير موجود'], 404);
     }
+
+    $candidate = Candidate::create([
+        'display_name' => $request->display_name,
+        'student_id' => $request->student_id,
+        'election_id' => $electionId,
+        'user_id' => $user->id,
+        'position' => $request->position,
+        'bio' => $request->bio,
+        'platform' => $request->platform,
+    ]);
+
+    return response()->json($candidate, 201);
+}
+
 
     // 🔹 التصويت لمرشح
     public function vote(Request $request, $electionId)

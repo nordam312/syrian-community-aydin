@@ -7,13 +7,13 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
-
 	CardHeader,
 	CardTitle,
 } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useToast } from '../ui/use-toast';
 import {
+	Crown,
 	Users,
 	UserPlus,
 	Calendar,
@@ -36,6 +36,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { API_URL } from '@/config';
 import ContentManager from './ContentManager';
+import ElectionManager from './ElectionManager';
 
 function formatDate(dateStr: string) {
 	const date = new Date(dateStr);
@@ -106,7 +107,7 @@ const AdminDashboard = () => {
 	const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger refresh
 	const userDataRaw = sessionStorage.getItem('userData');
 	const userToken = sessionStorage.getItem('userToken');
-	
+
 	// إعدادات الموقع
 	const [siteSettings, setSiteSettings] = useState({
 		site_name: '',
@@ -119,7 +120,7 @@ const AdminDashboard = () => {
 		social_telegram: '',
 		enable_registration: true,
 		email_verification: false,
-		maintenance_mode: false
+		maintenance_mode: false,
 	});
 
 	// دالة لجلب بيانات الداشبورد يمكن استدعاؤها من أي مكان
@@ -232,7 +233,7 @@ const AdminDashboard = () => {
 						Authorization: `Bearer ${userToken}`,
 						Accept: 'application/json',
 					},
-				}
+				},
 			);
 			toast({
 				title: 'تم الحفظ',
@@ -386,9 +387,8 @@ const AdminDashboard = () => {
 		}
 	};
 
-
 	return (
-		<div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16">
+		<div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16 animate-fade-in">
 			{/* Header */}
 			<div className="flex justify-between items-center">
 				<div>
@@ -482,7 +482,7 @@ const AdminDashboard = () => {
 				}}
 				className="space-y-4"
 			>
-				<TabsList className="grid w-full grid-cols-5">
+				<TabsList className="grid w-full grid-cols-6">
 					<TabsTrigger value="overview" className="flex items-center">
 						<BarChart3 className="mr-2 h-4 w-4" />
 						نظرة عامة
@@ -499,6 +499,10 @@ const AdminDashboard = () => {
 						<FileText className="mr-2 h-4 w-4" />
 						المحتوى
 					</TabsTrigger>
+					<TabsTrigger value="elections" className="flex items-center gap-2">
+						<Crown className="h-4 w-4" />
+						الانتخابات
+					</TabsTrigger>
 					<TabsTrigger value="settings" className="flex items-center">
 						<Settings className="mr-2 h-4 w-4" />
 						الإعدادات
@@ -506,7 +510,7 @@ const AdminDashboard = () => {
 				</TabsList>
 
 				{/* Overview Tab */}
-				<TabsContent value="overview" className="space-y-6">
+				<TabsContent value="overview" className="space-y-6 animate-fade-in">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 						{/* Recent Users */}
 						<Card>
@@ -591,7 +595,7 @@ const AdminDashboard = () => {
 				</TabsContent>
 
 				{/* Users Management Tab */}
-				<TabsContent value="users" className="space-y-6">
+				<TabsContent value="users" className="space-y-6 animate-fade-in">
 					<Card>
 						<CardHeader>
 							<CardTitle>إدارة الأعضاء</CardTitle>
@@ -658,7 +662,7 @@ const AdminDashboard = () => {
 				</TabsContent>
 
 				{/* Events Tab */}
-				<TabsContent value="events" className="space-y-6">
+				<TabsContent value="events" className="space-y-6 animate-fade-in">
 					<Card>
 						<CardHeader>
 							<CardTitle>إدارة الفعاليات</CardTitle>
@@ -667,7 +671,7 @@ const AdminDashboard = () => {
 						<CardContent>
 							<div className="space-y-4">
 								<Button
-									className="bg-syria-green-600 hover:bg-syria-green-700 mt-2"
+									className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 									onClick={openEventForm}
 								>
 									<Plus className="mr-2 h-4 w-4" />
@@ -711,12 +715,12 @@ const AdminDashboard = () => {
 				</TabsContent>
 
 				{/* Content Management Tab */}
-				<TabsContent value="content" className="space-y-6">
+				<TabsContent value="content" className="space-y-6 ">
 					<ContentManager />
 				</TabsContent>
 
 				{/* Settings Tab */}
-				<TabsContent value="settings" className="space-y-6">
+				<TabsContent value="settings" className="space-y-6 animate-fade-in">
 					<Card>
 						<CardHeader>
 							<CardTitle>إعدادات الموقع</CardTitle>
@@ -800,10 +804,27 @@ const AdminDashboard = () => {
 
 								<Button
 									onClick={saveSiteSettings}
-									className="bg-syria-green-600 hover:bg-syria-green-700"
+									className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 								>
 									حفظ الإعدادات
 								</Button>
+							</div>
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				{/* Election Managment Tab */}
+				<TabsContent value="elections" className="space-y-6 animate-fade-in">
+					<Card>
+						<CardHeader>
+							<CardTitle>إدارة الانتخابات</CardTitle>
+							<CardDescription>
+								إنشاء وتنظيم الانتخابات داخل المجتمع
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div className="space-y-4">
+								<ElectionManager />
 							</div>
 						</CardContent>
 					</Card>
