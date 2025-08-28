@@ -260,7 +260,7 @@ const LogoManager: React.FC = () => {
 				<h2 className="text-2xl font-bold">أدارة الشعار</h2>
 				<Button
 					onClick={openAddDialog}
-					className="bg-syria-green-600 hover:bg-syria-green-700"
+					className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 				>
 					<Upload className="w-4 h-4 mr-2" />
 					أضافة شعار جديد
@@ -292,8 +292,8 @@ const LogoManager: React.FC = () => {
 										onCheckedChange={() => handleToggleActive(logo)}
 										id={`toggle-${logo.id}`}
 									/>
-									<label 
-										htmlFor={`toggle-${logo.id}`} 
+									<label
+										htmlFor={`toggle-${logo.id}`}
 										className="text-sm cursor-pointer"
 										onClick={() => handleToggleActive(logo)}
 									>

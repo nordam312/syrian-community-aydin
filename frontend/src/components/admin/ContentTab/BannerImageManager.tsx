@@ -145,7 +145,7 @@ const BannerImageManager = () => {
 				<h3 className="text-lg font-semibold">صور البانر الحالية</h3>
 				<Button
 					onClick={() => setShowForm(true)}
-					className="bg-syria-green-600 hover:bg-syria-green-700"
+					className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 				>
 					<Plus className="mr-2 h-4 w-4" />
 					إضافة صورة جديدة

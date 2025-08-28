@@ -161,7 +161,8 @@ const EventPage = () => {
 
 	return (
 		<Layout>
-			<div className="max-w-2xl mx-auto py-10">
+			
+			<div className="max-w-2xl mx-auto py-10 animate-fade-in">
 				<div className="bg-white rounded-2xl shadow-lg border border-syria-green-100 overflow-hidden">
 					<div className="relative h-64">
 						<img

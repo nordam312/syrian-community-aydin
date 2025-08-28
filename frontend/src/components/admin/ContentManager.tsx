@@ -93,17 +93,23 @@ const ContentManager = () => {
 
 	if (loading || !contentItems) {
 		return (
-			<div className="flex justify-center items-center h-64">
-				<Loader2 className="animate-spin h-8 w-8 text-gray-600" />
+			<div className="flex items-center justify-center p-8">
+				<div className="text-center animate-fade-in">
+					<div className="animate-spin rounded-full h-10 w-10 border-3 border-syria-green-500 border-t-transparent mx-auto mb-4"></div>
+					<p className="text-muted-foreground font-medium">
+						جاري تحميل بيانات الانتخابات...
+					</p>
+				</div>
 			</div>
 		);
 	}
 
+
 	return (
-		<TabsContent value="content" className="space-y-6">
+		<TabsContent value="content" className="space-y-6 ">
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* الصفحة الرئيسية */}
-				<Card>
+				<Card className="animate-fade-in">
 					<CardHeader>
 						<CardTitle>محتوى الصفحة الرئيسية</CardTitle>
 						<CardDescription>
@@ -137,7 +143,7 @@ const ContentManager = () => {
 							/>
 						</div>
 						<Button
-							className="bg-syria-green-600 hover:bg-syria-green-700"
+							className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 							onClick={() =>
 								handleUpdateContentItems({
 									home_title: contentItems.home_title,
@@ -155,7 +161,7 @@ const ContentManager = () => {
 				</Card>
 
 				{/* صفحة من نحن */}
-				<Card>
+				<Card className="animate-fade-in">
 					<CardHeader>
 						<CardTitle>محتوى صفحة من نحن</CardTitle>
 						<CardDescription>تعديل معلومات المجتمع وأهدافه</CardDescription>
@@ -187,7 +193,7 @@ const ContentManager = () => {
 							/>
 						</div>
 						<Button
-							className="bg-syria-green-600 hover:bg-syria-green-700"
+							className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 							onClick={() =>
 								handleUpdateContentItems({
 									about_title: contentItems.about_title,
@@ -206,7 +212,7 @@ const ContentManager = () => {
 			</div>
 
 			{/* معلومات التواصل */}
-			<Card>
+			<Card className="animate-fade-in">
 				<CardHeader>
 					<CardTitle>معلومات التواصل</CardTitle>
 					<CardDescription>تحديث البريد، الهاتف، والعنوان</CardDescription>
@@ -250,7 +256,7 @@ const ContentManager = () => {
 						/>
 					</div>
 					<Button
-						className="bg-syria-green-600 hover:bg-syria-green-700"
+						className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 						onClick={() =>
 							handleUpdateContentItems({
 								contact_email: contentItems.contact_email,
@@ -267,7 +273,7 @@ const ContentManager = () => {
 			</Card>
 
 			{/* وسائل التواصل الاجتماعي */}
-			<Card>
+			<Card className="animate-fade-in">
 				<CardHeader>
 					<CardTitle>وسائل التواصل الاجتماعي</CardTitle>
 					<CardDescription>
@@ -312,7 +318,7 @@ const ContentManager = () => {
 						/>
 					</div>
 					<Button
-						className="bg-syria-green-600 hover:bg-syria-green-700"
+						className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 						onClick={() =>
 							handleUpdateContentItems({
 								social_facebook: contentItems.social_facebook,
@@ -329,7 +335,7 @@ const ContentManager = () => {
 			</Card>
 
 			{/* Banner Images Management */}
-			<Card>
+			<Card className="animate-fade-in">
 				<CardHeader>
 					<CardTitle className="flex items-center">
 						<ImagePlus className="mr-2 h-5 w-5" />
@@ -345,7 +351,7 @@ const ContentManager = () => {
 			</Card>
 
 			{/* Logo Images Management */}
-			<Card>
+			<Card className="animate-fade-in">
 				<CardHeader>
 					<CardTitle className="flex items-center">
 						<ImagePlus className="mr-2 h-5 w-5" />
