@@ -100,8 +100,8 @@ class LogoController extends Controller
 public function update(Request $request, Logo $logo)
 {
     $validator = Validator::make($request->all(), [
-        'name' => 'sometimes|string|max:255',
-        'image_path' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'name' => 'nullable|string|max:255',
+        'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'alt_text' => 'nullable|string|max:255',
         'position' => 'nullable|in:header,footer,mobile',
         'is_active' => 'boolean',

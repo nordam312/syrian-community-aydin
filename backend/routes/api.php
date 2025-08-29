@@ -83,7 +83,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 // Admin-only routes for banners
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/banners', [BannerController::class, 'store']);
-    Route::put('/banners/{id}', [BannerController::class, 'update']);
+    Route::post('/banners/{id}', [BannerController::class, 'update']);
     Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
 });
 
@@ -96,6 +96,8 @@ Route::get('/events/{event}/attendees', [EventController::class, 'attendees']);
 Route::group(['prefix' => 'elections', 'middleware' => ['auth:sanctum', 'admin']], function () {
     Route::post('/create', [ElectionController::class, 'store']);
     Route::post('/{election}/candidates', [ElectionController::class, 'addCandidate']);
+    Route::post('/{election}/update', [ElectionController::class, 'updateElection']);
+    Route::delete('/{election}', [ElectionController::class, 'destroyElection']);
 });
 
 // 🔵 روتات للتصويت (يجب أن يكون مستخدم مسجل دخوله)

@@ -18,6 +18,7 @@ public function up()
         $table->timestamp('start_date')->nullable();
         $table->timestamp('end_date')->nullable();
         $table->enum('status', ['pending', 'active', 'completed'])->default('pending');
+        $table->string('image')->nullable();
         $table->timestamps();
     });
 }

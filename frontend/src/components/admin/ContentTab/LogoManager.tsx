@@ -41,7 +41,7 @@ interface Logo {
 	is_active: boolean;
 	created_at: string;
 }
-import { API_URL ,STORAGE_URL } from '@/config';
+import { API_URL, STORAGE_URL } from '@/config';
 
 const LogoManager: React.FC = () => {
 	const [logos, setLogos] = useState<Logo[]>([]);
@@ -52,6 +52,7 @@ const LogoManager: React.FC = () => {
 		name: '',
 		alt_text: '',
 		position: 'header' as 'header' | 'footer' | 'mobile',
+		is_active: false,
 	});
 	const [editingLogo, setEditingLogo] = useState<Logo | null>(null);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -104,6 +105,7 @@ const LogoManager: React.FC = () => {
 		formDataToSend.append('name', formData.name);
 		formDataToSend.append('alt_text', formData.alt_text);
 		formDataToSend.append('position', formData.position);
+		formDataToSend.append('is_active', formData.is_active ? '1' : '0');
 
 		try {
 			const url = editingLogo
@@ -118,7 +120,7 @@ const LogoManager: React.FC = () => {
 				data: formDataToSend,
 				headers: {
 					Authorization: `Bearer ${token}`,
-					'Content-Type': 'multipart/form-data'
+					'Content-Type': 'multipart/form-data',
 				},
 			});
 
@@ -148,43 +150,42 @@ const LogoManager: React.FC = () => {
 
 	const handleToggleActive = async (logo: Logo) => {
 		try {
-			const token = localStorage.getItem('token');
-			
+			const token = sessionStorage.getItem('userToken');
+
 			if (!token) {
 				toast({
 					title: 'خطأ',
 					description: 'يرجى تسجيل الدخول أولاً',
-					variant: 'destructive',
+					variant: 'warning',
 				});
 				return;
 			}
-			
-			await axios.put(
+
+			await axios.post(
 				`${API_URL}/logos/${logo.id}`,
-				{ 
-					...logo,
-					is_active: !logo.is_active 
+				{
+					is_active: !logo.is_active,
 				},
 				{
 					headers: {
-						'Authorization': `Bearer ${token}`,
+						Authorization: `Bearer ${token}`,
 						'Content-Type': 'application/json',
-						'Accept': 'application/json'
+						Accept: 'application/json',
 					},
-				}
+				},
 			);
-			
+
 			// تحديث حالة اللوجو محلياً لتجنب الحاجة لإعادة تحميل الكل
-			setLogos(prevLogos => 
-				prevLogos.map(item => 
-					item.id === logo.id 
-						? { ...item, is_active: !item.is_active } 
-						: item
-				)
+			setLogos((prevLogos) =>
+				prevLogos.map((item) =>
+					item.id === logo.id ? { ...item, is_active: !item.is_active } : item,
+				),
 			);
-			
+			fetchLogos()
+
 			toast({
 				title: 'تم بنجاح',
+				variant : 'success',
 				description: 'تم تحديث حالة الشعار',
 			});
 		} catch (error) {
@@ -192,7 +193,7 @@ const LogoManager: React.FC = () => {
 			toast({
 				title: 'خطأ',
 				description: 'فشل تحديث حالة الشعار',
-				variant: 'destructive',
+				variant: 'warning',
 			});
 		}
 	};
@@ -208,15 +209,16 @@ const LogoManager: React.FC = () => {
 			});
 
 			toast({
-				title: 'Success',
-				description: 'Logo deleted successfully',
+				title: '!تم',
+				variant: 'success',
+				description: 'تم حذف الشعار بنجاح',
 			});
 			fetchLogos();
 		} catch (error) {
 			toast({
-				title: 'Error',
-				description: 'Failed to delete logo',
-				variant: 'destructive',
+				title: '!خطأ',
+				description: 'خطأ عند الحذف',
+				variant: 'warning',
 			});
 		}
 	};
@@ -226,6 +228,7 @@ const LogoManager: React.FC = () => {
 			name: '',
 			alt_text: '',
 			position: 'header',
+			is_active: false,
 		});
 		setSelectedFile(null);
 		setEditingLogo(null);
@@ -237,6 +240,7 @@ const LogoManager: React.FC = () => {
 			name: logo.name,
 			alt_text: logo.alt_text || '',
 			position: logo.position,
+			is_active: logo.is_active,
 		});
 		setIsDialogOpen(true);
 	};
@@ -271,7 +275,15 @@ const LogoManager: React.FC = () => {
 				{logos.map((logo) => (
 					<Card
 						key={logo.id}
-						className={logo.is_active ? 'border-green-500' : ''}
+						className={`
+						rounded-md
+						transition-all duration-300 ease-in-out
+						${
+							logo.is_active
+								? 'border-2 border-green-500 shadow-lg transform scale-105'
+								: 'border border-gray-300 shadow-sm opacity-80 scale-100'
+						}
+					`}
 					>
 						<CardHeader>
 							<CardTitle className="text-lg">{logo.name}</CardTitle>
@@ -285,37 +297,22 @@ const LogoManager: React.FC = () => {
 								alt={logo.alt_text || logo.name}
 								className="w-full h-32 object-contain rounded-md mb-4"
 							/>
-							<div className="flex items-center justify-between">
-								<div className="flex items-center gap-2">
-									<Switch
-										checked={logo.is_active}
-										onCheckedChange={() => handleToggleActive(logo)}
-										id={`toggle-${logo.id}`}
-									/>
-									<label
-										htmlFor={`toggle-${logo.id}`}
-										className="text-sm cursor-pointer"
-										onClick={() => handleToggleActive(logo)}
-									>
-										{logo.is_active ? 'مفعل' : 'غير مفعل'}
-									</label>
-								</div>
-								<div className="flex space-x-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => openEditDialog(logo)}
-									>
-										<Edit className="w-4 h-4" />
-									</Button>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => handleDelete(logo.id)}
-									>
-										<Trash2 className="w-4 h-4" />
-									</Button>
-								</div>
+							<div
+								className="flex items-center gap-2 cursor-pointer"
+								onClick={() => handleToggleActive(logo)}
+							>
+								{/* الدائرة الصغيرة */}
+								<span
+									className={`
+											w-3 h-3 rounded-full border
+											${logo.is_active ? 'bg-green-500 border-green-500' : 'bg-white border-gray-400'}
+											transition-colors duration-300
+											`}
+								></span>
+								{/* النص */}
+								<span className="text-sm">
+									{logo.is_active ? 'مفعل' : 'غير مفعل'}
+								</span>
 							</div>
 						</CardContent>
 					</Card>
@@ -323,12 +320,12 @@ const LogoManager: React.FC = () => {
 			</div>
 
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg shadow-xl">
 					<DialogHeader>
-						<DialogTitle>
+						<DialogTitle className="text-lg font-semibold">
 							{editingLogo ? 'Edit Logo' : 'Upload New Logo'}
 						</DialogTitle>
-						<DialogDescription>
+						<DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
 							{editingLogo
 								? 'Update the logo details and optionally upload a new image.'
 								: 'Upload a new logo image and configure its settings.'}
@@ -387,6 +384,19 @@ const LogoManager: React.FC = () => {
 								required={!editingLogo}
 							/>
 						</div>
+						<div className="flex items-center space-x-2">
+							<input
+								type="checkbox"
+								checked={formData.is_active}
+								onChange={(e) =>
+									setFormData({ ...formData, is_active: e.target.checked })
+								}
+								id="is_active"
+								className="w-4 h-4"
+							/>
+							<Label htmlFor="is_active">تفعيل</Label>
+						</div>
+
 						<div className="flex justify-end space-x-2">
 							<Button
 								type="button"
@@ -395,9 +405,13 @@ const LogoManager: React.FC = () => {
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={uploading}>
+							<Button
+								className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
+								type="submit"
+								disabled={uploading}
+							>
 								{uploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-								{editingLogo ? 'Update' : 'Upload'}
+								{editingLogo ? 'Update' : 'حفظ'}
 							</Button>
 						</div>
 					</form>

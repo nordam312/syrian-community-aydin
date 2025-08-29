@@ -24,7 +24,14 @@ import {
 	Vote,
 	AlertCircle,
 } from 'lucide-react';
-import { API_URL } from '@/config';
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+} from '@/components/ui/dialog';
+import { API_URL, STORAGE_URL } from '@/config';
 
 function formatDate(dateStr: string) {
 	const date = new Date(dateStr);
@@ -45,10 +52,10 @@ type Candidate = {
 	id: number;
 	name: string;
 	bio: string;
-	image_url?: string;
 	position: string;
 	created_at: string;
 	updated_at: string;
+	image: File | null;
 };
 
 type CandidateForm = {
@@ -59,7 +66,7 @@ type CandidateForm = {
 	platform?: string;
 	image: File | null;
 };
-type NewElectionForm = {
+type ElectionForm = {
 	id?: number;
 	name: string;
 	description: string;
@@ -67,25 +74,35 @@ type NewElectionForm = {
 	end_date: string;
 	candidates_count: number;
 	status: string;
+	image: File | null;
 };
 
 const ElectionManager = () => {
 	const { toast } = useToast();
 	const [candidates, setCandidates] = useState<Candidate[]>([]);
-	const [newElectionForm, setNewElectionForm] = useState<NewElectionForm>(null);
-	const [getElections, setGetElections] = useState<NewElectionForm[]>([]);
+	const [newElectionForm, setNewElectionForm] = useState<ElectionForm>({
+		name: '',
+		description: '',
+		start_date: '',
+		end_date: '',
+		candidates_count: 0,
+		status: 'pending',
+		image: null,
+	});
+
+	const [getElections, setGetElections] = useState<ElectionForm[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [showForm, setShowForm] = useState(false);
 	const [formType, setFormType] = useState<
 		'candidate' | 'showCandidate' | 'campaign' | null
 	>(null);
 	const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(
 		null,
 	);
-	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-	const [candidateToDelete, setCandidateToDelete] = useState<Candidate | null>(
+	const [editingElection, setEditingElection] = useState<ElectionForm | null>(
 		null,
 	);
+	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+	const [electionIdToDelete, setElectionIdToDelete] = useState(null);
 	const [candidateForm, setCandidateForm] = useState<CandidateForm>({
 		display_name: '',
 		bio: '',
@@ -158,39 +175,81 @@ const ElectionManager = () => {
 	}, [fetchCandidates, userToken]);
 
 	const handleAddElection = async () => {
-		await axios.post(`${API_URL}/elections/create`, newElectionForm, {
+		const formData = new FormData();
+		formData.append('name', newElectionForm.name);
+		formData.append('description', newElectionForm.description);
+		formData.append('start_date', newElectionForm.start_date);
+		formData.append('end_date', newElectionForm.end_date);
+		formData.append('status', newElectionForm.status);
+		if (newElectionForm.image) formData.append('image', newElectionForm.image);
+
+		console.log(newElectionForm.image);
+		console.log(newElectionForm.status);
+
+		await axios.post(`${API_URL}/elections/create`, formData, {
 			headers: {
 				Authorization: `Bearer ${userToken}`,
 				'Content-Type': 'multipart/form-data',
 			},
 		});
 		toast({ title: 'تم اضافة الحملة بنجاح', variant: 'success' });
+		GetElections(); // جدد القائمة بعد الإضافة
 	};
+	const handleUpdateElection = async (id) => {
+		const formData = new FormData();
+		formData.append('name', newElectionForm.name);
+		formData.append('description', newElectionForm.description);
+		formData.append('start_date', newElectionForm.start_date);
+		formData.append('end_date', newElectionForm.end_date);
+		formData.append('status', newElectionForm.status);
+		if (newElectionForm.image) formData.append('image', newElectionForm.image);
 
+		await axios.post(`${API_URL}/elections/${id}/update`, formData, {
+			headers: {
+				Authorization: `Bearer ${userToken}`,
+				'Content-Type': 'multipart/form-data',
+			},
+		});
+		toast({ title: 'تم تعديل الحملة بنجاح', variant: 'success' });
+		GetElections(); // جدد القائمة بعد الإضافة
+	};
 	const handleAddCandidate = async () => {
 		const electionId = localStorage.getItem('electionId');
-		await axios.post(
-			`${API_URL}/elections/${electionId}/candidates`,
-			candidateForm,
-			{
-				headers: {
-					Authorization: `Bearer ${userToken}`,
-					'Content-Type': 'multipart/form-data',
+		try {
+			await axios.post(
+				`${API_URL}/elections/${electionId}/candidates`,
+				candidateForm,
+				{
+					headers: {
+						Authorization: `Bearer ${userToken}`,
+						'Content-Type': 'multipart/form-data',
+					},
 				},
-			},
-		);
-		toast({ title: 'تم اضافة مرشح بنجاح', variant: 'success' });
+			);
+			toast({ title: 'تم اضافة مرشح بنجاح', variant: 'success' });
+		} catch (err) {
+			const errorMessage = err.response.data.message;
+
+			toast({
+				title: 'خطأ',
+				description: errorMessage,
+				variant: 'warning',
+			});
+		}
 	};
 
 	const getCandidates = async () => {
 		const electionId = localStorage.getItem('electionId');
 		try {
-			const response = await axios.get(`${API_URL}/elections/${electionId}/candidates`, {
-				headers: {
-					Authorization: `Bearer ${userToken}`,
-					'Content-Type': 'multipart/form-data',
+			const response = await axios.get(
+				`${API_URL}/elections/${electionId}/candidates`,
+				{
+					headers: {
+						Authorization: `Bearer ${userToken}`,
+						'Content-Type': 'multipart/form-data',
+					},
 				},
-			});
+			);
 			setGetCandidates(response.data || []);
 			toast({ title: 'تم عرض المرشحين بنجاح', variant: 'success' });
 		} catch (error) {
@@ -198,27 +257,45 @@ const ElectionManager = () => {
 		}
 	};
 
-	const openAddFormCampaign = () => {
+	const openEditAddFormCampaign = (campaign: ElectionForm | null) => {
+		if (campaign) {
+			setEditingElection(campaign);
+			setNewElectionForm({
+				name: campaign.name,
+				description: campaign.description,
+				start_date: campaign.start_date,
+				end_date: campaign.end_date,
+				candidates_count: campaign.candidates_count,
+				status: campaign.status,
+				image: null, // ما منجيب الصورة القديمة، بيضل يرفع جديدة إذا حب
+			});
+		} else {
+			setEditingElection(null);
+			setNewElectionForm({
+				name: '',
+				description: '',
+				start_date: '',
+				end_date: '',
+				candidates_count: 0,
+				status: 'pending',
+				image: null,
+			});
+		}
+
 		setFormType('campaign');
-		setShowForm(true);
 	};
 
 	const openAddFormCandidate = (id) => {
 		localStorage.setItem('electionId', id);
 		setFormType('candidate');
-		setShowForm(true);
 	};
 	const openCandidatePart = (id) => {
 		localStorage.setItem('electionId', id);
 		getCandidates();
 		setFormType('showCandidate');
-		setShowForm(true);
 	};
 
-	const resetForm = () => {
-		setEditingCandidate(null);
-		setShowForm(false);
-	};
+	const resetForm = () => {};
 	const openEditForm = (candidate: Candidate) => {
 		setCandidateForm({
 			display_name: candidate.name,
@@ -229,7 +306,6 @@ const ElectionManager = () => {
 			image: null,
 		});
 		setEditingCandidate(candidate);
-		setShowForm(true);
 	};
 
 	const handleCandidateFormChange = (
@@ -239,18 +315,20 @@ const ElectionManager = () => {
 	) => {
 		setCandidateForm({ ...candidateForm, [e.target.name]: e.target.value });
 	};
-
 	const handleCampaignFormChange = (
 		e: React.ChangeEvent<
 			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 		>,
 	) => {
-		setNewElectionForm({ ...newElectionForm, [e.target.name]: e.target.value });
-	};
+		const { name, type, value } = e.target;
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (e.target.files && e.target.files[0]) {
-			setCandidateForm({ ...candidateForm, image: e.target.files[0] });
+		if (type === 'file' && 'files' in e.target) {
+			const files = (e.target as HTMLInputElement).files;
+			if (files && files[0]) {
+				setNewElectionForm({ ...newElectionForm, [name]: files[0] });
+			}
+		} else {
+			setNewElectionForm({ ...newElectionForm, [name]: value });
 		}
 	};
 
@@ -306,27 +384,23 @@ const ElectionManager = () => {
 	// 	}
 	// };
 
-	const openDeleteModal = (candidate: Candidate) => {
-		setCandidateToDelete(candidate);
+	const openDeleteModal = (id) => {
+		setElectionIdToDelete(id);
 		setDeleteModalOpen(true);
 	};
-	const closeDeleteModal = () => {
-		setCandidateToDelete(null);
-		setDeleteModalOpen(false);
-	};
-
 	const handleDelete = async () => {
-		if (!candidateToDelete) return;
+		if (!electionIdToDelete) return;
 		try {
-			await axios.delete(
-				`${API_URL}/elections/candidates/${candidateToDelete.id}`,
-				{
-					headers: { Authorization: `Bearer ${userToken}` },
-				},
-			);
-			toast({ title: 'تم الحذف بنجاح', description: 'تم حذف المرشح بنجاح' });
+			await axios.delete(`${API_URL}/elections/${electionIdToDelete}`, {
+				headers: { Authorization: `Bearer ${userToken}` },
+			});
+			toast({
+				title: 'تم الحذف بنجاح',
+				variant: 'success',
+				description: 'تم حذف الحملة الانتخابية بنجاح',
+			});
 			closeDeleteModal();
-			fetchCandidates();
+			GetElections();
 		} catch (error: unknown) {
 			let errorMsg = 'حدث خطأ في حذف المرشح';
 			if (axios.isAxiosError(error))
@@ -338,6 +412,10 @@ const ElectionManager = () => {
 				variant: 'destructive',
 			});
 		}
+	};
+	const closeDeleteModal = () => {
+		setElectionIdToDelete(null);
+		setDeleteModalOpen(false);
 	};
 
 	// const formatDate = (dateStr: string) => {
@@ -396,7 +474,7 @@ const ElectionManager = () => {
 							</div>
 						</div>
 						<Button
-							onClick={openAddFormCampaign}
+							onClick={() => openEditAddFormCampaign(null)}
 							className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
 						>
 							<Plus className="mr-2 h-4 w-4" />
@@ -407,6 +485,63 @@ const ElectionManager = () => {
 			</Card>
 
 			{/* المرشحين */}
+			{formType === 'showCandidate' && (
+				<Card className="shadow-lg">
+					<CardHeader className="bg-gradient-to-r from-syria-green-50 to-transparent">
+						<CardTitle className="flex items-center text-syria-green-600">
+							<Vote className="mr-2 h-5 w-5" />
+							عرض المرشحين
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+							{getCandidatess.map((candidate) => (
+								<Card
+									// onClick={() => openCandidatePart(candidate.id)}
+									key={candidate.id}
+									className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-l-syria-green-400"
+								>
+									<div className="relative">
+										{/* {candidate.image ? (
+											<img
+												src={`${STORAGE_URL}/${candidate.image}`}
+												alt={candidate.name}
+												className="w-full h-48 object-cover"
+											/>
+										) : (
+											<div className="w-full h-48 bg-gradient-to-br from-syria-green-100/30 to-syria-green-50 flex items-center justify-center">
+												<User className="h-16 w-16 text-syria-green-400/70" />
+											</div>
+										)} */}
+										<img
+											src={'/samir.jpg'}
+											alt={candidate.name}
+											className="w-full h-48 object-cover"
+										/>
+										<div className="absolute top-2 right-2">
+											<span className="bg-syria-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+												{/* {election.position === 'president'
+													? 'رئيس'
+													: election.position} */}
+												{/* {candidate.status} */}
+											</span>
+										</div>
+									</div>
+									<CardContent className="p-5">
+										<h3 className="font-bold text-lg mb-2 text-foreground">
+											{candidate.name}
+										</h3>
+										<p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
+											{candidate.bio}
+										</p>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			)}
+			{/* الحملات */}
 			<Card className="shadow-lg ">
 				<CardHeader className="bg-gradient-to-r from-syria-green-50 to-transparent">
 					<CardTitle className="flex items-center text-syria-green-600">
@@ -441,9 +576,9 @@ const ElectionManager = () => {
 									className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-l-syria-green-400"
 								>
 									<div className="relative">
-										{/* {election.image_url ? (
+										{election.image ? (
 											<img
-												src={election.image_url}
+												src={`${STORAGE_URL}/${election.image}`}
 												alt={election.name}
 												className="w-full h-48 object-cover"
 											/>
@@ -451,12 +586,7 @@ const ElectionManager = () => {
 											<div className="w-full h-48 bg-gradient-to-br from-syria-green-100/30 to-syria-green-50 flex items-center justify-center">
 												<User className="h-16 w-16 text-syria-green-400/70" />
 											</div>
-										)} */}
-										<img
-											src={'/samir.jpg'}
-											alt={election.name}
-											className="w-full h-48 object-cover"
-										/>
+										)}
 										<div className="absolute top-2 right-2">
 											<span className="bg-syria-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
 												{/* {election.position === 'president'
@@ -489,13 +619,20 @@ const ElectionManager = () => {
 												size="sm"
 												variant="outline"
 												className="text-syria-green-600 border-syria-green-500 hover:bg-syria-green-500 hover:text-white"
-												onClick={(e) => {e.stopPropagation(); openAddFormCandidate(election.id)}}
+												onClick={(e) => {
+													e.stopPropagation();
+													openAddFormCandidate(election.id);
+												}}
 											>
 												<Plus className="h-3 w-3 mr-1" />
 												اضافة مرشحين
 											</Button>
 											<Button
 												size="sm"
+												onClick={(e) => {
+													e.stopPropagation();
+													openEditAddFormCampaign(election);
+												}}
 												variant="outline"
 												className="text-syria-green-600 border-syria-green-500 hover:bg-syria-green-500 hover:text-white"
 											>
@@ -505,8 +642,11 @@ const ElectionManager = () => {
 											<Button
 												size="sm"
 												variant="outline"
-												// onClick={() => openDeleteModal(candidate)}
-												className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+												onClick={(e) => {
+													e.stopPropagation();
+													openDeleteModal(election.id);
+												}}
+												className="text-red-600 border-red-200 hover:bg-red-50"
 											>
 												<Trash2 className="h-3 w-3" />
 											</Button>
@@ -524,7 +664,9 @@ const ElectionManager = () => {
 				<Card className="shadow-lg border-l-4 border-l-syria-green-600">
 					<CardHeader>
 						<CardTitle className="text-syria-green-700">
-							اضافة حملة انتخابية جديدة
+							{editingElection
+								? 'تعديل الحملة الانتخابية'
+								: 'اضافة حملة انتخابية جديدة'}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -534,7 +676,7 @@ const ElectionManager = () => {
 								<Input
 									id="name"
 									name="name"
-									// value={newElectionForm.name}
+									value={newElectionForm.name}
 									onChange={handleCampaignFormChange}
 									required
 								/>
@@ -545,7 +687,7 @@ const ElectionManager = () => {
 								<Textarea
 									id="description"
 									name="description"
-									// value={newElectionForm.description}
+									value={newElectionForm.description}
 									onChange={handleCampaignFormChange}
 									required
 								/>
@@ -554,6 +696,7 @@ const ElectionManager = () => {
 								<Label htmlFor="image">تاريخ بداية الحملة</Label>
 								<Input
 									name="start_date"
+									value={newElectionForm.start_date}
 									onChange={handleCampaignFormChange}
 									type="datetime-local"
 									required
@@ -563,42 +706,51 @@ const ElectionManager = () => {
 								<Label htmlFor="image">تاريخ انتهاء الحملة</Label>
 								<Input
 									name="end_date"
+									value={newElectionForm.end_date}
 									onChange={handleCampaignFormChange}
 									type="datetime-local"
 									required
 								/>
 							</div>
-							{/* <div>
+							<div>
 								<Label htmlFor="status">حالة الحملة الانتخابية</Label>
 								<select
 									id="status"
 									name="status"
-									// value={newElectionForm.status}
-									onChange={handleAddElection}
+									onChange={handleCampaignFormChange}
+									value={newElectionForm.status}
 									className="w-full border border-gray-300 rounded px-3 py-2"
 								>
-									<option value="pending">pendin / قيد الانتظار</option>
-									<option value="active">active / مفعلة</option>
+									<option value="pending">pending</option>
+									<option value="active">active</option>
 								</select>
-							</div> */}
+							</div>
 							<div>
 								<Label htmlFor="image">صورة للحملة</Label>
 								<Input
 									type="file"
 									id="image"
-									accept="image/*"
-									onChange={handleImageChange}
+									name="image"
+									onChange={handleCampaignFormChange}
 								/>
 							</div>
 
 							<div className="flex space-x-2 space-x-reverse">
 								<Button
 									type="button"
-									onClick={handleAddElection}
+									onClick={() => {
+										if (editingElection) {
+											handleUpdateElection(editingElection.id); // تمرير ID الحملة للتحديث
+										} else {
+											handleAddElection();
+										}
+									}}
 									className="bg-syria-green-500 text-white hover:bg-syria-green-600 flex-1"
 								>
 									<Save className="mr-1 h-4 w-4" />
-									إضافة الحملة الانتخابية
+									{editingElection
+										? 'حفظ التعديلات'
+										: 'إضافة الحملة الانتخابية'}
 								</Button>
 								<Button
 									type="button"
@@ -614,6 +766,7 @@ const ElectionManager = () => {
 					</CardContent>
 				</Card>
 			)}
+
 			{/* نموذج الإضافة والتعديل */}
 			{formType === 'candidate' && (
 				<Card className="shadow-lg border-l-4 border-l-syria-green-600">
@@ -695,7 +848,7 @@ const ElectionManager = () => {
 									type="file"
 									id="image"
 									accept="image/*"
-									onChange={handleImageChange}
+									onChange={handleCandidateFormChange}
 								/>
 							</div>
 
@@ -724,147 +877,34 @@ const ElectionManager = () => {
 				</Card>
 			)}
 
-			{formType === 'showCandidate' && (
-				<Card className="shadow-lg">
-					<CardHeader className="bg-gradient-to-r from-syria-green-50 to-transparent">
-						<CardTitle className="flex items-center text-syria-green-600">
-							<Vote className="mr-2 h-5 w-5" />
-							عرض المرشحين
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{getElections.length === 0 ? (
-							<div className="text-center py-12">
-								<Award className="mx-auto h-16 w-16 text-syria-green-500 mb-6" />
-								<h3 className="text-lg font-semibold text-foreground mb-2">
-									لا يوجد حملات انتخابية الان
-								</h3>
-								<p className="text-muted-foreground mb-6">
-									ابدأ بإضافة أول حملة انتخابية للحالية
-								</p>
-								<Button
-									onClick={openAddFormCandidate}
-									className="bg-syria-green-500 text-white hover:bg-syria-green-600"
-								>
-									<Plus className="mr-2 h-4 w-4" />
-									إضافة أول حملة
-								</Button>
-							</div>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-								{getCandidatess.map((candidate) => (
-									<Card
-										// onClick={() => openCandidatePart(candidate.id)}
-										key={candidate.id}
-										className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-l-syria-green-400"
-									>
-										<div className="relative">
-											{/* {election.image_url ? (
-											<img
-												src={election.image_url}
-												alt={election.name}
-												className="w-full h-48 object-cover"
-											/>
-										) : (
-											<div className="w-full h-48 bg-gradient-to-br from-syria-green-100/30 to-syria-green-50 flex items-center justify-center">
-												<User className="h-16 w-16 text-syria-green-400/70" />
-											</div>
-										)} */}
-											<img
-												src={'/samir.jpg'}
-												alt={candidate.name}
-												className="w-full h-48 object-cover"
-											/>
-											<div className="absolute top-2 right-2">
-												<span className="bg-syria-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
-													{/* {election.position === 'president'
-													? 'رئيس'
-													: election.position} */}
-													{/* {candidate.status} */}
-												</span>
-											</div>
-										</div>
-										<CardContent className="p-5">
-											<h3 className="font-bold text-lg mb-2 text-foreground">
-												{candidate.name}
-											</h3>
-											<p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
-												{candidate.bio}
-											</p>
-
-											{/* <div className="text-xs text-syria-green-600 mb-4 font-medium">
-												يبدأ في: {formatDate(candidate.start_date)}
-											</div>
-											<div className="text-xs text-syria-green-600 mb-4 font-medium">
-												ينتهي في: {formatDate(election.end_date)}
-											</div>
-											<div className="text-xs text-syria-green-600 mb-4 font-medium">
-												عدد المرشحين {election.candidates_count}
-											</div> */}
-											{/* <div className="flex space-x-2 space-x-reverse">
-												<Button
-													type="button"
-													size="sm"
-													variant="outline"
-													className="text-syria-green-600 border-syria-green-500 hover:bg-syria-green-500 hover:text-white"
-													onClick={() => openAddFormCandidate(candidate.id)}
-												>
-													<Plus className="h-3 w-3 mr-1" />
-													اضافة مرشحين
-												</Button>
-												<Button
-													size="sm"
-													variant="outline"
-													className="text-syria-green-600 border-syria-green-500 hover:bg-syria-green-500 hover:text-white"
-												>
-													<Edit className="h-3 w-3 mr-1" />
-													تعديل
-												</Button>
-												<Button
-													size="sm"
-													variant="outline"
-													// onClick={() => openDeleteModal(candidate)}
-													className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-												>
-													<Trash2 className="h-3 w-3" />
-												</Button>
-											</div> */}
-										</CardContent>
-									</Card>
-								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
-			)}
-
 			{/* نافذة حذف المرشح */}
-			{deleteModalOpen && candidateToDelete && (
-				<div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-					<Card className="max-w-md w-full p-6 border-l-4 border-l-destructive">
-						<CardHeader>
-							<CardTitle className="text-destructive">تأكيد الحذف</CardTitle>
-							<CardDescription>
-								هل أنت متأكد من حذف المرشح {candidateToDelete.name}؟
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="flex space-x-2 space-x-reverse mt-4">
+			{deleteModalOpen && (
+				<Dialog
+					open={deleteModalOpen}
+					onOpenChange={(open) => !open && setDeleteModalOpen(false)}
+				>
+					<DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg shadow-xl p-6">
+						<DialogHeader>
+							<DialogTitle className="text-lg font-semibold text-destructive">
+								تأكيد الحذف
+							</DialogTitle>
+						</DialogHeader>
+						<p className="mt-2 text-sm">
+							هل أنت متأكد من حذف هذه الحملة الانتخابية؟ لن تتمكن من استعادتها.
+						</p>
+						<div className="flex justify-end gap-2 mt-4">
+							<Button variant="outline" onClick={closeDeleteModal}>
+								إلغاء
+							</Button>
 							<Button
+								className="bg-red-600 hover:bg-red-700 text-white"
 								onClick={handleDelete}
-								className="flex-1 bg-destructive text-white hover:bg-destructive/90"
 							>
 								حذف
 							</Button>
-							<Button
-								onClick={closeDeleteModal}
-								variant="outline"
-								className="flex-1"
-							>
-								إلغاء
-							</Button>
-						</CardContent>
-					</Card>
-				</div>
+						</div>
+					</DialogContent>
+				</Dialog>
 			)}
 		</div>
 	);

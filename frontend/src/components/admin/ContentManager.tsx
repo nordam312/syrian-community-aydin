@@ -53,7 +53,7 @@ const ContentManager = () => {
 			toast({
 				title: 'خطأ في جلب البيانات',
 				description: 'فشل في جلب محتوى الصفحة',
-				variant: 'destructive',
+				variant: 'warning',
 			});
 		} finally {
 			setLoading(false);
@@ -74,11 +74,14 @@ const ContentManager = () => {
 					variant: 'success',
 				});
 			} catch (error) {
-				console.error('Error updating content items:', error);
+				const errorMessage =
+					error?.response?.data?.message ||
+					'حدث خطأ غير متوقع';
+
 				toast({
 					title: 'خطأ في التحديث',
-					description: 'فشل في تحديث محتوى الصفحة',
-					variant: 'destructive',
+					description: errorMessage,
+					variant: 'warning',
 				});
 			} finally {
 				setUpdateLoading(false);
@@ -103,7 +106,6 @@ const ContentManager = () => {
 			</div>
 		);
 	}
-
 
 	return (
 		<TabsContent value="content" className="space-y-6 ">

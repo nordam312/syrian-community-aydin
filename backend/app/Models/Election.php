@@ -10,7 +10,7 @@ class Election extends Model
     use HasFactory;
 
     // الحقول التي يُسمح بتحديثها بالجملة (Mass Assignment)
-    protected $fillable = ['name', 'description', 'start_date', 'end_date', 'status'];
+    protected $fillable = ['name', 'description', 'start_date', 'end_date', 'status','image'];
 
     protected $casts = [
     'start_date' => 'datetime',

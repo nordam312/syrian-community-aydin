@@ -31,8 +31,14 @@ class ElectionController extends Controller
                 'name' => 'required|string|max:255',
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date|after:start_date',
-                'status' => 'in:pending,active,completed'
+                'status' => 'in:pending,active,completed',
+                'image' => 'nullable|image|max:2048', // تحقق من أن الملف صورة وحجمها لا يتجاوز 2 ميجابايت
+
             ]);
+
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('elections', 'public');
+            }
 
             // إنشاء الانتخابات
             $election = Election::create([
@@ -41,6 +47,8 @@ class ElectionController extends Controller
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
                 'status' => $request->status ?? 'pending',
+                'image' => $imagePath ?? null,
+
             ]);
 
             return response()->json($election, 201); // 201 = تم الإنشاء بنجاح
@@ -48,15 +56,54 @@ class ElectionController extends Controller
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->validator->errors()], 422);
         } catch (\Exception $e) {
-    return response()->json([
-        'error' => 'حدث خطأ',
-        'message' => $e->getMessage(),
-        'trace' => $e->getTraceAsString()
-    ], 500);
+            return response()->json([
+            'error' => 'حدث خطأ',
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
 }
 
     }
+    //تحديث حملة انتخابية
+    public function updateElection(Request $request, Election $election){
+        $request->validate([
+            'name' => "nullable|string|max:255",
+            'description' => "nullable|string",
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after:start_date',
+            'status' => 'in:pending,active,completed',
+            'image' => 'nullable|image|max:2048'
+        ]);
 
+        // تحديث الحقول العادية
+        $election->name = $request->name ?? $election->name;
+        $election->description = $request->description ?? $election->description;
+        $election->start_date = $request->start_date ?? $election->start_date;
+        $election->end_date = $request->end_date ?? $election->end_date;
+        $election->status = $request->status ?? $election->status;
+
+        // التعامل مع الصورة
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('elections', $filename, 'public'); // يخزن في storage/app/public/elections
+            $election->image = $path; // نخزن المسار النهائي في الداتابيس
+        }
+
+        $election->save();
+
+        return response()->json([
+            'message' => 'تم تحديث الفعالية بنجاح',
+            'event' => $election
+        ]);
+    }
+
+    // حذف حملة انتخابية 
+        public function destroyElection($id)
+    {
+        Election::findOrFail($id)->delete();
+        return response()->json(['message' => 'تم حذف الحملة الانتخابية بنجاح']);
+    }
     // 🔹 عرض المرشحين لانتخابات معينة
     public function candidates(Request $request, $electionId)
     {
@@ -96,10 +143,25 @@ class ElectionController extends Controller
         'position' => 'required|string',
         'bio' => 'nullable|string',
         'platform' => 'nullable|string',
+    ], [
+        'display_name.required' => 'اسم المرشح مطلوب',
+        'display_name.string' => 'اسم المرشح يجب أن يكون نصاً',
+        'display_name.max' => 'اسم المرشح طويل جداً',
+
+        'student_id.required' => 'معرف الطالب مطلوب',
+        'student_id.exists' => 'معرف الطالب المختار غير صالح',
+
+        'position.required' => 'المنصب مطلوب',
+        'position.string' => 'المنصب يجب أن يكون نصاً',
+
+        'bio.string' => 'السيرة الذاتية يجب أن تكون نصاً',
+        'platform.string' => 'برنامج المرشح يجب أن يكون نصاً',
     ]);
+
 
     // جلب الـ user_id من جدول users عن طريق student_number
     $user = User::where('student_id', $request->student_id)->first();
+
 
     if (!$user) {
         return response()->json(['error' => 'الطالب غير موجود'], 404);
@@ -148,7 +210,7 @@ class ElectionController extends Controller
     public function results(Request $request, $electionId)
     {
         return Candidate::where('election_id', $electionId)
-             ->withCount('votes')
-             ->get();
+            ->withCount('votes')
+            ->get();
     }
 }

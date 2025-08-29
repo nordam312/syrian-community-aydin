@@ -648,7 +648,7 @@ const AdminDashboard = () => {
 													onClick={() => openDeleteModal(user.id, user.name)}
 													size="sm"
 													variant="outline"
-													className="text-red-600"
+													className="text-red-600 border-red-200 hover:bg-red-50"
 												>
 													<Trash2 className="h-3 w-3" />
 												</Button>
