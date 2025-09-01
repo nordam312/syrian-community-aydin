@@ -104,37 +104,26 @@ class ElectionController extends Controller
         Election::findOrFail($id)->delete();
         return response()->json(['message' => 'تم حذف الحملة الانتخابية بنجاح']);
     }
+
     // 🔹 عرض المرشحين لانتخابات معينة
     public function candidates(Request $request, $electionId)
     {
-        $election = Election::with('candidates.user:id,name')->find($electionId);
+        $election = Election::find($electionId);
+        
         if (!$election) {
             return response()->json(['error' => 'الانتخابات غير موجودة'], 404);
         }
 
-        return response()->json($election->candidates);
+        // جلب المرشحين مع عدد الأصوات والمعلومات الخاصة بالمستخدم
+        $candidates = Candidate::where('election_id', $electionId)
+                    ->with('user:id,name')
+                    ->withCount('votes') // عدد الأصوات
+                    ->get();
+
+        return response()->json($candidates);
     }
 
     // 🔹 إضافة مرشح إلى انتخابات
-    // public function addCandidate(Request $request, $electionId)
-    // {
-    //     $request->validate([
-    //         'user_id' => 'required|exists:users,id',
-    //         'position' => 'required|string',
-    //         'bio' => 'nullable|string',
-    //         'platform' => 'nullable|string',
-    //     ]);
-
-    //     $candidate = Candidate::create([
-    //         'election_id' => $electionId,
-    //         'user_id' => $request->user_id,
-    //         'position' => $request->position,
-    //         'bio' => $request->bio,
-    //         'platform' => $request->platform,
-    //     ]);
-
-    //     return response()->json($candidate, 201);
-    // }
     public function addCandidate(Request $request, $electionId)
 {
     $request->validate([
@@ -143,6 +132,8 @@ class ElectionController extends Controller
         'position' => 'required|string',
         'bio' => 'nullable|string',
         'platform' => 'nullable|string',
+        'image' => 'nullable|image|max:2048', // تحقق من أن الملف صورة وحجمها لا يتجاوز 2 ميجابايت
+
     ], [
         'display_name.required' => 'اسم المرشح مطلوب',
         'display_name.string' => 'اسم المرشح يجب أن يكون نصاً',
@@ -157,14 +148,13 @@ class ElectionController extends Controller
         'bio.string' => 'السيرة الذاتية يجب أن تكون نصاً',
         'platform.string' => 'برنامج المرشح يجب أن يكون نصاً',
     ]);
-
-
     // جلب الـ user_id من جدول users عن طريق student_number
     $user = User::where('student_id', $request->student_id)->first();
-
-
     if (!$user) {
         return response()->json(['error' => 'الطالب غير موجود'], 404);
+    }
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('candidates', 'public');
     }
 
     $candidate = Candidate::create([
@@ -175,12 +165,62 @@ class ElectionController extends Controller
         'position' => $request->position,
         'bio' => $request->bio,
         'platform' => $request->platform,
+        'image' => $imagePath ?? null
     ]);
 
     return response()->json($candidate, 201);
 }
+    // تعديل معلومات مرشح
+    public function updateCandidate(Request $request, Candidate $candidate){
+    $request->validate([
+        'display_name' => 'nullable|string|max:255',
+        'position' => 'nullable|string',
+        'bio' => 'nullable|string',
+        'platform' => 'nullable|string',
+        'image' => 'nullable|image|max:2048',
+    ]);
 
+    // تصحيح: استخدام الخصائص الصحيحة لكائن Candidate
+    $candidate->display_name = $request->display_name ?? $candidate->display_name;
+    $candidate->position = $request->position ?? $candidate->position;
+    $candidate->bio = $request->bio ?? $candidate->bio;
+    $candidate->platform = $request->platform ?? $candidate->platform;
+    
+    // التعامل مع الصورة
+    if ($request->hasFile('image')) {
+        // إذا كان عنده صورة قديمة نحذفها
+        if ($candidate->image && \Storage::disk('public')->exists($candidate->image)) {
+            \Storage::disk('public')->delete($candidate->image);
+        }
 
+        $file = $request->file('image');
+        $filename = time() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('candidates', $filename, 'public'); 
+        $candidate->image = $path;
+    }
+
+    $candidate->save();
+    
+    return response()->json([
+        'message' => 'تم تحديث معلوملت المرشح بنجاح',
+        'candidate' => $candidate
+    ]);
+}
+    //حذف مرشح 
+    public function destroyCandidate(Candidate $candidate)
+    {
+        // حذف الصورة إذا كانت موجودة
+        if ($candidate->image && \Storage::disk('public')->exists($candidate->image)) {
+            \Storage::disk('public')->delete($candidate->image);
+        }
+
+        $candidate->delete();
+
+        return response()->json([
+            'message' => 'تم حذف المرشح بنجاح'
+        ]);
+    }
+    
     // 🔹 التصويت لمرشح
     public function vote(Request $request, $electionId)
     {
@@ -205,7 +245,6 @@ class ElectionController extends Controller
 
         return response()->json(['message' => 'تم التصويت بنجاح']);
     }
-
     // 🔹 عرض نتائج الانتخابات
     public function results(Request $request, $electionId)
     {

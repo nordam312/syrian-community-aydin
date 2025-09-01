@@ -1,157 +1,515 @@
-// src/pages/Elections.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { API_URL, STORAGE_URL } from '@/config';
 import {
-	Card,
-	CardHeader,
-	CardTitle,
-	CardDescription,
-	CardContent,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Vote, Crown, Users, Calendar, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
+import { useToast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+
+interface Election {
+  id: number;
+  name: string;
+  description: string;
+  status: string;
+  image: string | null;
+  start_date: string;
+  end_date: string;
+  candidates_count: number;
+}
 
 interface Candidate {
-	id: number;
-	name: string;
-	position: string;
-	votes: number;
-	image: string;
+  id: number;
+  display_name: string;
+  position: string;
+  bio: string;
+  platform: string;
+  image: string | null;
+  votes_count?: number;
+}
+
+interface VoteRequest {
+  candidate_id: number;
 }
 
 export default function ElectionsPage() {
-	const [candidates, setCandidates] = useState<Candidate[]>([]);
-	const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
-		null,
-	);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const [activeElections, setActiveElections] = useState<Election[]>([]);
+  const [selectedElection, setSelectedElection] = useState<Election | null>(null);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [selectedCandidate, setSelectedCandidate] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
+  const [expandedCandidate, setExpandedCandidate] = useState<number | null>(null);
 
-	useEffect(() => {
-		setCandidates([
-			{
-				id: 1,
-				name: 'محمد أحمد',
-				position: 'رئيس الجالية',
-				votes: 45,
-				image: "/ahmad.jpg",
-			},
-			{
-				id: 2,
-				name: 'علي حسن',
-				position: 'رئيس الجالية',
-				votes: 30,
-				image: '/samir.jpg',
-			},
-			{
-				id: 3,
-				name: 'فاطمة خالد',
-				position: 'رئيس الجالية',
-				votes: 25,
-				image: '/path-to-your-images/avatar3.jpg',
-			},
-		]);
-	}, []);
+  // جلب الانتخابات النشطة
+  const fetchActiveElections = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get<Election[]>(`${API_URL}/elections`);
+      const activeElections = response.data.filter(
+        (election) => election.status === 'active'
+      );
+      setActiveElections(activeElections);
 
-	const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0);
+      if (activeElections.length > 0) {
+        setSelectedElection(activeElections[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching elections:', error);
+      toast({
+        title: 'خطأ في تحميل الانتخابات',
+        description: 'حدث خطأ أثناء جلب بيانات الانتخابات',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
-	const handleVote = async () => {
-		if (!selectedCandidate) return;
+  // جلب المرشحين للانتخاب المحدد
+  const fetchCandidates = useCallback(async (electionId: number) => {
+    try {
+      setIsLoadingCandidates(true);
+      const userToken = sessionStorage.getItem('userToken');
 
-		try {
-			setIsSubmitting(true);
-			// Simulate API call
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!userToken) {
+        toast({
+          title: 'يجب تسجيل الدخول',
+          description: 'يجب تسجيل الدخول لعرض المرشحين',
+          variant: 'destructive',
+        });
+        return;
+      }
 
-			setCandidates(
-				candidates.map((c) =>
-					c.id === selectedCandidate ? { ...c, votes: c.votes + 1 } : c,
-				),
-			);
-			setSelectedCandidate(null);
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
+      const response = await axios.get<Candidate[]>(
+        `${API_URL}/elections/${electionId}/candidates`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+            'Accept': 'application/json'
+          }
+        }
+      );
+      setCandidates(response.data);
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      toast({
+        title: 'خطأ في تحميل المرشحين',
+        description: 'حدث خطأ أثناء جلب بيانات المرشحين',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingCandidates(false);
+    }
+  }, [toast]);
 
-	return (
-		<Layout>
-			<div className="container mx-auto bg-card py-10">
-				<div className="max-w-4xl mx-auto animate-fade-in">
-					<h1 className="text-3xl font-bold mb-8 text-center text-syria-green-800">
-						انتخابات رئاسة الجالية
-					</h1>
+  // التصويت لمرشح
+  const handleVote = async () => {
+    if (!selectedCandidate || !selectedElection) return;
 
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{candidates.map((candidate) => (
-							<Card
-								key={candidate.id}
-								className={`relative overflow-hidden transition-all duration-300 
-                ${
-									selectedCandidate === candidate.id
-										? 'ring-2 ring-syria-green-500 shadow-lg'
-										: 'hover:ring-1 hover:ring-syria-green-200'
-								}
-                bg-syria-green-50 border-syria-green-100`}
-								onClick={() => setSelectedCandidate(candidate.id)}
-							>
-								{selectedCandidate === candidate.id && (
-									<CheckCircle className="absolute top-2 right-2 h-6 w-6 text-syria-green-600" />
-								)}
+    try {
+      setIsSubmitting(true);
 
-								<img
-									src={candidate.image}
-									alt={candidate.name}
-									className="w-full h-48 object-cover border-b border-syria-green-200"
-								/>
+      const voteData: VoteRequest = {
+        candidate_id: selectedCandidate
+      };
 
-								<CardHeader>
-									<CardTitle className="text-xl font-semibold text-syria-green-900">
-										{candidate.name}
-									</CardTitle>
-									<CardDescription className="text-syria-green-600">
-										{candidate.position}
-									</CardDescription>
-								</CardHeader>
+      await axios.post(
+        `${API_URL}/elections/${selectedElection.id}/vote`,
+        voteData,
+        {
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('userToken')}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
-								<CardContent>
-									<div className="space-y-2">
-										<Progress
-											value={(candidate.votes / (totalVotes || 1)) * 100}
-											className="h-2 bg-syria-green-100"
-										/>
-										<div className="flex justify-between text-sm">
-											<span className="text-syria-green-700">
-												الأصوات: {candidate.votes}
-											</span>
-											<span className="text-syria-green-800 font-medium">
-												{((candidate.votes / (totalVotes || 1)) * 100).toFixed(
-													1,
-												)}
-												%
-											</span>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
-						))}
-					</div>
+      toast({
+        title: 'تم التصويت بنجاح',
+        description: 'شكراً لمشاركتك في الانتخابات',
+        variant: 'default',
+      });
 
-					<div className="mt-8 text-center space-y-4">
-						<p className="text-syria-green-700">إجمالي الأصوات: {totalVotes}</p>
+      fetchCandidates(selectedElection.id);
+      setSelectedCandidate(null);
 
-						<Button
-							size="lg"
-							onClick={handleVote}
-							disabled={!selectedCandidate || isSubmitting}
-							className="px-8 py-4 text-lg bg-syria-green-600 hover:bg-syria-green-700 
-              text-white transition-colors shadow-md"
-						>
-							{isSubmitting ? 'جاري التصويت...' : 'تأكيد التصويت'}
-						</Button>
-					</div>
-				</div>
-			</div>
-		</Layout>
-	);
+    } catch (error) {
+      console.error('Error voting:', error);
+      const errorMessage = error.response?.data?.error || 'حدث خطأ أثناء التصويت';
+      toast({
+        title: 'خطأ في التصويت',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActiveElections();
+  }, [fetchActiveElections]);
+
+  useEffect(() => {
+    if (selectedElection) {
+      fetchCandidates(selectedElection.id);
+    }
+  }, [selectedElection, fetchCandidates]);
+
+  const totalVotes = candidates.reduce((sum, candidate) => sum + (candidate.votes_count || 0), 0);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-EG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const toggleCandidateExpansion = (candidateId: number) => {
+    if (expandedCandidate === candidateId) {
+      setExpandedCandidate(null);
+    } else {
+      setExpandedCandidate(candidateId);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
+          <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              <h1 className="text-4xl font-bold mb-4">الانتخابات النشطة</h1>
+              <p className="text-xl">جاري تحميل بيانات الانتخابات...</p>
+            </div>
+          </div>
+          <div className="max-w-4xl mx-auto px-6 py-16">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-80 rounded-lg" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (activeElections.length === 0) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
+          <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              <h1 className="text-4xl font-bold mb-4">الانتخابات النشطة</h1>
+              <p className="text-xl">شارك في صنع القرار واختر من يمثلك</p>
+            </div>
+          </div>
+          <div className="max-w-4xl mx-auto px-6 py-16 text-center">
+            <Crown className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+            <h2 className="text-2xl font-bold text-gray-600 mb-4">
+              لا توجد انتخابات نشطة حالياً
+            </h2>
+            <p className="text-gray-500">
+              لا توجد أي انتخابات جارية في الوقت الحالي. يرجى التحقق لاحقاً.
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="min-h-screen bg-gray-50">
+        {/* الهيدر */}
+        <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h1 className="text-4xl font-bold mb-4">
+              <Vote className="inline-block ml-2 h-8 w-8" />
+              الانتخابات النشطة
+            </h1>
+            <p className="text-xl">
+              شارك في صنع القرار واختر من يمثلك في مجتمعنا السوري في أيدن
+            </p>
+          </div>
+        </div>
+
+        {/* المحتوى الرئيسي */}
+        <div className="max-w-4xl mx-auto px-6 py-16">
+          {/* اختيار الانتخاب */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-syria-green-700 mb-4 text-right">
+              اختر الانتخاب للمشاركة:
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeElections.map((election) => (
+                <Card
+                  key={election.id}
+                  className={cn(
+                    "cursor-pointer transition-all duration-300 border-syria-green-200 shadow-sm",
+                    selectedElection?.id === election.id
+                      ? 'ring-2 ring-syria-green-500 border-syria-green-300 bg-syria-green-50'
+                      : 'hover:shadow-md'
+                  )}
+                  onClick={() => setSelectedElection(election)}
+                >
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-lg text-syria-green-800 mb-2 text-right">
+                      {election.name}
+                    </h3>
+                    <p className="text-sm text-syria-green-600 mb-3 line-clamp-2 text-right">
+                      {election.description}
+                    </p>
+                    <div className="flex items-center text-xs text-syria-green-500 justify-end">
+                      <Calendar className="h-3 w-3 ml-1" />
+                      <span>ينتهي في: {formatDate(election.end_date)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {selectedElection && (
+            <>
+              {/* تفاصيل الانتخاب المحدد */}
+              <Card className="mb-8 border-syria-green-200 bg-gradient-to-br from-syria-green-50 to-syria-green-100">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="text-right">
+                      <h2 className="text-2xl font-bold text-syria-green-800 mb-2">
+                        {selectedElection.name}
+                      </h2>
+                      <p className="text-syria-green-600 mb-2">
+                        {selectedElection.description}
+                      </p>
+                      <div className="flex flex-wrap gap-4 text-sm text-syria-green-500">
+                        <span className="flex items-center">
+                          <Calendar className="h-4 w-4 ml-1" />
+                          يبدأ: {formatDate(selectedElection.start_date)}
+                        </span>
+                        <span className="flex items-center">
+                          <Calendar className="h-4 w-4 ml-1" />
+                          ينتهي: {formatDate(selectedElection.end_date)}
+                        </span>
+                        <span className="flex items-center">
+                          <Users className="h-4 w-4 ml-1" />
+                          {selectedElection.candidates_count} مرشح
+                        </span>
+                      </div>
+                    </div>
+                    {selectedElection.image && (
+                      <img
+                        src={`${STORAGE_URL}/${selectedElection.image}`}
+                        alt={selectedElection.name}
+                        className="w-32 h-32 object-cover rounded-lg shadow-md"
+                      />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* مؤشر التقدم */}
+              {isSubmitting && (
+                <Card className="mb-6 border-syria-green-200 bg-syria-green-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-syria-green-700 font-medium">جاري معالجة تصويتك...</span>
+                      <Loader2 className="h-4 w-4 text-syria-green-600 animate-spin" />
+                    </div>
+                    <Progress value={100} className="h-2 bg-syria-green-200">
+                      <div className="h-full bg-syria-green-500 transition-all duration-1000 ease-in-out animate-pulse"></div>
+                    </Progress>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* قائمة المرشحين */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-syria-green-700 mb-6 text-right">
+                  المرشحين
+                </h2>
+
+                {isLoadingCandidates ? (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {[1, 2, 3].map((i) => (
+                      <Card key={i} className="border-syria-green-200">
+                        <CardContent className="p-6">
+                          <Skeleton className="h-48 w-full rounded-lg mb-4" />
+                          <Skeleton className="h-6 w-3/4 mb-2" />
+                          <Skeleton className="h-4 w-full mb-2" />
+                          <Skeleton className="h-4 w-2/3 mb-4" />
+                          <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : candidates.length === 0 ? (
+                  <Card className="text-center border-syria-green-200 bg-syria-green-50">
+                    <CardContent className="py-12">
+                      <Users className="mx-auto h-12 w-12 text-syria-green-400 mb-4" />
+                      <p className="text-syria-green-600">لا يوجد مرشحين في هذه الانتخابات بعد</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                      {candidates.map((candidate) => (
+                        <Card
+                          key={candidate.id}
+                          className={cn(
+                            "relative overflow-hidden transition-all duration-300 h-full flex flex-col border-syria-green-200 shadow-sm",
+                            selectedCandidate === candidate.id
+                              ? 'ring-2 ring-syria-green-500 shadow-lg border-syria-green-300'
+                              : 'hover:shadow-md'
+                          )}
+                        >
+                          {selectedCandidate === candidate.id && (
+                            <CheckCircle className="absolute top-3 right-3 h-6 w-6 text-syria-green-600 z-10" />
+                          )}
+
+                          <div className="relative h-64 overflow-hidden">
+                            {candidate.image ? (
+                              <img
+                                src={`${STORAGE_URL}/${candidate.image}`}
+                                alt={candidate.display_name}
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-syria-green-100 to-syria-green-200 flex items-center justify-center">
+                                <Users className="h-20 w-20 text-syria-green-400" />
+                              </div>
+                            )}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                              <h3 className="font-semibold text-white text-xl text-right">
+                                {candidate.display_name}
+                              </h3>
+                              <p className="text-syria-green-200 text-sm mt-1 text-right">
+                                {candidate.position}
+                              </p>
+                            </div>
+                          </div>
+
+                          <CardContent className="p-5 flex-grow flex flex-col">
+                            <div className="mb-4">
+                              <h4 className="font-medium text-syria-green-700 mb-2 text-right">نبذة عن المرشح:</h4>
+                              <p className="text-sm text-gray-600 leading-relaxed text-right">
+                                {candidate.bio}
+                              </p>
+                            </div>
+
+                            <div className="mb-4">
+                              <h4 className="font-medium text-syria-green-700 mb-2 text-right">المنصة الانتخابية:</h4>
+                              <p className="text-sm text-gray-600 leading-relaxed text-right">
+                                {candidate.platform}
+                              </p>
+                            </div>
+
+                            {candidate.votes_count !== undefined && totalVotes > 0 && (
+                              <div className="space-y-2 mt-auto pt-4 border-t border-gray-100">
+                                <div className="flex justify-between text-xs text-gray-500">
+                                  <span>النسبة المئوية</span>
+                                  <span className="font-semibold text-syria-green-700">
+                                    {((candidate.votes_count / totalVotes) * 100).toFixed(1)}%
+                                  </span>
+                                </div>
+                                <Progress
+                                  value={(candidate.votes_count / totalVotes) * 100}
+                                  className="h-2 bg-gray-200"
+                                />
+                                <div className="text-xs text-center text-gray-500">
+                                  {candidate.votes_count} صوت
+                                </div>
+                              </div>
+                            )}
+
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCandidate(candidate.id);
+                              }}
+                              className={cn(
+                                "mt-4 w-full",
+                                selectedCandidate === candidate.id
+                                  ? "bg-syria-green-600 hover:bg-syria-green-700"
+                                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                              )}
+                            >
+                              {selectedCandidate === candidate.id ? (
+                                <>
+                                  <CheckCircle className="ml-2 h-5 w-5" />
+                                  مختار
+                                </>
+                              ) : (
+                                "اختر هذا المرشح"
+                              )}
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {totalVotes > 0 && (
+                      <Card className="mb-6 border-syria-green-200 bg-syria-green-50">
+                        <CardContent className="p-4 text-center">
+                          <p className="text-lg text-syria-green-700">
+                            إجمالي الأصوات: <span className="font-bold">{totalVotes}</span>
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    <div className="text-center">
+                      <Button
+                        size="lg"
+                        onClick={handleVote}
+                        disabled={!selectedCandidate || isSubmitting}
+                        className="bg-gradient-to-r from-syria-green-500 to-syria-green-600 hover:from-syria-green-600 hover:to-syria-green-700 text-white shadow-md px-8 py-4 text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                            جاري التصويت...
+                          </>
+                        ) : (
+                          <>
+                            <Vote className="ml-2 h-5 w-5" />
+                            تأكيد التصويت
+                          </>
+                        )}
+                      </Button>
+
+                      {selectedCandidate && (
+                        <p className="text-sm text-syria-green-600 mt-3">
+                          لقد اخترت التصويت لـ{' '}
+                          <span className="font-semibold">
+                            {candidates.find(c => c.id === selectedCandidate)?.display_name}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
 }

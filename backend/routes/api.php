@@ -98,6 +98,9 @@ Route::group(['prefix' => 'elections', 'middleware' => ['auth:sanctum', 'admin']
     Route::post('/{election}/candidates', [ElectionController::class, 'addCandidate']);
     Route::post('/{election}/update', [ElectionController::class, 'updateElection']);
     Route::delete('/{election}', [ElectionController::class, 'destroyElection']);
+    Route::post('/candidates/{candidate}/update', [ElectionController::class, 'updateCandidate']);
+    Route::delete('/candidates/{candidate}', [ElectionController::class, 'destroyCandidate']);
+
 });
 
 // 🔵 روتات للتصويت (يجب أن يكون مستخدم مسجل دخوله)

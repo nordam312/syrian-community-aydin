@@ -10,7 +10,7 @@ class Candidate extends Model
     use HasFactory;
 
     // الحقول التي يُسمح بتحديثها بالجملة
-    protected $fillable = ['election_id', 'user_id', 'position', 'bio', 'platform','display_name'];
+    protected $fillable = ['election_id', 'user_id', 'position', 'bio', 'platform','display_name','image'];
 
     // علاقة: Candidate ← الانتخاب
     public function election()

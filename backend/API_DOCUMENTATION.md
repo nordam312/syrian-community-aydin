@@ -342,15 +342,15 @@ GET /settings/public
 
 ```json
 {
-    "user": {
-        "id": 1,
-        "name": "أحمد محمد",
-        "email": "ahmed@example.com",
-        "student_id": "b2180.060001",
-        "role": "user"
-    },
-    "token": "1|abc123...",
-    "message": "تم الدخول بنجاح"
+  "user": {
+    "id": 1,
+    "name": "أحمد محمد",
+    "email": "ahmed@example.com",
+    "student_id": "b2180.060001",
+    "role": "user"
+  },
+  "token": "1|abc123...",
+  "message": "تم الدخول بنجاح"
 }
 ```
 

@@ -19,6 +19,7 @@ return new class extends Migration
         $table->string('position');
         $table->text('bio')->nullable();
         $table->text('platform')->nullable();
+        $table->string('image')->nullable();
         $table->timestamps();
         $table->unique(['election_id', 'user_id']);
     });
