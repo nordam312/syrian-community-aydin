@@ -39,7 +39,7 @@ const ContentManager = () => {
   const [loading, setLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const { toast } = useToast();
-  const userToken = sessionStorage.getItem('userToken');
+  const userToken = localStorage.getItem('userToken');
 
   const GetContentItems = useCallback(async () => {
     setLoading(true);

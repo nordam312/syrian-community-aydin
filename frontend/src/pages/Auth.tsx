@@ -124,9 +124,9 @@ const Auth = () => {
           description: data.message,
           variant: 'success',
         });
-        // حفظ بيانات المستخدم والتوكن في sessionStorage
-        sessionStorage.setItem('userToken', data.token);
-        sessionStorage.setItem('userData', JSON.stringify(data.user));
+        // حفظ بيانات المستخدم والتوكن في localStorage
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
         // حفظ بيانات المستخدم والتوكن باستخدام hook المصادقة
         login(data.user, data.token);
         // توجيه المستخدم للصفحة الرئيسية

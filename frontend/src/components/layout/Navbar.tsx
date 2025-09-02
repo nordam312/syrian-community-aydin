@@ -206,7 +206,7 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
-    const token = sessionStorage.getItem('userToken');
+    const token = localStorage.getItem('userToken');
     try {
       await axios.post(
         `${API_URL}/logout`,
@@ -218,8 +218,8 @@ const Navbar = () => {
     } catch (error) {
       // يمكنك عرض رسالة خطأ هنا إذا أردت
     }
-    sessionStorage.removeItem('userData');
-    sessionStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('userToken');
     logout();
     closeMenu();
     navigate('/');
@@ -230,6 +230,7 @@ const Navbar = () => {
     const baseLinks = [
       { name: 'الرئيسية', path: '/' },
       { name: 'من نحن', path: '/about' },
+      { name: 'اسألنا', path: '/faq' },
       { name: 'حاسبة المعدل', path: '/gpa-calculator' },
       { name: 'الانتخابات', path: '/elections' },
       { name: 'الفعاليات', path: '/events' },
@@ -263,14 +264,14 @@ const Navbar = () => {
           </div>
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-4">
+            <div className="ml-8 flex items-center space-x-2"> {/* غيرنا space-x-4 إلى space-x-2 */}
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(link.path)
-                      ? 'bg-syria-green-100 text-syria-green-600'
-                      : 'text-gray-700 hover:bg-syria-green-50 hover:text-syria-green-600'
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${isActive(link.path)
+                    ? 'bg-syria-green-100 text-syria-green-600'
+                    : 'text-gray-700 hover:bg-syria-green-50 hover:text-syria-green-600'
                     }`}
                 >
                   {link.name}

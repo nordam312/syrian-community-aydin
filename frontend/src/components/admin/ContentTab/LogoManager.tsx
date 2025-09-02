@@ -113,7 +113,7 @@ const LogoManager: React.FC = () => {
         : `${API_URL}/logos`;
 
       const method = editingLogo ? 'PUT' : 'POST';
-      const token = sessionStorage.getItem('userToken');
+      const token = localStorage.getItem('userToken');
       const response = await axios({
         method,
         url,
@@ -150,7 +150,7 @@ const LogoManager: React.FC = () => {
 
   const handleToggleActive = async (logo: Logo) => {
     try {
-      const token = sessionStorage.getItem('userToken');
+      const token = localStorage.getItem('userToken');
 
       if (!token) {
         toast({

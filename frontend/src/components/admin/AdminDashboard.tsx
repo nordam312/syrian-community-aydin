@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Button } from '../ui/button';
+import { MessageCircle, CheckCircle, XCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,7 +20,9 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useToast } from '../ui/use-toast';
+import QuestionManager from './QuestionManager';
 import {
+  HelpCircle,
   Crown,
   Users,
   UserPlus,
@@ -44,6 +47,7 @@ import { Textarea } from '../ui/textarea';
 import { API_URL } from '@/config';
 import ContentManager from './ContentManager';
 import ElectionManager from './ElectionManager';
+import FAQManager from './FAQManager';
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -101,7 +105,7 @@ const AdminDashboard = () => {
   // استرجاع التاب المحفوظ من localStorage أو استخدام 'overview' كافتراضي
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem('adminDashboardActiveTab');
-    const validTabs = ['overview', 'users', 'events', 'content', 'settings'];
+    const validTabs = ['overview', 'users', 'events', 'content', 'settings' , 'FAQ'];
     return savedTab && validTabs.includes(savedTab) ? savedTab : 'overview';
   });
   const { toast } = useToast();
@@ -112,8 +116,8 @@ const AdminDashboard = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger refresh
-  const userDataRaw = sessionStorage.getItem('userData');
-  const userToken = sessionStorage.getItem('userToken');
+  const userDataRaw = localStorage.getItem('userData');
+  const userToken = localStorage.getItem('userToken');
 
   // إعدادات الموقع
   const [siteSettings, setSiteSettings] = useState({
@@ -288,7 +292,6 @@ const AdminDashboard = () => {
   // دالة إرسال النموذج
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = sessionStorage.getItem('userToken');
     try {
       const formData = new FormData();
       formData.append('title', eventForm.title);
@@ -301,7 +304,7 @@ const AdminDashboard = () => {
       }
       await axios.post('http://127.0.0.1:8000/api/events', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${userToken}`,
           'Content-Type': 'multipart/form-data',
         },
       });
@@ -325,12 +328,11 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      const token = sessionStorage.getItem('userToken');
       const response = await axios.post(
         `${API_URL}/logout`,
         {},
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${userToken}` },
         },
       );
       toast({
@@ -338,8 +340,8 @@ const AdminDashboard = () => {
         description: response.data.message,
         variant: 'success',
       });
-      sessionStorage.removeItem('userData');
-      sessionStorage.removeItem('userToken');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('userToken');
       navigate('/');
     } catch (error) {
       console.error(error);
@@ -366,9 +368,8 @@ const AdminDashboard = () => {
     if (!userToDelete) return;
 
     try {
-      const token = sessionStorage.getItem('userToken');
       const response = await axios.delete(`${API_URL}/users/${userToDelete}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${userToken}` },
       });
       toast({
         title: 'تم حذف العضو',
@@ -489,7 +490,7 @@ const AdminDashboard = () => {
         }}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="flex items-center">
             <BarChart3 className="mr-2 h-4 w-4" />
             نظرة عامة
@@ -509,6 +510,14 @@ const AdminDashboard = () => {
           <TabsTrigger value="elections" className="flex items-center gap-2">
             <Crown className="h-4 w-4" />
             الانتخابات
+          </TabsTrigger>
+          <TabsTrigger value="questions" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" />
+            الأسئلة
+          </TabsTrigger>
+          <TabsTrigger value="FAQ" className="flex items-center gap-2">
+            <HelpCircle className="h-4 w-4" />
+            FAQ
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center">
             <Settings className="mr-2 h-4 w-4" />
@@ -840,6 +849,17 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* FAQ Managment Tab */}
+        <TabsContent value="FAQ" className="space-y-6 animate-fade-in">
+          <FAQManager />
+        </TabsContent>
+
+        {/* question Managment Tab */}
+        <TabsContent value="questions" className="space-y-6 animate-fade-in">
+          <QuestionManager />
+        </TabsContent>
+
       </Tabs>
       {/* نموذج إضافة فعالية جديدة */}
       <Dialog open={showEventForm} onOpenChange={setShowEventForm}>

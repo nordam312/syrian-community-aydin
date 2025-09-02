@@ -10,8 +10,8 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\LogoController;
 use App\Http\Controllers\Api\ElectionController;
-
-
+use App\Http\Controllers\Api\FAQController;
+use App\Http\Controllers\Api\UserQuestionController;
 // Routes للمصادقة (عامة)
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -86,6 +86,16 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/banners/{id}', [BannerController::class, 'update']);
     Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
 });
+//Admin only for FAQ
+Route::middleware(['auth:sanctum', 'admin'])->group(function(){
+    Route::post('faqs', [FAQController::class, 'store']);       // POST /api/faqs
+    Route::post('faqs/{faq}', [FAQController::class, 'update']); // PUT /api/faqs/1
+    Route::delete('faqs/{faq}', [FAQController::class, 'destroy']); // DELETE /api/faqs/1
+});
+//ALL for FAQ
+Route::get('faqs', [FAQController::class, 'index']);
+Route::get('faqs/{faq}', [FAQController::class, 'show']); 
+
 
 Route::apiResource('events', EventController::class);
 Route::put('/events/{event}/attendees/status', [EventController::class, 'updateAttendeeStatus']);
@@ -113,3 +123,25 @@ Route::group(['prefix' => 'elections', 'middleware' => 'auth:sanctum'], function
 Route::get('elections/{election}/results', [ElectionController::class, 'results']);
 // ✅ عرض جميع الانتخابات
 Route::get('/elections', [ElectionController::class, 'index']);
+
+//=========================================
+//=============User Question Part==========
+
+// routes للمستخدمين
+// routes/api.php
+Route::middleware('auth:sanctum')->group(function(){
+    Route::post('user-questions', [UserQuestionController::class, 'store']);
+    Route::post('user-questions/{id}/vote', [UserQuestionController::class, 'vote']);
+});
+
+// هذا الرoute يجب أن يكون بدون middleware لأنه للعامة
+Route::get('user-questions', [UserQuestionController::class, 'index']);
+
+// routes للإدارة (تحتاج authentication)
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('admin/user-questions', [UserQuestionController::class, 'adminIndex']);
+    Route::post('admin/user-questions/{id}/answer', [UserQuestionController::class, 'adminAnswer']);
+    Route::delete('admin/user-questions/{id}/delete', [UserQuestionController::class, 'adminDestroy']);
+});
+
+

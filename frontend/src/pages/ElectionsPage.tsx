@@ -81,7 +81,7 @@ export default function ElectionsPage() {
   const fetchCandidates = useCallback(async (electionId: number) => {
     try {
       setIsLoadingCandidates(true);
-      const userToken = sessionStorage.getItem('userToken');
+      const userToken = localStorage.getItem('userToken');
 
       if (!userToken) {
         toast({
@@ -130,7 +130,7 @@ export default function ElectionsPage() {
         voteData,
         {
           headers: {
-            'Authorization': `Bearer ${sessionStorage.getItem('userToken')}`,
+            'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
             'Content-Type': 'application/json'
           }
         }

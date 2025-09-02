@@ -17,9 +17,9 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // تحقق من وجود بيانات المستخدم في sessionStorage
-    const savedUser = sessionStorage.getItem('userData');
-    const savedToken = sessionStorage.getItem('userToken');
+    // تحقق من وجود بيانات المستخدم في localStorage
+    const savedUser = localStorage.getItem('userData');
+    const savedToken = localStorage.getItem('userToken');
 
     if (savedUser && savedToken) {
       try {
@@ -28,8 +28,8 @@ export const useAuth = () => {
       } catch (error) {
         console.error('Error parsing user data:', error);
         // إذا كان هناك خطأ في البيانات، احذفها
-        sessionStorage.removeItem('userData');
-        sessionStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('userToken');
       }
     }
   }, []);
@@ -37,15 +37,15 @@ export const useAuth = () => {
   const login = (userData: User, userToken: string) => {
     setUser(userData);
     setToken(userToken);
-    sessionStorage.setItem('userData', JSON.stringify(userData));
-    sessionStorage.setItem('userToken', userToken);
+    localStorage.setItem('userData', JSON.stringify(userData));
+    localStorage.setItem('userToken', userToken);
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    sessionStorage.removeItem('userData');
-    sessionStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('userToken');
   };
 
   const isAuthenticated = !!user && !!token;

@@ -117,7 +117,7 @@ const ElectionManager = () => {
     image: null,
   });
   const [getCandidatess, setGetCandidates] = useState<Candidate[]>([]);
-  const userToken = sessionStorage.getItem('userToken');
+  const userToken = localStorage.getItem('userToken');
 
   const GetElections = useCallback(async () => {
     try {

@@ -41,7 +41,7 @@ const BannerImageManager = () => {
   const [showDialog, setShowDialog] = useState(false);
 
   const { toast } = useToast();
-  const userToken = sessionStorage.getItem('userToken');
+  const userToken = localStorage.getItem('userToken');
 
   useEffect(() => {
     fetchBanners();
@@ -150,7 +150,7 @@ const BannerImageManager = () => {
 
   const handleToggleActive = async (banner: Banner) => {
     try {
-      const token = sessionStorage.getItem('userToken');
+      const token = localStorage.getItem('userToken');
 
       if (!token) {
         toast({

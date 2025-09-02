@@ -46,7 +46,7 @@ const EventPage = () => {
         const eventData = res.data;
         setEvent(eventData);
 
-        const user = JSON.parse(sessionStorage.getItem('userData'));
+        const user = JSON.parse(localStorage.getItem('userData'));
         setRegistered(
           user?.id ? eventData.attendees.some((a) => a.id === user.id) : false,
         );
@@ -63,8 +63,8 @@ const EventPage = () => {
   const handleRegister = async () => {
     setRegistering(true);
     setError(null);
-    const user = JSON.parse(sessionStorage.getItem('userData'));
-    const token = sessionStorage.getItem('userToken');
+    const user = JSON.parse(localStorage.getItem('userData'));
+    const token = localStorage.getItem('userToken');
 
     if (!user?.id) {
       setError('يجب تسجيل الدخول أولاً.');
@@ -121,8 +121,8 @@ const EventPage = () => {
   const handleUnregister = async () => {
     setRegistering(true);
     setError(null);
-    const user = JSON.parse(sessionStorage.getItem('userData'));
-    const token = sessionStorage.getItem('userToken');
+    const user = JSON.parse(localStorage.getItem('userData'));
+    const token = localStorage.getItem('userToken');
 
     if (!user?.id) {
       setError('يجب تسجيل الدخول أولاً.');

@@ -50,6 +50,7 @@ import NotFound from './pages/NotFound';
 import EventPage from './components/event/EventPage';
 import ElectionsPage from './pages/ElectionsPage';
 import EventsPage from './pages/EventsPage';
+import FAQPage from './pages/FAQPage';
 import Developer from './pages/Developer'; // إضافة استيراد صفحة المطور
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
           <Route path="/developer" element={<Developer />} /> {/* إضافة مسار المطور */}
           <Route path="*" element={<NotFound />} />
           <Route path="/events/:id" element={<EventPage />} />
+          <Route path="/faq" element={<FAQPage />} />
           <Route path="/events" element={<EventsPage />} />
         </Routes>
       </BrowserRouter>
