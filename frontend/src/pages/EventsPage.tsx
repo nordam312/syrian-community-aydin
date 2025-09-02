@@ -19,7 +19,25 @@ interface EventType {
   max_attendees: number;
   status: string;
   image: string | null;
-  attendees_count?: number;
+  confirmed_attendees_count: number;
+  remaining_slots: number;
+  attendees?: [];
+}
+
+interface EventsResponse {
+  current_page: number;
+  data: EventType[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: [];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
 }
 
 const EventsPage = () => {
@@ -33,9 +51,11 @@ const EventsPage = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_URL}/events`, {
+        const res = await axios.get<EventsResponse>(`${API_URL}/events`, {
           headers: { Accept: 'application/json' },
         });
+
+        // استخدام البيانات من الحقل data مباشرة
         setEvents(res.data.data || []);
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -139,8 +159,10 @@ const EventsPage = () => {
             <Card className="text-center border-syria-green-200 bg-syria-green-50">
               <CardContent className="p-6">
                 <Users className="h-12 w-12 text-syria-green-600 mx-auto mb-3" />
-                <h3 className="text-2xl font-bold text-syria-green-700 mb-1">{pastEvents.length}</h3>
-                <p className="text-syria-green-600">فعاليات سابقة</p>
+                <h3 className="text-2xl font-bold text-syria-green-700 mb-1">
+                  {events.reduce((total, event) => total + event.confirmed_attendees_count, 0)}
+                </h3>
+                <p className="text-syria-green-600">إجمالي المشاركات</p>
               </CardContent>
             </Card>
           </div>
@@ -255,11 +277,11 @@ const EventsPage = () => {
                             <span>{event.location}</span>
                           </div>
                         )}
-                        {event.max_attendees && (
+                        {event.max_attendees > 0 && (
                           <div className="flex items-center text-sm text-syria-green-600">
                             <Users className="h-4 w-4 ml-2" />
                             <span>
-                              {event.attendees_count || 0} / {event.max_attendees} مشترك
+                              {event.confirmed_attendees_count} / {event.max_attendees} مشترك
                             </span>
                           </div>
                         )}

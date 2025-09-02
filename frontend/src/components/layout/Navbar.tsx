@@ -229,7 +229,7 @@ const Navbar = () => {
   const getNavLinks = () => {
     const baseLinks = [
       { name: 'الرئيسية', path: '/' },
-      { name: 'من نحن', path: '/about' },
+      { name: 'About', path: '/about' },
       { name: 'اسألنا', path: '/faq' },
       { name: 'حاسبة المعدل', path: '/gpa-calculator' },
       { name: 'الانتخابات', path: '/elections' },

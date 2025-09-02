@@ -109,7 +109,30 @@ const QuestionManager = () => {
       });
     }
   };
+  const handleDeleteQuestion = async (id: number) => {
+    try {
+      await axios.delete(`${API_URL}/admin/user-questions/${id}`, {
+        headers: {
+          Authorization: `Bearer ${userToken}`
+        }
+      });
 
+      // تحديث القائمة بعد الحذف
+      setUserQuestions(prev => prev.filter(q => q.id !== id));
+
+      toast({
+        title: 'تم الحذف بنجاح',
+        description: 'تم حذف السؤال بنجاح',
+      });
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      toast({
+        title: 'خطأ في حذف السؤال',
+        description: error.response?.data?.message || 'حدث خطأ أثناء الحذف',
+        variant: 'destructive',
+      });
+    }
+  }
   // أضف هذا الـ useEffect لجلب الأسئلة عند فتح التبويب
   useEffect(() => {
       fetchUserQuestions();
@@ -204,6 +227,7 @@ const QuestionManager = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={()=>{handleDeleteQuestion(question.id)}}
                                 className="text-red-600 border-red-200 hover:bg-red-50"
                               >
                                 <XCircle className="h-4 w-4 ml-1" />
@@ -222,7 +246,7 @@ const QuestionManager = () => {
         </Card>
       </TabsContent>
 
-// أضف modal للرد على الأسئلة
+      {/* // أضف modal للرد على الأسئلة */}
       <Dialog open={!!selectedQuestion} onOpenChange={(open) => !open && setSelectedQuestion(null)}>
         <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg shadow-xl">
           <DialogHeader>

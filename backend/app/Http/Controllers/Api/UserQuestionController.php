@@ -15,9 +15,7 @@ public function index(Request $request): JsonResponse
     {
 
         
-    try {
-        $perPage = $request->get('per_page', 10);
-        
+    try {        
         $questions = UserQuestion::with('user')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -74,9 +72,20 @@ public function index(Request $request): JsonResponse
 
         return response()->json($question);
     }
-    public function adminDestroy($id){
-        UserQuestion::findOrFail($id)->delete();
-        return response()->json(['message' => 'تم حذف التعليق الانتخابية بنجاح']);
+    public function adminDestroy($id): JsonResponse
+    {
+        try {
+            $question = UserQuestion::findOrFail($id);
+            $question->delete();
+            
+            return response()->json(['message' => 'تم حذف السؤال بنجاح']);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting question: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'حدث خطأ أثناء حذف السؤال',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // للإدارة - الحصول على جميع الأسئلة

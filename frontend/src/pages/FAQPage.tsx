@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Send, MessageCircle, HelpCircle, Search, Loader2 } from 'lucide-react';
+import { Send, MessageCircle, HelpCircle, Search, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useCallback } from 'react';
@@ -20,12 +20,25 @@ interface FAQItem {
   category: string;
 }
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  student_id: string;
+  major: string;
+}
+
 interface UserQuestion {
   id: number;
+  user_id: number;
   question: string;
   answer?: string;
   status: string;
+  likes: number;
+  dislikes: number;
   created_at: string;
+  updated_at: string;
+  user?: User;
 }
 
 const FAQPage = () => {
@@ -38,8 +51,7 @@ const FAQPage = () => {
   const [allFaqs, setAllFaqs] = useState<FAQItem[]>([]);
   const [userQuestions, setUserQuestions] = useState<UserQuestion[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(5);
   const [questionSearch, setQuestionSearch] = useState('');
 
   const { toast } = useToast();
@@ -69,60 +81,26 @@ const FAQPage = () => {
   }, []);
 
   // جلب أسئلة المستخدمين
-  const fetchUserQuestions = useCallback(async (page: number = 1) => {
+  const fetchUserQuestions = useCallback(async () => {
     try {
       setLoadingQuestions(true);
-      const response = await axios.get(`${API_URL}/user-questions`, {
-        params: {
-          page: page,
-          per_page: itemsPerPage
-        }
-      });
-
-      // دعم لتنسيقات مختلفة من الـ API
-      if (response.data.data) {
-        setUserQuestions(response.data.data);
-        setCurrentPage(response.data.current_page || page);
-        setTotalPages(response.data.last_page || 1);
-      } else {
-        setUserQuestions(response.data);
-        setCurrentPage(1);
-        setTotalPages(1);
-      }
+      const response = await axios.get(`${API_URL}/user-questions`);
+      setUserQuestions(response.data);
     } catch (error) {
       console.error('Error fetching user questions:', error);
-      // عرض بيانات تجريبية في حالة الخطأ
-      setUserQuestions([
-        {
-          id: 1,
-          question: 'كيف يمكنني الانضمام إلى المجتمع؟',
-          answer: 'يمكنك الانضمام عن طريق التسجيل في الموقع والمشاركة في الفعاليات.',
-          status: 'answered',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 2,
-          question: 'ما هي أوقات الدوام؟',
-          status: 'pending',
-          created_at: new Date().toISOString()
-        }
-      ]);
-      setCurrentPage(1);
-      setTotalPages(1);
-
       toast({
-        title: 'تحذير',
-        description: 'يتم عرض بيانات تجريبية بسبب مشكلة في الاتصال',
+        title: 'خطأ في جلب الأسئلة',
+        description: 'حدث خطأ أثناء تحميل أسئلة المستخدمين',
         variant: 'destructive',
       });
     } finally {
       setLoadingQuestions(false);
     }
-  }, [toast, itemsPerPage]);
+  }, [toast]);
 
   // جلب أسئلة المستخدمين عند تحميل الصفحة
   useEffect(() => {
-    fetchUserQuestions(1);
+    fetchUserQuestions();
   }, [fetchUserQuestions]);
 
   const categories = [
@@ -146,6 +124,18 @@ const FAQPage = () => {
     question.question.toLowerCase().includes(questionSearch.toLowerCase()) ||
     (question.answer && question.answer.toLowerCase().includes(questionSearch.toLowerCase()))
   );
+
+  // حساب Pagination يدوياً
+  const totalPages = Math.ceil(filteredUserQuestions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentQuestions = filteredUserQuestions.slice(startIndex, endIndex);
+
+  // تغيير الصفحة
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // إرسال سؤال جديد
   const handleSubmitQuestion = async (e: React.FormEvent) => {
@@ -174,7 +164,8 @@ const FAQPage = () => {
       });
 
       // إعادة جلب الأسئلة من الخادم
-      await fetchUserQuestions(currentPage);
+      await fetchUserQuestions();
+      setCurrentPage(1); // العودة للصفحة الأولى بعد إضافة سؤال جديد
 
       toast({
         title: 'تم إرسال سؤالك',
@@ -192,6 +183,37 @@ const FAQPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const renderPaginationButtons = () => {
+    const buttons = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));//6
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);//10
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <Button
+          key={i}
+          variant={currentPage === i ? "default" : "outline"}
+          size="sm"
+          onClick={() => handlePageChange(i)}
+          className={currentPage === i
+            ? "bg-syria-green-500 text-white"
+            : "border-syria-green-200 text-syria-green-700 hover:bg-syria-green-50"
+          }
+        >
+          {i}
+        </Button>
+      );
+    }
+
+    return buttons;
   };
 
   return (
@@ -302,11 +324,26 @@ const FAQPage = () => {
             ) : (
               <>
                 <div className="space-y-4">
-                  {filteredUserQuestions.map((question) => (
+                  {currentQuestions.map((question) => (
                     <Card key={question.id} className="border-syria-green-200 shadow-sm hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
+                            {/* معلومات المستخدم */}
+                            {question.user && (
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-8 h-8 bg-syria-green-100 rounded-full flex items-center justify-center">
+                                  <span className="text-sm font-medium text-syria-green-600">
+                                    {question.user.name.charAt(0)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700">{question.user.name}</p>
+                                  <p className="text-xs text-gray-500">{question.user.major}</p>
+                                </div>
+                              </div>
+                            )}
+
                             {/* السؤال */}
                             <div className="bg-syria-green-50 p-4 rounded-lg mb-4">
                               <div className="flex items-center gap-2 mb-2">
@@ -337,7 +374,9 @@ const FAQPage = () => {
                                 {new Date(question.created_at).toLocaleDateString('ar-EG', {
                                   year: 'numeric',
                                   month: 'long',
-                                  day: 'numeric'
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
                                 })}
                               </p>
 
@@ -361,27 +400,31 @@ const FAQPage = () => {
 
                 {/* التقسيم إلى صفحات */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center items-center gap-4 mt-8">
+                  <div className="flex justify-center items-center gap-2 mt-8">
                     <Button
                       variant="outline"
-                      onClick={() => fetchUserQuestions(currentPage - 1)}
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                       className="border-syria-green-200 text-syria-green-700 hover:bg-syria-green-50"
                     >
-                      ← الصفحة السابقة
+                      <ChevronLeft className="h-4 w-4 ml-1" />
+                      السابق
                     </Button>
 
-                    <span className="text-sm text-gray-600">
-                      الصفحة {currentPage} من {totalPages}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      {renderPaginationButtons()}
+                    </div>
 
                     <Button
                       variant="outline"
-                      onClick={() => fetchUserQuestions(currentPage + 1)}
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
                       className="border-syria-green-200 text-syria-green-700 hover:bg-syria-green-50"
                     >
-                      الصفحة التالية →
+                      التالي
+                      <ChevronRight className="h-4 w-4 mr-1" />
                     </Button>
                   </div>
                 )}

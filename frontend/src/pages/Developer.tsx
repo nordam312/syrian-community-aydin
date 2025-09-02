@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Github, Linkedin, Mail, Globe, Code, Heart,
-  ExternalLink, MessageCircle, Instagram, Facebook, Languages
+  ExternalLink, MessageCircle, Instagram, Languages
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -44,7 +44,7 @@ const Developer = () => {
         { name: "البريد الإلكتروني", color: "bg-red-100 text-red-600 hover:bg-red-200" },
         { name: "واتساب", color: "bg-green-100 text-green-600 hover:bg-green-200" },
         { name: "إنستغرام", color: "bg-pink-100 text-pink-600 hover:bg-pink-200" },
-        { name: "فيسبوك", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" }
+        { name: "لينكدإن", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" }
       ]
     },
     en: {
@@ -75,7 +75,7 @@ const Developer = () => {
         { name: "Email", color: "bg-red-100 text-red-600 hover:bg-red-200" },
         { name: "WhatsApp", color: "bg-green-100 text-green-600 hover:bg-green-200" },
         { name: "Instagram", color: "bg-pink-100 text-pink-600 hover:bg-pink-200" },
-        { name: "Facebook", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" }
+        { name: "LinkedIn", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" }
       ]
     }
   };
@@ -88,7 +88,7 @@ const Developer = () => {
       id: 1,
       name: currentContent.contactOptions[0].name,
       icon: Mail,
-      link: "mailto:mohammed.damlaki@example.com",
+      link: "mailto:nordam312@gmail.com",
       color: currentContent.contactOptions[0].color
     },
     {
@@ -108,8 +108,8 @@ const Developer = () => {
     {
       id: 4,
       name: currentContent.contactOptions[3].name,
-      icon: Facebook,
-      link: "https://facebook.com/mohammeddamlaki",
+      icon: Linkedin,
+      link: "https://www.linkedin.com/in/muhammednur-damlahi-59044b382/",
       color: currentContent.contactOptions[3].color
     }
   ];
@@ -122,7 +122,7 @@ const Developer = () => {
           <Button
             variant="outline"
             size="sm"
-            className="rounded-full bg-white shadow-md"
+            className="rounded-full bg-white shadow-md hover:bg-syria-green-50 transition-colors"
             onClick={() => setIsEnglish(!isEnglish)}
           >
             <Languages className="h-4 w-4 ml-1" />
@@ -143,7 +143,7 @@ const Developer = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* الصورة والمعلومات الأساسية */}
             <div className="lg:col-span-1">
-              <Card className="text-center border-syria-green-200 shadow-md">
+              <Card className="text-center border-syria-green-200 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <div className="w-48 h-48 mx-auto mb-6 rounded-full bg-gray-200 overflow-hidden border-4 border-white shadow-lg">
                     <img
@@ -161,28 +161,48 @@ const Developer = () => {
                   <h2 className="text-2xl font-bold text-syria-green-700 mb-2">{currentContent.name}</h2>
                   <p className="text-gray-600 mb-4">{currentContent.job}</p>
 
-                  <div className="mb-4 p-3 bg-syria-green-50 rounded-lg">
+                  <div className="mb-4 p-3 bg-syria-green-50 rounded-lg border border-syria-green-100">
                     <p className="text-sm text-syria-green-700">"{currentContent.quote}"</p>
                   </div>
 
                   <div className="flex justify-center space-x-3">
-                    <Button variant="outline" size="icon" className="rounded-full" asChild>
-                      <a href="https://github.com/mohammeddamlaki" target="_blank" rel="noopener noreferrer" title="GitHub">
-                        <Github className="h-5 w-5" />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className=" ml-4 rounded-full border-syria-green-200 text-syria-green-700 hover:bg-syria-green-50 hover:text-syria-green-800 transition-colors"
+                      asChild
+                    >
+                      <a href="https://github.com/nordam312" target="_blank" rel="noopener noreferrer" title="GitHub">
+                        <Github className="h-5 w-5 " />
                       </a>
                     </Button>
-                    <Button variant="outline" size="icon" className="rounded-full" asChild>
-                      <a href="https://linkedin.com/in/mohammeddamlaki" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full border-syria-green-200 text-syria-green-700 hover:bg-syria-green-50 hover:text-syria-green-800 transition-colors"
+                      asChild
+                    >
+                      <a href="https://www.linkedin.com/in/muhammednur-damlahi-59044b382/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
                         <Linkedin className="h-5 w-5" />
                       </a>
                     </Button>
-                    <Button variant="outline" size="icon" className="rounded-full" asChild>
-                      <a href="mailto:mohammed.damlaki@example.com" title="Email">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full border-syria-green-200 text-syria-green-700 hover:bg-syria-green-50 hover:text-syria-green-800 transition-colors"
+                      asChild
+                    >
+                      <a href="mailto:nordam312@gmail.com" title="Email">
                         <Mail className="h-5 w-5" />
                       </a>
                     </Button>
-                    <Button variant="outline" size="icon" className="rounded-full" asChild>
-                      <a href="https://mohammeddamlaki.vercel.app" target="_blank" rel="noopener noreferrer" title="Personal Website">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full border-syria-green-200 text-syria-green-700 hover:bg-syria-green-50 hover:text-syria-green-800 transition-colors"
+                      asChild
+                    >
+                      <a href="https://github.com/nordam312" target="_blank" rel="noopener noreferrer" title="Personal Website">
                         <Globe className="h-5 w-5" />
                       </a>
                     </Button>
@@ -193,7 +213,7 @@ const Developer = () => {
 
             {/* المعلومات التفصيلية */}
             <div className="lg:col-span-2">
-              <Card className="border-syria-green-200 shadow-md">
+              <Card className="border-syria-green-200 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <h3 className="text-xl font-semibold text-syria-green-700 mb-6" style={{ textAlign: isEnglish ? 'left' : 'right' }}>
                     {currentContent.aboutTitle}
@@ -210,12 +230,12 @@ const Developer = () => {
                     <div>
                       <h4 className="font-medium text-syria-green-600 mb-2">{currentContent.skillsTitle}</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center">React & Next.js</span>
-                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center">TypeScript</span>
-                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center">Tailwind CSS</span>
-                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center">Laravel</span>
-                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center">PHP</span>
-                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center">MySQL</span>
+                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center border border-syria-green-200">React & Next.js</span>
+                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center border border-syria-green-200">TypeScript</span>
+                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center border border-syria-green-200">Tailwind CSS</span>
+                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center border border-syria-green-200">Laravel</span>
+                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center border border-syria-green-200">PHP</span>
+                        <span className="bg-syria-green-100 text-syria-green-700 px-3 py-1 rounded-full text-sm text-center border border-syria-green-200">MySQL</span>
                       </div>
                     </div>
 
@@ -225,7 +245,7 @@ const Developer = () => {
                       </h4>
                       <div className="space-y-3">
                         {currentContent.projects.map((project, index) => (
-                          <div key={index} className={`flex items-center ${isEnglish ? 'justify-start' : 'justify-end'}`}>
+                          <div key={index} className={`flex items-center justify-start text-gray-700`}>
                             {isEnglish ? (
                               <>
                                 <Code className="h-5 w-5 text-syria-green-500 mr-2" />
@@ -233,8 +253,8 @@ const Developer = () => {
                               </>
                             ) : (
                               <>
-                                <span className="ml-2">{project}</span>
-                                <Code className="h-5 w-5 text-syria-green-500" />
+                                <Code className="h-5 w-5 text-syria-green-500 ml-2" />
+                                <span>{project}</span>
                               </>
                             )}
                           </div>
@@ -245,42 +265,42 @@ const Developer = () => {
                     <div>
                       <h4 className="font-medium text-syria-green-600 mb-2">{currentContent.contactTitle}</h4>
                       <div className="space-y-2">
-                        <div className={`flex items-center ${isEnglish ? 'justify-start' : 'justify-end'}`}>
+                        <div className={`flex items-center justify-start text-gray-700`}>
                           {isEnglish ? (
                             <>
-                              <span className="text-gray-700">mohammed.damlaki@example.com</span>
-                              <Mail className="h-4 w-4 text-syria-green-500 ml-2" />
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-gray-700">mohammed.damlaki@example.com</span>
                               <Mail className="h-4 w-4 text-syria-green-500 mr-2" />
-                            </>
-                          )}
-                        </div>
-                        <div className={`flex items-center ${isEnglish ? 'justify-start' : 'justify-end'}`}>
-                          {isEnglish ? (
-                            <>
-                              <span className="text-gray-700">github.com/mohammeddamlaki</span>
-                              <Github className="h-4 w-4 text-syria-green-500 ml-2" />
+                              <span className="text-gray-700">nordam312@gmail.com</span>
                             </>
                           ) : (
                             <>
-                              <span className="text-gray-700">github.com/mohammeddamlaki</span>
+                              <Mail className="h-4 w-4 text-syria-green-500 ml-2" />
+                              <span className="text-gray-700">nordam312@gmail.com</span>
+                            </>
+                          )}
+                        </div>
+                        <div className={`flex items-center justify-start text-gray-700`}>
+                          {isEnglish ? (
+                            <>
                               <Github className="h-4 w-4 text-syria-green-500 mr-2" />
-                            </>
-                          )}
-                        </div>
-                        <div className={`flex items-center ${isEnglish ? 'justify-start' : 'justify-end'}`}>
-                          {isEnglish ? (
-                            <>
-                              <span className="text-gray-700">linkedin.com/in/mohammeddamlaki</span>
-                              <Linkedin className="h-4 w-4 text-syria-green-500 ml-2" />
+                              <span className="text-gray-700">github.com/nordam312</span>
                             </>
                           ) : (
                             <>
-                              <span className="text-gray-700">linkedin.com/in/mohammeddamlaki</span>
+                              <Github className="h-4 w-4 text-syria-green-500 ml-2" />
+                              <span className="text-gray-700">github.com/nordam312</span>
+                            </>
+                          )}
+                        </div>
+                        <div className={`flex items-center justify-start} text-gray-700`}>
+                          {isEnglish ? (
+                            <>
                               <Linkedin className="h-4 w-4 text-syria-green-500 mr-2" />
+                              <span className="text-gray-700">linkedin.com/in/muhammednur-damlahi</span>
+                            </>
+                          ) : (
+                            <>
+                                <Linkedin className="h-4 w-4 text-syria-green-500 ml-2" />
+                              <span className="text-gray-700">linkedin.com/in/muhammednur-damlahi</span>
                             </>
                           )}
                         </div>
@@ -293,7 +313,7 @@ const Developer = () => {
           </div>
 
           {/* رسالة شكر */}
-          <Card className="mt-8 border-syria-green-200 bg-gradient-to-br from-syria-green-50 to-syria-green-100">
+          <Card className="mt-8 border-syria-green-200 bg-gradient-to-br from-syria-green-50 to-syria-green-100 hover:shadow-lg transition-shadow">
             <CardContent className="pt-8 text-center">
               <Heart className="h-12 w-12 text-syria-green-600 mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-syria-green-700 mb-3">{currentContent.thanksTitle}</h3>

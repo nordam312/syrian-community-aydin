@@ -12,136 +12,141 @@ use App\Http\Controllers\Api\LogoController;
 use App\Http\Controllers\Api\ElectionController;
 use App\Http\Controllers\Api\FAQController;
 use App\Http\Controllers\Api\UserQuestionController;
-// Routes للمصادقة (عامة)
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Public (No Authentication Required)
+|--------------------------------------------------------------------------
+*/
+
+// Authentication
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Routes للمستخدمين المسجلين
+// Content & Settings
+Route::get('/content', [ContentController::class, 'index']);
+Route::get('/settings/public', [SettingController::class, 'getSiteSettings']);
+
+// Banners & Logos
+Route::get('/banners', [BannerController::class, 'index']);
+Route::get('/banners/{id}', [BannerController::class, 'show']);
+Route::get('/logos', [LogoController::class, 'index']);
+Route::get('/logos/active', [LogoController::class, 'active']);
+Route::get('/logos/{id}', [LogoController::class, 'show']);
+
+// Events
+Route::apiResource('events', EventController::class);
+
+// FAQ
+Route::get('faqs', [FAQController::class, 'index']);
+Route::get('faqs/{faq}', [FAQController::class, 'show']);
+
+// Elections
+Route::get('/elections', [ElectionController::class, 'index']);
+Route::get('elections/{election}/results', [ElectionController::class, 'results']);
+
+// User Questions
+Route::get('user-questions', [UserQuestionController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Authenticated Users (Require Authentication)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:sanctum')->group(function () {
+    // Authentication
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
-    // إدارة الفعاليات للمستخدمين
+    // Events
     Route::post('/events/{event}/attendees', [EventController::class, 'addAttendee']);
     Route::delete('/events/{event}/attendees', [EventController::class, 'removeAttendee']);
+    Route::put('/events/{event}/attendees/status', [EventController::class, 'updateAttendeeStatus']);
+    Route::get('/events/{event}/attendees', [EventController::class, 'attendees']);
+
+    // Elections
+    Route::prefix('elections')->group(function () {
+        Route::get('/{election}/candidates', [ElectionController::class, 'candidates']);
+        Route::post('/{election}/vote', [ElectionController::class, 'vote']);
+    });
+
+    // User Questions
+    Route::post('user-questions', [UserQuestionController::class, 'store']);
+    Route::post('user-questions/{id}/vote', [UserQuestionController::class, 'vote']);
 });
 
-// Routes للإدارة (تحتاج صلاحيات admin)
+/*
+|--------------------------------------------------------------------------
+| API Routes - Admin Only (Require Authentication & Admin Role)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    // لوحة التحكم
+    // Dashboard & Statistics
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/user-stats', [DashboardController::class, 'userStats']);
     Route::get('/dashboard/event-stats', [DashboardController::class, 'eventStats']);
 
-    // إدارة الأعضاء
+    // User Management
     Route::apiResource('users', UserController::class);
     Route::get('users/stats', [UserController::class, 'stats']);
 
+    // Content Management
+    Route::prefix('content')->group(function () {
+        Route::put('/', [ContentController::class, 'update']);
+        Route::put('/home', [ContentController::class, 'updateHome']);
+        Route::put('/about', [ContentController::class, 'updateAbout']);
+        Route::put('/contact', [ContentController::class, 'updateContact']);
+        Route::put('/social', [ContentController::class, 'updateSocial']);
+    });
 
-    // إدارة المحتوى
-    Route::put('content', [ContentController::class, 'update']);
-    Route::put('content/home', [ContentController::class, 'updateHome']);
-    Route::put('content/about', [ContentController::class, 'updateAbout']);
-    Route::put('content/contact', [ContentController::class, 'updateContact']);
-    Route::put('content/social', [ContentController::class, 'updateSocial']);
+    // Settings Management
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [SettingController::class, 'index']);
+        Route::put('/', [SettingController::class, 'update']);
+        Route::get('/{group}', [SettingController::class, 'getGroup']);
+        Route::get('/key/{key}', [SettingController::class, 'get']);
+        Route::post('/', [SettingController::class, 'set']);
+        Route::delete('/{key}', [SettingController::class, 'delete']);
+        Route::get('/site', [SettingController::class, 'getSiteSettings']);
+        Route::put('/site', [SettingController::class, 'updateSiteSettings']);
+    });
 
-    // إدارة الإعدادات
-    Route::get('settings', [SettingController::class, 'index']);
-    Route::put('settings', [SettingController::class, 'update']);
-    Route::get('settings/{group}', [SettingController::class, 'getGroup']);
-    Route::get('settings/key/{key}', [SettingController::class, 'get']);
-    Route::post('settings', [SettingController::class, 'set']);
-    Route::delete('settings/{key}', [SettingController::class, 'delete']);
-    Route::get('settings/site', [SettingController::class, 'getSiteSettings']);
-    Route::put('settings/site', [SettingController::class, 'updateSiteSettings']);
-    
-    // إدارة الشعارات (Logos)
-    
+    // Banner Management
+    Route::prefix('banners')->group(function () {
+        Route::post('/', [BannerController::class, 'store']);
+        Route::post('/{id}', [BannerController::class, 'update']);
+        Route::delete('/{id}', [BannerController::class, 'destroy']);
+    });
+
+    // Logo Management
+    Route::prefix('logos')->group(function () {
+        Route::post('/', [LogoController::class, 'store']);
+        Route::post('/{logo}', [LogoController::class, 'update']);
+        Route::delete('/{logo}', [LogoController::class, 'destroy']);
+    });
+
+    // FAQ Management
+    Route::prefix('faqs')->group(function () {
+        Route::post('/', [FAQController::class, 'store']);
+        Route::post('/{faq}', [FAQController::class, 'update']);
+        Route::delete('/{faq}', [FAQController::class, 'destroy']);
+    });
+
+    // Election Management
+    Route::prefix('elections')->group(function () {
+        Route::post('/create', [ElectionController::class, 'store']);
+        Route::post('/{election}/candidates', [ElectionController::class, 'addCandidate']);
+        Route::post('/{election}/update', [ElectionController::class, 'updateElection']);
+        Route::delete('/{election}', [ElectionController::class, 'destroyElection']);
+        Route::post('/candidates/{candidate}/update', [ElectionController::class, 'updateCandidate']);
+        Route::delete('/candidates/{candidate}', [ElectionController::class, 'destroyCandidate']);
+    });
+
+    // User Questions Management
+    Route::prefix('admin/user-questions')->group(function () {
+        Route::get('/', [UserQuestionController::class, 'adminIndex']);
+        Route::post('/{id}/answer', [UserQuestionController::class, 'adminAnswer']);
+        Route::delete('/{id}', [UserQuestionController::class, 'adminDestroy']);
+    });
 });
-
-// Routes عامة (لا تحتاج مصادقة)
-Route::get('/content', [ContentController::class, 'index']);
-Route::get('/settings/public', [SettingController::class, 'getSiteSettings']);
-
-// Routes for banners
-Route::get('/banners', [BannerController::class, 'index']);
-Route::get('/banners/{id}', [BannerController::class, 'show']);
-
-// Routes عامة للشعارات
-Route::get('/logos', [LogoController::class, 'index']);
-Route::get('/logos/active', [LogoController::class, 'active']);
-Route::get('/logos/{id}', [LogoController::class, 'show']);
-
-// Routes للإدارة (إضافة/تعديل/حذف)
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::post('/logos', [LogoController::class, 'store']);
-    Route::post('/logos/{logo}', [LogoController::class, 'update']);
-    Route::delete('/logos/{logo}', [LogoController::class, 'destroy']);
-});
-
-// Admin-only routes for banners
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::post('/banners', [BannerController::class, 'store']);
-    Route::post('/banners/{id}', [BannerController::class, 'update']);
-    Route::delete('/banners/{id}', [BannerController::class, 'destroy']);
-});
-//Admin only for FAQ
-Route::middleware(['auth:sanctum', 'admin'])->group(function(){
-    Route::post('faqs', [FAQController::class, 'store']);       // POST /api/faqs
-    Route::post('faqs/{faq}', [FAQController::class, 'update']); // PUT /api/faqs/1
-    Route::delete('faqs/{faq}', [FAQController::class, 'destroy']); // DELETE /api/faqs/1
-});
-//ALL for FAQ
-Route::get('faqs', [FAQController::class, 'index']);
-Route::get('faqs/{faq}', [FAQController::class, 'show']); 
-
-
-Route::apiResource('events', EventController::class);
-Route::put('/events/{event}/attendees/status', [EventController::class, 'updateAttendeeStatus']);
-Route::get('/events/{event}/attendees', [EventController::class, 'attendees']);
-
-
-// 🔵 روتات مخصصة للAdminController
-Route::group(['prefix' => 'elections', 'middleware' => ['auth:sanctum', 'admin']], function () {
-    Route::post('/create', [ElectionController::class, 'store']);
-    Route::post('/{election}/candidates', [ElectionController::class, 'addCandidate']);
-    Route::post('/{election}/update', [ElectionController::class, 'updateElection']);
-    Route::delete('/{election}', [ElectionController::class, 'destroyElection']);
-    Route::post('/candidates/{candidate}/update', [ElectionController::class, 'updateCandidate']);
-    Route::delete('/candidates/{candidate}', [ElectionController::class, 'destroyCandidate']);
-
-});
-
-// 🔵 روتات للتصويت (يجب أن يكون مستخدم مسجل دخوله)
-Route::group(['prefix' => 'elections', 'middleware' => 'auth:sanctum'], function () {
-    Route::get('/{election}/candidates', [ElectionController::class, 'candidates']);
-    Route::post('/{election}/vote', [ElectionController::class, 'vote']);
-});
-
-// 🔵 روت علنٍ (بدون تسجيل) لعرض نتائج الانتخابات
-Route::get('elections/{election}/results', [ElectionController::class, 'results']);
-// ✅ عرض جميع الانتخابات
-Route::get('/elections', [ElectionController::class, 'index']);
-
-//=========================================
-//=============User Question Part==========
-
-// routes للمستخدمين
-// routes/api.php
-Route::middleware('auth:sanctum')->group(function(){
-    Route::post('user-questions', [UserQuestionController::class, 'store']);
-    Route::post('user-questions/{id}/vote', [UserQuestionController::class, 'vote']);
-});
-
-// هذا الرoute يجب أن يكون بدون middleware لأنه للعامة
-Route::get('user-questions', [UserQuestionController::class, 'index']);
-
-// routes للإدارة (تحتاج authentication)
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::get('admin/user-questions', [UserQuestionController::class, 'adminIndex']);
-    Route::post('admin/user-questions/{id}/answer', [UserQuestionController::class, 'adminAnswer']);
-    Route::delete('admin/user-questions/{id}/delete', [UserQuestionController::class, 'adminDestroy']);
-});
-
-

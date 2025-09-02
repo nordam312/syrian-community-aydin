@@ -1,58 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
-import { Button } from '../ui/button';
-import { MessageCircle, CheckCircle, XCircle } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Search, LogOut, Users, Calendar, FileText, MessageSquare, BarChart3, Crown, MessageCircle, HelpCircle, Settings, Eye, Plus, Edit, Trash2 } from 'lucide-react';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { useToast } from '../ui/use-toast';
-import QuestionManager from './QuestionManager';
-import {
-  HelpCircle,
-  Crown,
-  Users,
-  UserPlus,
-  Calendar,
-  MessageSquare,
-  Settings,
-  LogOut,
-  BarChart3,
-  FileText,
-  ImagePlus,
-  Edit,
-  Trash2,
-  Eye,
-  Plus,
-  Mail,
-  Phone,
-  MapPin,
-} from 'lucide-react';
+import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { useToast } from '../ui/use-toast';
 import { API_URL } from '@/config';
+
+import QuestionManager from './QuestionManager';
 import ContentManager from './ContentManager';
 import ElectionManager from './ElectionManager';
 import FAQManager from './FAQManager';
+import EventManager from './EventManager';
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // we add 1 because months are zero-indexed starting from 0
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -82,69 +52,41 @@ type RecentUser = {
   major: string;
 };
 
-type UpcomingEvent = {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  attendees: number;
-};
-
 const AdminDashboard = () => {
-  // حالة النموذج لإضافة فعالية جديدة
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [eventForm, setEventForm] = useState({
-    title: '',
-    description: '',
-    date: '',
-    location: '',
-    max_attendees: '',
-    image: null as File | null,
-  });
   const navigate = useNavigate();
-  // استرجاع التاب المحفوظ من localStorage أو استخدام 'overview' كافتراضي
-  const [activeTab, setActiveTab] = useState(() => {
-    const savedTab = localStorage.getItem('adminDashboardActiveTab');
-    const validTabs = ['overview', 'users', 'events', 'content', 'settings' , 'FAQ'];
-    return savedTab && validTabs.includes(savedTab) ? savedTab : 'overview';
-  });
   const { toast } = useToast();
 
-  // بيانات من الباكيند
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem('adminDashboardActiveTab');
+    const validTabs = ['overview', 'users', 'events', 'content', 'elections', 'questions', 'FAQ', 'settings'];
+    return savedTab && validTabs.includes(savedTab) ? savedTab : 'overview';
+  });
+
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
-  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger refresh
-  const userDataRaw = localStorage.getItem('userData');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const userToken = localStorage.getItem('userToken');
 
-  // إعدادات الموقع
   const [siteSettings, setSiteSettings] = useState({
-    site_name: '',
-    site_description: '',
-    contact_email: '',
-    contact_phone: '',
-    contact_address: '',
-    social_facebook: '',
-    social_instagram: '',
-    social_telegram: '',
     enable_registration: true,
     email_verification: false,
     maintenance_mode: false,
   });
 
-  // دالة لجلب بيانات الداشبورد يمكن استدعاؤها من أي مكان
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+  const [userToDeleteName, setUserToDeleteName] = useState<string>('');
+
   const fetchDashboardData = useCallback(async () => {
     try {
-      // احضار احصائيات الداشبورد
       const statsRes = await axios.get(`${API_URL}/dashboard/stats`, {
         headers: {
           Authorization: `Bearer ${userToken}`,
           Accept: 'application/json',
         },
       });
-      // console.log(statsRes.data)
+
       setStats({
         totalUsers: statsRes.data.total_users ?? 0,
         newUsersThisMonth: statsRes.data.new_users_this_month ?? 0,
@@ -153,6 +95,7 @@ const AdminDashboard = () => {
         totalPosts: statsRes.data.total_posts ?? 0,
         pendingRequests: statsRes.data.pending_requests ?? 0,
       });
+
       setRecentUsers(
         (statsRes.data.recent_users || []).map(
           (user: {
@@ -172,27 +115,6 @@ const AdminDashboard = () => {
           }),
         ),
       );
-      setUpcomingEvents(
-        (statsRes.data.upcoming_events_list || []).map(
-          (event: {
-            id: number;
-            title: string;
-            date: string;
-            time: string;
-            max_attendees: number;
-          }) => {
-            const [datePart, timePartRaw] = event.date.split('T');
-            const timePart = timePartRaw ? timePartRaw.slice(0, 5) : '';
-            return {
-              id: event.id,
-              title: event.title,
-              date: datePart,
-              time: timePart,
-              attendees: event.max_attendees,
-            };
-          },
-        ),
-      );
     } catch (error: unknown) {
       let errorMsg = 'حدث خطأ غير متوقع';
       if (axios.isAxiosError(error)) {
@@ -208,7 +130,6 @@ const AdminDashboard = () => {
     }
   }, [userToken, toast]);
 
-  // دالة لجلب إعدادات الموقع
   const fetchSiteSettings = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/settings/site`, {
@@ -233,10 +154,9 @@ const AdminDashboard = () => {
     }
   }, [userToken, toast]);
 
-  // دالة لحفظ إعدادات الموقع
   const saveSiteSettings = async () => {
     try {
-      const response = await axios.put(
+      await axios.put(
         `${API_URL}/settings/site`,
         siteSettings,
         {
@@ -265,67 +185,6 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    if (userToken) {
-      fetchDashboardData();
-      fetchSiteSettings();
-    }
-  }, [userToken, toast, refreshTrigger, fetchDashboardData, fetchSiteSettings]); // Add fetchSiteSettings to dependencies
-
-  // دالة فتح النموذج
-  const openEventForm = () => setShowEventForm(true);
-
-  // دالة تغيير القيم
-  const handleEventChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setEventForm({ ...eventForm, [e.target.name]: e.target.value });
-  };
-
-  // دالة رفع الصورة
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setEventForm({ ...eventForm, image: e.target.files[0] });
-    }
-  };
-
-  // دالة إرسال النموذج
-  const handleEventSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append('title', eventForm.title);
-      formData.append('description', eventForm.description);
-      formData.append('date', eventForm.date);
-      formData.append('location', eventForm.location);
-      formData.append('max_attendees', eventForm.max_attendees);
-      if (eventForm.image) {
-        formData.append('image', eventForm.image);
-      }
-      await axios.post('http://127.0.0.1:8000/api/events', formData, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      toast({ title: 'تم إضافة الفعالية بنجاح', variant: 'success' });
-      setShowEventForm(false);
-      setEventForm({
-        title: '',
-        description: '',
-        date: '',
-        location: '',
-        max_attendees: '',
-        image: null,
-      });
-      // يمكنك هنا إعادة تحميل الفعاليات أو تحديث القائمة
-    } catch (er) {
-      // console.log(error)
-      // const errorMessage = error.response.data.message;
-      // toast({ title: "Warning!", description:errorMessage , variant: 'warning' });
-    }
-  };
-
   const handleLogout = async () => {
     try {
       const response = await axios.post(
@@ -347,10 +206,6 @@ const AdminDashboard = () => {
       console.error(error);
     }
   };
-
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<number | null>(null);
-  const [userToDeleteName, setUserToDeleteName] = useState<string>('');
 
   const openDeleteModal = (userId: number, userName: string) => {
     setUserToDelete(userId);
@@ -376,7 +231,6 @@ const AdminDashboard = () => {
         description: response.data.message,
         variant: 'success',
       });
-      // Refresh the dashboard data by triggering the useEffect
       setRefreshTrigger((prev) => prev + 1);
       closeDeleteModal();
     } catch (error: unknown) {
@@ -394,6 +248,13 @@ const AdminDashboard = () => {
       closeDeleteModal();
     }
   };
+
+  useEffect(() => {
+    if (userToken) {
+      fetchDashboardData();
+      fetchSiteSettings();
+    }
+  }, [userToken, refreshTrigger, fetchDashboardData, fetchSiteSettings]);
 
   return (
     <div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16 animate-fade-in">
@@ -485,7 +346,6 @@ const AdminDashboard = () => {
         value={activeTab}
         onValueChange={(value) => {
           setActiveTab(value);
-          // حفظ التاب النشط في localStorage
           localStorage.setItem('adminDashboardActiveTab', value);
         }}
         className="space-y-4"
@@ -532,7 +392,7 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <UserPlus className="mr-2 h-5 w-5" />
+                  <Users className="mr-2 h-5 w-5" />
                   أحدث الأعضاء
                 </CardTitle>
                 <CardDescription>
@@ -559,56 +419,55 @@ const AdminDashboard = () => {
                     </div>
                   ))}
                 </div>
-                <Button variant="outline" className="w-full mt-4">
+                <Button
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => setActiveTab('users')}
+                >
                   <Eye className="mr-2 h-4 w-4" />
                   عرض جميع الأعضاء
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Upcoming Events */}
+            {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  الفعاليات القادمة
+                  <Settings className="mr-2 h-5 w-5" />
+                  إجراءات سريعة
                 </CardTitle>
-                <CardDescription>الأنشطة والفعاليات المخططة</CardDescription>
+                <CardDescription>
+                  الوصول السريع إلى الميزات المهمة
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {upcomingEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{event.title}</p>
-                        <p className="text-sm text-gray-600">{event.date}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-syria-green-600">
-                          {event.attendees} مشارك
-                        </p>
-                        <Button
-                          onClick={() => navigate(`/events/${event.id}`)}
-                          size="sm"
-                          variant="outline"
-                        >
-                          تفاصيل
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="grid grid-cols-1 gap-3">
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => setActiveTab('events')}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    إضافة فعالية جديدة
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => setActiveTab('content')}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    تعديل محتوى الموقع
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => setActiveTab('settings')}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    الإعدادات العامة
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={openEventForm}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  إضافة فعالية جديدة
-                </Button>
               </CardContent>
             </Card>
           </div>
@@ -626,7 +485,7 @@ const AdminDashboard = () => {
                 <div className="relative">
                   <Input
                     placeholder="البحث عن عضو..."
-                    className="max-w-sm pl-10" // Add left padding to accommodate the icon
+                    className="max-w-sm pl-10"
                   />
                   <Search
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -638,8 +497,7 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-6 gap-4 p-4 bg-gray-50 font-medium text-sm">
                     <div>الاسم</div>
                     <div>رقم الطالب</div>
-                    <div className="truncate">البريد الإلكتروني</div>{' '}
-                    {/* Add truncate class for long emails */}
+                    <div>البريد الإلكتروني</div>
                     <div>التخصص</div>
                     <div>تاريخ الانضمام</div>
                     <div>الإجراءات</div>
@@ -652,10 +510,7 @@ const AdminDashboard = () => {
                     >
                       <div className="font-medium">{user.name}</div>
                       <div>{user.studentId}</div>
-                      <div
-                        className="overflow-hidden whitespace-nowrap text-ellipsis max-w-full"
-                        title={user.email}
-                      >
+                      <div className="truncate max-w-[150px]" title={user.email}>
                         {user.email}
                       </div>
                       <div>{user.major}</div>
@@ -683,59 +538,11 @@ const AdminDashboard = () => {
 
         {/* Events Tab */}
         <TabsContent value="events" className="space-y-6 animate-fade-in">
-          <Card>
-            <CardHeader>
-              <CardTitle>إدارة الفعاليات</CardTitle>
-              <CardDescription>إنشاء وتنظيم الأنشطة والفعاليات</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Button
-                  className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                  onClick={openEventForm}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  إضافة فعالية جديدة
-                </Button>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {upcomingEvents.map((event) => (
-                    <Card key={event.id}>
-                      <CardHeader>
-                        <CardTitle className="text-lg">{event.title}</CardTitle>
-                        <CardDescription>
-                          {event.date} {event.time ? ' - ' + event.time : ''}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 mb-4">
-                          {event.attendees} مشارك
-                        </p>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            تعديل
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            تفاصيل
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600"
-                          >
-                            حذف
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <EventManager />
         </TabsContent>
 
         {/* Content Management Tab */}
-        <TabsContent value="content" className="space-y-6 ">
+        <TabsContent value="content" className="space-y-6">
           <ContentManager />
         </TabsContent>
 
@@ -833,7 +640,7 @@ const AdminDashboard = () => {
           </Card>
         </TabsContent>
 
-        {/* Election Managment Tab */}
+        {/* Election Management Tab */}
         <TabsContent value="elections" className="space-y-6 animate-fade-in">
           <Card>
             <CardHeader>
@@ -850,114 +657,16 @@ const AdminDashboard = () => {
           </Card>
         </TabsContent>
 
-        {/* FAQ Managment Tab */}
+        {/* FAQ Management Tab */}
         <TabsContent value="FAQ" className="space-y-6 animate-fade-in">
           <FAQManager />
         </TabsContent>
 
-        {/* question Managment Tab */}
+        {/* Question Management Tab */}
         <TabsContent value="questions" className="space-y-6 animate-fade-in">
           <QuestionManager />
         </TabsContent>
-
       </Tabs>
-      {/* نموذج إضافة فعالية جديدة */}
-      <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">
-              إضافة فعالية جديدة
-            </DialogTitle>
-            <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
-              قم بملء تفاصيل الفعالية الجديدة وحفظها.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleEventSubmit} className="space-y-4">
-            <div>
-              <Label>عنوان الفعالية</Label>
-              <Input
-                name="title"
-                value={eventForm.title}
-                onChange={handleEventChange}
-                placeholder="عنوان الفعالية"
-                required
-              />
-            </div>
-
-            <div>
-              <Label>وصف الفعالية</Label>
-              <Textarea
-                name="description"
-                value={eventForm.description}
-                onChange={handleEventChange}
-                placeholder="وصف الفعالية"
-                required
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label>التاريخ</Label>
-              <Input
-                name="date"
-                type="datetime-local"
-                value={eventForm.date}
-                onChange={handleEventChange}
-                required
-              />
-            </div>
-
-            <div>
-              <Label>الموقع</Label>
-              <Input
-                name="location"
-                value={eventForm.location}
-                onChange={handleEventChange}
-                placeholder="الموقع"
-              />
-            </div>
-
-            <div>
-              <Label>الحد الأقصى للمشاركين</Label>
-              <Input
-                name="max_attendees"
-                type="number"
-                value={eventForm.max_attendees}
-                onChange={handleEventChange}
-                placeholder="الحد الأقصى للمشاركين"
-                min={1}
-              />
-            </div>
-
-            <div>
-              <Label>صورة الفعالية</Label>
-              <Input
-                name="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowEventForm(false)}
-              >
-                إلغاء
-              </Button>
-              <Button
-                type="submit"
-                className="bg-syria-green-600 hover:bg-syria-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                حفظ
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
