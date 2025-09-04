@@ -116,9 +116,9 @@ const Developer = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50" dir={textDirection}>
+      <div className="animate-fade-in min-h-screen bg-gray-50" dir={textDirection}>
         {/* زر تبديل اللغة */}
-        <div className="fixed top-20 right-4 z-50">
+        <div className=" animate-fade-in fixed top-20 right-4 z-50">
           <Button
             variant="outline"
             size="sm"

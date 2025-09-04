@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('academic_year')->nullable();
             $table->string('role')->default('user');
 
+            $table->string('verification_token')->nullable();
 
             $table->rememberToken();
             $table->timestamps();

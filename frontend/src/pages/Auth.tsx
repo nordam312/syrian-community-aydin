@@ -13,7 +13,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { User, Mail, Lock, Phone, GraduationCap } from 'lucide-react';
+import { User, Mail, Lock, Phone, GraduationCap, RefreshCw } from 'lucide-react';
+import { API_URL } from '@/config';
+
+
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +28,8 @@ const Auth = () => {
   const [phone, setPhone] = useState('');
   const [major, setMajor] = useState('');
   const [academicYear, setAcademicYear] = useState('');
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   // متغيرات منفصلة لتسجيل الدخول
   const [loginEmail, setLoginEmail] = useState('');
@@ -37,7 +42,6 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // جهز بيانات التسجيل لتتوافق مع الـ API
     const payload = {
       name: fullName,
       email,
@@ -50,7 +54,7 @@ const Auth = () => {
     };
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/register', {
+      const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +65,6 @@ const Auth = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        // خطأ من السيرفر
         toast({
           title: 'خطأ في التسجيل',
           description: data.message || 'حدث خطأ أثناء التسجيل',
@@ -69,13 +72,11 @@ const Auth = () => {
         });
       } else {
         toast({
-          title: 'تم التسجيل بنجاح!',
-          description: 'مرحباً بك في المجتمع السوري في أيدن!',
+          title: 'تم إنشاء الحساب بنجاح!',
+          description: 'يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب',
           variant: 'success',
         });
-        login(data.user, data.token);
-        // بعد التسجيل الناجح، توجيه المستخدم للصفحة الرئيسية
-        navigate('/');
+        setShowVerificationMessage(true);
       }
     } catch (error) {
       console.error(error);
@@ -89,18 +90,55 @@ const Auth = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    setResendLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/resend-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast({
+          title: 'خطأ',
+          description: data.message || 'حدث خطأ أثناء إعادة الإرسال',
+          variant: 'warning',
+        });
+      } else {
+        toast({
+          title: 'تم الإرسال',
+          description: 'تم إعادة إرسال بريد التحقق بنجاح',
+          variant: 'success',
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ غير متوقع',
+        variant: 'warning',
+      });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // جهز بيانات تسجيل الدخول لتتوافق مع الـ API
     const payload = {
-      login: loginEmail, // يمكن أن يكون بريد إلكتروني أو رقم طالب
+      login: loginEmail,
       password: loginPassword,
     };
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/login', {
+      const res = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,25 +149,20 @@ const Auth = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        // خطأ من السيرفر
         toast({
           title: 'خطأ في تسجيل الدخول',
           description: data.message || 'بيانات غير صحيحة',
           variant: 'warning',
         });
       } else {
-        // نجح تسجيل الدخول
         toast({
           title: 'تم تسجيل الدخول بنجاح!',
           description: data.message,
           variant: 'success',
         });
-        // حفظ بيانات المستخدم والتوكن في localStorage
         localStorage.setItem('userToken', data.token);
         localStorage.setItem('userData', JSON.stringify(data.user));
-        // حفظ بيانات المستخدم والتوكن باستخدام hook المصادقة
         login(data.user, data.token);
-        // توجيه المستخدم للصفحة الرئيسية
         navigate('/');
       }
     } catch (error) {
@@ -144,8 +177,49 @@ const Auth = () => {
     }
   };
 
+  if (showVerificationMessage) {
+    return (
+      <div className="  min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+        <Card className=" animate-fade-in w-full max-w-md border-2 border-syria-green-100">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-syria-green-600">
+              تفعيل الحساب
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-center">
+              تم إرسال رابط التفعيل إلى بريدك الإلكتروني: <strong>{email}</strong>
+            </p>
+            <p className="text-center text-sm text-gray-600">
+              يرجى النقر على الرابط في البريد الإلكتروني لتفعيل حسابك.
+            </p>
+            <div className="flex flex-col space-y-2">
+              <Button 
+                onClick={handleResendVerification}
+                disabled={resendLoading}
+                variant="outline"
+                className="border-syria-green-600 text-syria-green-600 hover:bg-syria-green-50"
+              >
+                {resendLoading ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                إعادة إرسال بريد التفعيل
+              </Button>
+              <Button 
+                onClick={() => setShowVerificationMessage(false)}
+                variant="ghost"
+              >
+                العودة إلى التسجيل
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+    <div className="animate-fade-in min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md border-2 border-syria-green-100">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-syria-green-600">
@@ -156,8 +230,8 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signup" className="w-full ">
-            <TabsList className="grid w-full grid-cols-2 ">
+          <Tabs defaultValue="signin" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger
                 value="signin"
                 className="data-[state=active]:border-b-2 data-[state=active]:border-syria-green-600 data-[state=active]:text-syria-green-600"
@@ -172,8 +246,8 @@ const Auth = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4 ">
+            <TabsContent className="animate-fade-in" value="signin">
+              <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="loginEmail">
                     البريد الإلكتروني أو رقم الطالب
@@ -211,7 +285,7 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            <TabsContent value="signup">
+            <TabsContent className="animate-fade-in"  value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullname">الاسم الكامل</Label>

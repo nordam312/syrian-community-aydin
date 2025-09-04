@@ -190,7 +190,7 @@ export default function ElectionsPage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50">
+        <div className="animate-fade-in min-h-screen bg-gray-50">
           <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
             <div className="max-w-4xl mx-auto px-6 text-center">
               <h1 className="text-4xl font-bold mb-4">الانتخابات النشطة</h1>
@@ -212,7 +212,7 @@ export default function ElectionsPage() {
   if (activeElections.length === 0) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50">
+        <div className=" animate-fade-in min-h-screen bg-gray-50">
           <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
             <div className="max-w-4xl mx-auto px-6 text-center">
               <h1 className="text-4xl font-bold mb-4">الانتخابات النشطة</h1>
@@ -235,7 +235,7 @@ export default function ElectionsPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="animate-fade-in min-h-screen bg-gray-50">
         {/* الهيدر */}
         <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
           <div className="max-w-4xl mx-auto px-6 text-center">

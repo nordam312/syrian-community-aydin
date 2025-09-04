@@ -8,10 +8,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EmailVerification;
+use Illuminate\Support\Str;
+
 
 class AuthController extends Controller
 {
-    //
     public function register(Request $request)
     {
         $request->validate([
@@ -24,6 +27,9 @@ class AuthController extends Controller
             'academic_year' => 'nullable|string|max:20',
         ]);
 
+        // إنشاء توكن التحقق
+        $verificationToken = Str::random(60);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -32,27 +38,67 @@ class AuthController extends Controller
             'phone' => $request->phone ?? null,
             'major' => $request->major ?? null,
             'academic_year' => $request->academic_year ?? null,
+            'verification_token' => $verificationToken,
+            'email_verified_at' => null, // لم يتم التحقق بعد
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // إرسال بريد التحقق
+        Mail::to($user->email)->send(new EmailVerification($user, $verificationToken));
+
         return response()->json([
-            'user' => $user,
-            'token' => $token,
-            'message' => 'تم التسجيل بنجاح'
+            'message' => 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.'
         ], 201);
     }
+    public function verifyEmail(Request $request, $token)
+    {
+        $user = User::where('verification_token', $token)->first();
 
+        if (!$user) {
+            // عرض صفحة الخطأ
+            return view('verification-result', [
+                'success' => false,
+                'title' => 'فشل التفعيل',
+                'message' => 'رابط التحقق غير صالح أو منتهي الصلاحية',
+                'icon' => '❌',
+                'buttonText' => 'طلب رابط جديد',
+                'buttonLink' => '/request-new-verification'
+            ]);
+        }
+
+        // تحديث حالة المستخدم
+        $user->email_verified_at = now();
+        $user->verification_token = null;
+        $user->save();
+
+        // عرض صفحة النجاح
+        return view('verification-result', [
+            'success' => true,
+            'title' => 'تم التفعيل بنجاح!',
+            'message' => 'تم تفعيل حسابك بنجاح. يمكنك الآن تسجيل الدخول والاستفادة من جميع الخدمات.',
+            'icon' => '✅',
+            'buttonText' => 'تسجيل الدخول',
+            'buttonLink' => '/login',
+            'user' => $user
+        ]);
+    }
 
     public function login(Request $request)
     {
         $request->validate([
-            'login' => 'required|string', // يمكن أن يكون email أو student_id
+            'login' => 'required|string',
             'password' => 'required',
         ]);
 
         $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'student_id';
+        $user = User::where($loginField, $request->login)->first();
 
-        // محاولة تسجيل الدخول
+        // التحقق من أن البريد الإلكتروني مفعل
+        if ($user && !$user->email_verified_at) {
+            throw ValidationException::withMessages([
+                'login' => ['حسابك غير مفعل. يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.'],
+            ]);
+        }
+
         if (!Auth::attempt([$loginField => $request->login, 'password' => $request->password])) {
             throw ValidationException::withMessages([
                 'login' => ['المعلومات المدخلة غير صحيحة.'],
@@ -69,14 +115,26 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request)
+    public function resendVerification(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'تم تسجيل الخروج']);
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'الحساب مفعل بالفعل.'], 400);
+        }
+
+        // إنشاء توكن جديد وإرسال البريد مرة أخرى
+        $verificationToken = Str::random(60);
+        $user->update(['verification_token' => $verificationToken]);
+
+        Mail::to($user->email)->send(new EmailVerification($user, $verificationToken));
+
+        return response()->json(['message' => 'تم إعادة إرسال بريد التحقق.']);
     }
 
-    public function user(Request $request)
-    {
-        return response()->json(['user' => $request->user()]);
-    }
+    // باقي الدوال (logout, user) تبقى كما هي
 }

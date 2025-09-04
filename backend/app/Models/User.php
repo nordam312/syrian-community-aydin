@@ -26,6 +26,7 @@ class User extends Authenticatable
         'phone',
         'major',
         'academic_year',
+        'verification_token',
         'role'
     ];
 

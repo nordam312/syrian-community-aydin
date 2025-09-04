@@ -23,6 +23,10 @@ use App\Http\Controllers\Api\UserQuestionController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+
+
 // Content & Settings
 Route::get('/content', [ContentController::class, 'index']);
 Route::get('/settings/public', [SettingController::class, 'getSiteSettings']);
