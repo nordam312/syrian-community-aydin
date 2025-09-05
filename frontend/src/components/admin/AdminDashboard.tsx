@@ -1,15 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Search, LogOut, Users, Calendar, FileText, MessageSquare, BarChart3, Crown, MessageCircle, HelpCircle, Settings, Eye, Plus, Edit, Trash2 } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
 import { useToast } from '../ui/use-toast';
 import { API_URL } from '@/config';
 
@@ -69,14 +67,20 @@ const AdminDashboard = () => {
   const userToken = localStorage.getItem('userToken');
 
   const [siteSettings, setSiteSettings] = useState({
-    enable_registration: true,
-    email_verification: false,
     maintenance_mode: false,
+    maintenance_message: '',
   });
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [userToDeleteName, setUserToDeleteName] = useState<string>('');
+  
+  // حالات إدارة الأعضاء
+  const [allUsers, setAllUsers] = useState<RecentUser[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(20);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -138,7 +142,11 @@ const AdminDashboard = () => {
           Accept: 'application/json',
         },
       });
-      setSiteSettings(response.data);
+      // فقط الإعدادات المطلوبة لوضع الصيانة
+      setSiteSettings({
+        maintenance_mode: response.data.maintenance_mode || false,
+        maintenance_message: response.data.maintenance_message || '',
+      });
     } catch (error: unknown) {
       let errorMsg = 'حدث خطأ في جلب إعدادات الموقع';
       if (axios.isAxiosError(error)) {
@@ -151,6 +159,45 @@ const AdminDashboard = () => {
         description: errorMsg,
         variant: 'destructive',
       });
+    }
+  }, [userToken, toast]);
+
+  const fetchAllUsers = useCallback(async () => {
+    try {
+      setUsersLoading(true);
+      const response = await axios.get(`${API_URL}/users`, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          Accept: 'application/json',
+        },
+      });
+      
+      // التعامل مع هيكل الاستجابة المختلفة
+      const usersData = Array.isArray(response.data) ? response.data : (response.data.data || []);
+      const users = usersData.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        studentId: user.student_id,
+        joined: user.created_at,
+        major: user.major || '',
+      }));
+      
+      setAllUsers(users);
+    } catch (error: unknown) {
+      let errorMsg = 'حدث خطأ في جلب بيانات الأعضاء';
+      if (axios.isAxiosError(error)) {
+        errorMsg = error.response?.data?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMsg = error.message;
+      }
+      toast({
+        title: 'خطأ في جلب بيانات الأعضاء',
+        description: errorMsg,
+        variant: 'destructive',
+      });
+    } finally {
+      setUsersLoading(false);
     }
   }, [userToken, toast]);
 
@@ -184,6 +231,43 @@ const AdminDashboard = () => {
       });
     }
   };
+
+  // تحسين البحث مع useMemo
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return allUsers;
+    }
+    
+    const term = searchTerm.toLowerCase();
+    return allUsers.filter(user => 
+      user.name.toLowerCase().includes(term) ||
+      user.email.toLowerCase().includes(term) ||
+      user.studentId.toLowerCase().includes(term) ||
+      (user.major && user.major.toLowerCase().includes(term))
+    );
+  }, [allUsers, searchTerm]);
+
+  // دالة البحث محسّنة
+  const handleSearch = useCallback((term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  }, []);
+
+  // حساب pagination مع useMemo
+  const paginationData = useMemo(() => {
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    
+    return {
+      currentUsers,
+      totalPages,
+      indexOfFirstUser,
+      indexOfLastUser,
+      hasResults: filteredUsers.length > 0
+    };
+  }, [filteredUsers, currentPage, usersPerPage]);
 
   const handleLogout = async () => {
     try {
@@ -231,7 +315,8 @@ const AdminDashboard = () => {
         description: response.data.message,
         variant: 'success',
       });
-      setRefreshTrigger((prev) => prev + 1);
+      // إعادة جلب قائمة المستخدمين
+      fetchAllUsers();
       closeDeleteModal();
     } catch (error: unknown) {
       let errorMsg = 'حدث خطأ غير متوقع أثناء حذف العضو';
@@ -256,22 +341,29 @@ const AdminDashboard = () => {
     }
   }, [userToken, refreshTrigger, fetchDashboardData, fetchSiteSettings]);
 
+  // جلب جميع المستخدمين عند تفعيل تاب الأعضاء
+  useEffect(() => {
+    if (activeTab === 'users' && userToken) {
+      fetchAllUsers();
+    }
+  }, [activeTab, userToken, fetchAllUsers]);
+
   return (
     <div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16 animate-fade-in">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-syria-green-700">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-syria-green-700">
             لوحة تحكم الإدارة
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             مرحباً بك في لوحة تحكم المجتمع السوري في أيدن
           </p>
         </div>
         <Button
           variant="outline"
           onClick={handleLogout}
-          className="text-red-600 border-red-200 hover:bg-red-50"
+          className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
         >
           <LogOut className="mr-2 h-4 w-4" />
           تسجيل الخروج
@@ -279,7 +371,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -350,38 +442,40 @@ const AdminDashboard = () => {
         }}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="overview" className="flex items-center">
-            <BarChart3 className="mr-2 h-4 w-4" />
-            نظرة عامة
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1 h-auto">
+          <TabsTrigger value="overview" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <BarChart3 className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">نظرة عامة</span>
+            <span className="sm:hidden">عامة</span>
           </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center">
-            <Users className="mr-2 h-4 w-4" />
-            إدارة الأعضاء
+          <TabsTrigger value="users" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <Users className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">إدارة الأعضاء</span>
+            <span className="sm:hidden">الأعضاء</span>
           </TabsTrigger>
-          <TabsTrigger value="events" className="flex items-center">
-            <Calendar className="mr-2 h-4 w-4" />
-            الفعاليات
+          <TabsTrigger value="events" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <Calendar className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span>الفعاليات</span>
           </TabsTrigger>
-          <TabsTrigger value="content" className="flex items-center">
-            <FileText className="mr-2 h-4 w-4" />
-            المحتوى
+          <TabsTrigger value="content" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <FileText className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span>المحتوى</span>
           </TabsTrigger>
-          <TabsTrigger value="elections" className="flex items-center gap-2">
-            <Crown className="h-4 w-4" />
-            الانتخابات
+          <TabsTrigger value="elections" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <Crown className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span>الانتخابات</span>
           </TabsTrigger>
-          <TabsTrigger value="questions" className="flex items-center gap-2">
-            <MessageCircle className="h-4 w-4" />
-            الأسئلة
+          <TabsTrigger value="questions" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <MessageCircle className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span>الأسئلة</span>
           </TabsTrigger>
-          <TabsTrigger value="FAQ" className="flex items-center gap-2">
-            <HelpCircle className="h-4 w-4" />
-            FAQ
+          <TabsTrigger value="FAQ" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <HelpCircle className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span>FAQ</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            الإعدادات
+          <TabsTrigger value="settings" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <Settings className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span>الإعدادات</span>
           </TabsTrigger>
         </TabsList>
 
@@ -477,15 +571,22 @@ const AdminDashboard = () => {
         <TabsContent value="users" className="space-y-6 animate-fade-in">
           <Card>
             <CardHeader>
-              <CardTitle>إدارة الأعضاء</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>إدارة الأعضاء</span>
+                <span className="text-sm text-gray-500">
+                  {filteredUsers.length} من {allUsers.length} عضو
+                </span>
+              </CardTitle>
               <CardDescription>عرض وإدارة جميع أعضاء المجتمع</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="relative">
                   <Input
-                    placeholder="البحث عن عضو..."
-                    className="max-w-sm pl-10"
+                    placeholder="البحث عن عضو (الاسم، البريد، رقم الطالب، التخصص)..."
+                    className="max-w-md pl-10"
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
                   />
                   <Search
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -493,44 +594,209 @@ const AdminDashboard = () => {
                   />
                 </div>
 
-                <div className="border rounded-lg">
-                  <div className="grid grid-cols-6 gap-4 p-4 bg-gray-50 font-medium text-sm">
-                    <div>الاسم</div>
-                    <div>رقم الطالب</div>
-                    <div>البريد الإلكتروني</div>
-                    <div>التخصص</div>
-                    <div>تاريخ الانضمام</div>
-                    <div>الإجراءات</div>
-                  </div>
-
-                  {recentUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="grid grid-cols-6 gap-4 p-4 border-t"
-                    >
-                      <div className="font-medium">{user.name}</div>
-                      <div>{user.studentId}</div>
-                      <div className="truncate max-w-[150px]" title={user.email}>
-                        {user.email}
-                      </div>
-                      <div>{user.major}</div>
-                      <div>{formatDate(user.joined)}</div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          onClick={() => openDeleteModal(user.id, user.name)}
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+                {usersLoading && (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div className="relative">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-syria-green-600"></div>
+                      <div className="animate-ping absolute top-0 left-0 h-12 w-12 rounded-full border border-syria-green-400 opacity-75"></div>
                     </div>
-                  ))}
-                </div>
+                    <div className="text-center">
+                      <p className="text-lg font-medium text-syria-green-700">جاري تحميل الأعضاء...</p>
+                      <p className="text-sm text-gray-600">يرجى الانتظار قليلاً</p>
+                    </div>
+                  </div>
+                )}
+
+                {!usersLoading && (
+                  <>
+                    {/* Desktop Table */}
+                    <div className="hidden lg:block border rounded-lg">
+                      <div className="grid grid-cols-6 gap-4 p-4 bg-gray-50 font-medium text-sm">
+                        <div>الاسم</div>
+                        <div>رقم الطالب</div>
+                        <div>البريد الإلكتروني</div>
+                        <div>التخصص</div>
+                        <div>تاريخ الانضمام</div>
+                        <div>الإجراءات</div>
+                      </div>
+
+                      {paginationData.currentUsers.length > 0 ? paginationData.currentUsers.map((user) => (
+                        <div
+                          key={user.id}
+                          className="grid grid-cols-6 gap-4 p-4 border-t items-center"
+                        >
+                          <div className="font-medium">{user.name}</div>
+                          <div>{user.studentId}</div>
+                          <div className="truncate max-w-[200px]" title={user.email}>
+                            {user.email}
+                          </div>
+                          <div>{user.major || '-'}</div>
+                          <div className="text-sm">{formatDate(user.joined)}</div>
+                          <div>
+                            <Button
+                              onClick={() => openDeleteModal(user.id, user.name)}
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span className="mr-1">حذف</span>
+                            </Button>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="p-12 text-center">
+                          {searchTerm ? (
+                            <div className="space-y-4">
+                              <div className="text-6xl">🔍</div>
+                              <div>
+                                <p className="text-lg font-medium text-gray-600">لا توجد نتائج للبحث</p>
+                                <p className="text-sm text-gray-500 mt-1">جرب البحث بكلمات أخرى</p>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                onClick={() => handleSearch('')}
+                                size="sm"
+                              >
+                                مسح البحث
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="text-6xl">👥</div>
+                              <div>
+                                <p className="text-lg font-medium text-gray-600">لا يوجد أعضاء حالياً</p>
+                                <p className="text-sm text-gray-500 mt-1">سيظهر الأعضاء هنا بعد انضمامهم</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {!usersLoading && (
+                  <>
+                    {/* Mobile Cards */}
+                    <div className="lg:hidden space-y-4">
+                      {paginationData.currentUsers.length > 0 ? paginationData.currentUsers.map((user) => (
+                        <div key={user.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-medium text-lg">{user.name}</h3>
+                              <p className="text-sm text-gray-600">{user.studentId}</p>
+                            </div>
+                            <Button
+                              onClick={() => openDeleteModal(user.id, user.name)}
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-700">البريد الإلكتروني: </span>
+                              <span className="text-gray-600 break-all">{user.email}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">التخصص: </span>
+                              <span className="text-gray-600">{user.major || '-'}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">تاريخ الانضمام: </span>
+                              <span className="text-gray-600">{formatDate(user.joined)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="p-12 text-center">
+                          {searchTerm ? (
+                            <div className="space-y-4">
+                              <div className="text-6xl">🔍</div>
+                              <div>
+                                <p className="text-lg font-medium text-gray-600">لا توجد نتائج للبحث</p>
+                                <p className="text-sm text-gray-500 mt-1">جرب البحث بكلمات أخرى</p>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                onClick={() => handleSearch('')}
+                                size="sm"
+                              >
+                                مسح البحث
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="text-6xl">👥</div>
+                              <div>
+                                <p className="text-lg font-medium text-gray-600">لا يوجد أعضاء حالياً</p>
+                                <p className="text-sm text-gray-500 mt-1">سيظهر الأعضاء هنا بعد انضمامهم</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Pagination */}
+                {!usersLoading && filteredUsers.length > usersPerPage && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+                    <div className="text-sm text-gray-600">
+                      عرض {paginationData.indexOfFirstUser + 1} إلى {Math.min(paginationData.indexOfLastUser, filteredUsers.length)} من {filteredUsers.length} نتيجة
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                      >
+                        السابق
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: paginationData.totalPages }, (_, i) => i + 1)
+                          .filter(page => 
+                            page === 1 || 
+                            page === paginationData.totalPages || 
+                            Math.abs(page - currentPage) <= 2
+                          )
+                          .map((page, index, array) => (
+                            <div key={page} className="flex items-center">
+                              {index > 0 && array[index - 1] !== page - 1 && (
+                                <span className="px-2 text-gray-400">...</span>
+                              )}
+                              <Button
+                                variant={currentPage === page ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setCurrentPage(page)}
+                                className={currentPage === page ? "bg-syria-green-600" : ""}
+                              >
+                                {page}
+                              </Button>
+                            </div>
+                          ))
+                        }
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, paginationData.totalPages))}
+                        disabled={currentPage === paginationData.totalPages}
+                      >
+                        التالي
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -548,96 +814,84 @@ const AdminDashboard = () => {
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6 animate-fade-in">
-          <Card>
-            <CardHeader>
-              <CardTitle>إعدادات الموقع</CardTitle>
-              <CardDescription>تخصيص إعدادات المجتمع والموقع</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-4">إعدادات الأمان</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+          <div className="max-w-2xl mx-auto">
+            {/* وضع الصيانة */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center text-orange-800">
+                  <Settings className="mr-2 h-5 w-5" />
+                  وضع الصيانة
+                </CardTitle>
+                <CardDescription>إدارة وضع الصيانة للموقع</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="p-4 border-2 rounded-lg border-orange-200 bg-orange-50">
+                    <div className="flex items-center justify-between mb-4">
                       <div>
-                        <p className="font-medium">تفعيل التسجيل الجديد</p>
-                        <p className="text-sm text-gray-600">
-                          السماح للمستخدمين الجدد بالتسجيل
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={siteSettings.enable_registration}
-                          onChange={(e) =>
-                            setSiteSettings({
-                              ...siteSettings,
-                              enable_registration: e.target.checked,
-                            })
-                          }
-                          id="enable_registration"
-                        />
-                        <Label htmlFor="enable_registration">مفعل</Label>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">
-                          التحقق من البريد الإلكتروني
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          طلب تأكيد البريد الإلكتروني
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={siteSettings.email_verification}
-                          onChange={(e) =>
-                            setSiteSettings({
-                              ...siteSettings,
-                              email_verification: e.target.checked,
-                            })
-                          }
-                          id="email_verification"
-                        />
-                        <Label htmlFor="email_verification">مفعل</Label>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">وضع الصيانة</p>
-                        <p className="text-sm text-gray-600">
-                          تفعيل وضع الصيانة للموقع
-                        </p>
+                        <p className="font-medium text-orange-800 text-lg">تفعيل وضع الصيانة</p>
+                        <p className="text-sm text-orange-600 mt-1">عند التفعيل، سيظهر للمستخدمين العاديين رسالة الصيانة فقط</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <input
                           type="checkbox"
                           checked={siteSettings.maintenance_mode}
-                          onChange={(e) =>
-                            setSiteSettings({
-                              ...siteSettings,
-                              maintenance_mode: e.target.checked,
-                            })
-                          }
+                          onChange={(e) => setSiteSettings({...siteSettings, maintenance_mode: e.target.checked})}
                           id="maintenance_mode"
+                          className="w-5 h-5 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
                         />
-                        <Label htmlFor="maintenance_mode">مفعل</Label>
+                        <Label htmlFor="maintenance_mode" className="text-sm font-medium text-orange-800">
+                          {siteSettings.maintenance_mode ? 'مفعل' : 'معطل'}
+                        </Label>
                       </div>
                     </div>
+                    
+                    {siteSettings.maintenance_mode && (
+                      <div className="border-t border-orange-200 pt-4">
+                        <Label className="text-sm font-medium text-orange-800 mb-2 block">رسالة الصيانة</Label>
+                        <Input
+                          value={siteSettings.maintenance_message}
+                          onChange={(e) => setSiteSettings({...siteSettings, maintenance_message: e.target.value})}
+                          placeholder="الموقع في وضع الصيانة حالياً. يرجى المحاولة لاحقاً."
+                          className="bg-white border-orange-300 focus:ring-orange-500 focus:border-orange-500"
+                        />
+                        <p className="text-xs text-orange-600 mt-2">هذه الرسالة ستظهر للمستخدمين العاديين أثناء فترة الصيانة</p>
+                      </div>
+                    )}
+
+                    {!siteSettings.maintenance_mode && (
+                      <div className="border-t border-orange-200 pt-4">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <p className="text-sm text-green-800 font-medium">✅ الموقع يعمل بشكل طبيعي</p>
+                          <p className="text-xs text-green-700 mt-1">جميع المستخدمين يمكنهم الوصول للموقع</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-800 mb-2">ملاحظة مهمة:</h4>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• المديرون يمكنهم الوصول للموقع حتى أثناء وضع الصيانة</li>
+                      <li>• المستخدمون العاديون سيرون رسالة الصيانة فقط</li>
+                      <li>• يتم فحص وضع الصيانة كل 30 ثانية تلقائياً</li>
+                    </ul>
                   </div>
                 </div>
-
-                <Button
-                  onClick={saveSiteSettings}
-                  className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  حفظ الإعدادات
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* زر الحفظ */}
+          <div className="flex justify-center">
+            <Button
+              onClick={saveSiteSettings}
+              className="bg-syria-green-500 text-white hover:bg-syria-green-600 shadow-lg hover:shadow-xl transition-all duration-200 px-8 py-3"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              حفظ إعدادات الصيانة
+            </Button>
+          </div>
         </TabsContent>
 
         {/* Election Management Tab */}
@@ -670,25 +924,26 @@ const AdminDashboard = () => {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-red-600">تأكيد الحذف</h2>
-            <p className="mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
+            <h2 className="text-lg sm:text-xl font-bold mb-4 text-red-600">تأكيد الحذف</h2>
+            <p className="mb-6 text-sm sm:text-base">
               هل أنت متأكد أنك تريد حذف العضو{' '}
               <strong>{userToDeleteName}</strong>؟ هذا الإجراء لا يمكن التراجع
               عنه.
             </p>
-            <div className="flex gap-2 justify-end">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 justify-end">
               <Button
                 type="button"
                 variant="outline"
                 onClick={closeDeleteModal}
+                className="w-full sm:w-auto"
               >
                 إلغاء
               </Button>
               <Button
                 type="button"
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                 onClick={handleDeleteUser}
               >
                 نعم، احذف

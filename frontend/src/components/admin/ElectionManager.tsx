@@ -517,12 +517,14 @@ const openEditAddFormCampaign = (campaign: ElectionForm | null) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center animate-fade-in">
-          <div className="animate-spin rounded-full h-10 w-10 border-3 border-syria-green-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-muted-foreground font-medium">
-            جاري تحميل بيانات الانتخابات...
-          </p>
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-syria-green-600"></div>
+          <div className="animate-ping absolute top-0 left-0 h-12 w-12 rounded-full border border-syria-green-400 opacity-75"></div>
+        </div>
+        <div className="text-center">
+          <p className="text-lg font-medium text-syria-green-700">جاري تحميل بيانات الانتخابات...</p>
+          <p className="text-sm text-gray-600">يرجى الانتظار قليلاً</p>
         </div>
       </div>
     );

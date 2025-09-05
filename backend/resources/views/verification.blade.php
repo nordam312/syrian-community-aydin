@@ -286,7 +286,7 @@
             </div>
 
             <div class="button-container">
-                <a href="{{ url('/api/verify-email/' . $token) }}" class="verify-button">
+                <a href="{{ env('FRONTEND_URL', 'http://localhost:8080') }}/verify-email/{{ $token }}" class="verify-button">
                     🔗 تأكيد البريد الإلكتروني
                 </a>
             </div>
@@ -301,7 +301,7 @@
             <div class="url-box">
                 <p>إذا واجهتك أي مشكلة في النقر على الزر، يمكنك نسخ الرابط التالي ولصقه في متصفحك:</p>
                 <div class="url-code">
-                    {{ url('/api/verify-email/' . $token) }}
+                    {{ env('FRONTEND_URL', 'http://localhost:8080') }}/verify-email/{{ $token }}
                 </div>
             </div>
 

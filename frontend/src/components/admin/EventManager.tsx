@@ -60,8 +60,11 @@ type Attendee = {
 const EventManager = () => {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showAttendeesSheet, setShowAttendeesSheet] = useState(false);
+  const [showEventDetails, setShowEventDetails] = useState(false);
   const [currentEventAttendees, setCurrentEventAttendees] = useState<Attendee[]>([]);
   const [currentEventTitle, setCurrentEventTitle] = useState('');
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -354,13 +357,96 @@ const EventManager = () => {
   if (loading) {
     return (
       <Card>
-        <CardContent className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-syria-green-600"></div>
-          <span className="mr-2">جاري تحميل الأحداث...</span>
+        <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-syria-green-600"></div>
+            <div className="animate-ping absolute top-0 left-0 h-12 w-12 rounded-full border border-syria-green-400 opacity-75"></div>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-medium text-syria-green-700">جاري تحميل الأحداث...</p>
+            <p className="text-sm text-gray-600">يرجى الانتظار قليلاً</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
+
+  // دالة لفتح تفاصيل الحدث
+  const handleViewEvent = (event: Event) => {
+    setCurrentEvent(event);
+    setShowEventDetails(true);
+  };
+
+  // دالة لبدء تعديل حدث
+  const handleEditEvent = (event: Event) => {
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title,
+      description: event.description,
+      date: event.date.slice(0, 16), // تحويل التاريخ إلى format datetime-local
+      location: event.location,
+      max_attendees: event.max_attendees.toString(),
+      image: null,
+    });
+    setShowEventForm(true);
+  };
+
+  // دالة لتحديث حدث موجود
+  const handleUpdateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEvent) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('title', eventForm.title);
+      formData.append('description', eventForm.description);
+      formData.append('date', eventForm.date);
+      formData.append('location', eventForm.location);
+      formData.append('max_attendees', eventForm.max_attendees);
+      if (eventForm.image) {
+        formData.append('image', eventForm.image);
+      }
+      formData.append('_method', 'PUT');
+
+      await axios.post(`${API_URL}/events/${editingEvent.id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      toast({
+        title: 'تم تحديث الفعالية بنجاح',
+        description: 'تم حفظ التغييرات على الفعالية',
+        variant: 'success'
+      });
+
+      setShowEventForm(false);
+      setEditingEvent(null);
+      setEventForm({
+        title: '',
+        description: '',
+        date: '',
+        location: '',
+        max_attendees: '',
+        image: null,
+      });
+
+      fetchEvents(); // إعادة تحميل الأحداث بعد التحديث
+    } catch (error: unknown) {
+      let errorMsg = 'حدث خطأ في تحديث الفعالية';
+      if (axios.isAxiosError(error)) {
+        errorMsg = error.response?.data?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMsg = error.message;
+      }
+      toast({
+        title: 'خطأ في تحديث الفعالية',
+        description: errorMsg,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const renderEventCard = (event: Event) => (
     <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -412,10 +498,20 @@ const EventManager = () => {
           </Button>
         </div>
         <div className="flex space-x-2">
-          <Button size="sm" variant="outline">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => handleEditEvent(event)}
+            className="text-blue-600 hover:text-blue-700"
+          >
             <Edit className="h-3 w-3" />
           </Button>
-          <Button size="sm" variant="outline">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => handleViewEvent(event)}
+            className="text-green-600 hover:text-green-700"
+          >
             <Eye className="h-3 w-3" />
           </Button>
           <Button
@@ -492,14 +588,14 @@ const EventManager = () => {
         <DialogContent className="sm:max-w-[500px] bg-white rounded-lg shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
-              إضافة فعالية جديدة
+              {editingEvent ? 'تعديل الفعالية' : 'إضافة فعالية جديدة'}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-500">
-              قم بملء تفاصيل الفعالية الجديدة وحفظها.
+              {editingEvent ? 'قم بتعديل تفاصيل الفعالية وحفظ التغييرات.' : 'قم بملء تفاصيل الفعالية الجديدة وحفظها.'}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleEventSubmit} className="space-y-4">
+          <form onSubmit={editingEvent ? handleUpdateEvent : handleEventSubmit} className="space-y-4">
             <div>
               <Label>عنوان الفعالية *</Label>
               <Input
@@ -574,7 +670,18 @@ const EventManager = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowEventForm(false)}
+                onClick={() => {
+                  setShowEventForm(false);
+                  setEditingEvent(null);
+                  setEventForm({
+                    title: '',
+                    description: '',
+                    date: '',
+                    location: '',
+                    max_attendees: '',
+                    image: null,
+                  });
+                }}
               >
                 إلغاء
               </Button>
@@ -582,7 +689,7 @@ const EventManager = () => {
                 type="submit"
                 className="bg-syria-green-600 hover:bg-syria-green-700 text-white"
               >
-                إضافة الفعالية
+                {editingEvent ? 'حفظ التغييرات' : 'إضافة الفعالية'}
               </Button>
             </div>
           </form>
@@ -631,6 +738,97 @@ const EventManager = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Dialog لعرض تفاصيل الفعالية */}
+      <Dialog open={showEventDetails} onOpenChange={setShowEventDetails}>
+        <DialogContent className="sm:max-w-[600px] bg-white rounded-lg shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">
+              تفاصيل الفعالية
+            </DialogTitle>
+          </DialogHeader>
+
+          {currentEvent && (
+            <div className="space-y-4">
+              {currentEvent.image_url && (
+                <div className="w-full h-48 rounded-lg overflow-hidden">
+                  <img
+                    src={currentEvent.image_url}
+                    alt={currentEvent.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{currentEvent.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{currentEvent.description}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">التاريخ والوقت</Label>
+                  <p className="flex items-center mt-1">
+                    <Calendar className="h-4 w-4 ml-1 text-syria-green-600" />
+                    {formatDate(currentEvent.date)}
+                  </p>
+                </div>
+
+                {currentEvent.location && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">الموقع</Label>
+                    <p className="flex items-center mt-1">
+                      <span className="ml-1 text-syria-green-600">📍</span>
+                      {currentEvent.location}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">عدد المشتركين</Label>
+                  <p className="flex items-center mt-1">
+                    <Users className="h-4 w-4 ml-1 text-syria-green-600" />
+                    {currentEvent.confirmed_attendees_count} / {currentEvent.max_attendees} مشترك
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">تاريخ الإنشاء</Label>
+                  <p className="mt-1">
+                    {formatDate(currentEvent.created_at)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={() => {
+                    setShowEventDetails(false);
+                    handleEditEvent(currentEvent);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Edit className="h-4 w-4 ml-1" />
+                  تعديل الفعالية
+                </Button>
+                <Button
+                  onClick={() => fetchEventAttendees(currentEvent.id, currentEvent.title)}
+                  variant="outline"
+                >
+                  <Users className="h-4 w-4 ml-1" />
+                  عرض المشتركين
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEventDetails(false)}
+                >
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

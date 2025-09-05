@@ -42,10 +42,11 @@ const Logo = () => {
   }, [fetchLogo]);
   if (isLoading) {
     return (
-      <div className="relative z-10 flex justify-center">
-        <div className="absolute -top-20 w-40 h-40 rounded-full bg-syria-green-50 flex items-center justify-center border-4 border-syria-green-200 shadow-lg">
-          <div className="animate-pulse">
-            <div className="w-20 h-20 bg-syria-green-200 rounded-full"></div>
+      <div className="relative z-20 flex justify-center">
+        <div className="absolute -top-16 w-40 h-40 rounded-full bg-gradient-to-br from-syria-green-50 to-syria-green-100 flex items-center justify-center border-4 border-syria-green-200 shadow-lg z-30">
+          <div className="relative">
+            <div className="w-20 h-20 bg-gradient-to-r from-syria-green-200 via-syria-green-300 to-syria-green-200 rounded-full animate-shimmer"></div>
+            <div className="absolute inset-0 w-20 h-20 bg-syria-green-300 rounded-full animate-pulse opacity-50"></div>
           </div>
         </div>
       </div>
@@ -53,16 +54,18 @@ const Logo = () => {
   }
 
   return (
-    <div className="relative z-10 flex justify-center">
+    <div className="relative z-20 flex justify-center">
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="absolute -top-20 w-40 h-40 rounded-full bg-syria-green-50 flex items-center justify-center border-4 border-syria-green-200 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl cursor-pointer">
+          <div className="absolute -top-16 w-40 h-40 rounded-full bg-syria-green-50 flex items-center justify-center border-4 border-syria-green-200 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl cursor-pointer z-30">
             {logo ? (
               <div className="w-full h-full rounded-full overflow-hidden">
                 <img
                   src={`${STORAGE_URL}/${logo.image_path}`}
                   alt={logo.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             ) : (

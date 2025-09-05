@@ -54,7 +54,23 @@ class AuthController extends Controller
         $user = User::where('verification_token', $token)->first();
 
         if (!$user) {
-            // عرض صفحة الخطأ
+            // التحقق إذا كان المستخدم موجود لكن مفعل بالفعل
+            $verifiedUser = User::whereNull('verification_token')->whereNotNull('email_verified_at')->first();
+            
+            // إذا كان الطلب JSON (من الفرونت إند)
+            if ($request->expectsJson() || $request->header('Accept') === 'application/json') {
+                $message = $verifiedUser ? 
+                    'حسابك مفعل بالفعل. يمكنك تسجيل الدخول مباشرة.' : 
+                    'رابط التحقق غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.';
+                    
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'already_verified' => !!$verifiedUser
+                ], 400);
+            }
+            
+            // عرض صفحة الخطأ للمتصفح العادي
             return view('verification-result', [
                 'success' => false,
                 'title' => 'فشل التفعيل',
@@ -70,7 +86,16 @@ class AuthController extends Controller
         $user->verification_token = null;
         $user->save();
 
-        // عرض صفحة النجاح
+        // إذا كان الطلب JSON (من الفرونت إند)
+        if ($request->expectsJson() || $request->header('Accept') === 'application/json') {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول.',
+                'user' => $user
+            ]);
+        }
+
+        // عرض صفحة النجاح للمتصفح العادي
         return view('verification-result', [
             'success' => true,
             'title' => 'تم التفعيل بنجاح!',
@@ -87,6 +112,7 @@ class AuthController extends Controller
         $request->validate([
             'login' => 'required|string',
             'password' => 'required',
+            'device_name' => 'nullable|string|max:100', // اسم الجهاز (اختياري)
         ]);
 
         $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'student_id';
@@ -106,12 +132,41 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        
+        // تحديد اسم الجهاز
+        $deviceName = $request->device_name ?: $request->header('User-Agent') ?: 'Unknown Device';
+        
+        // الحد الأقصى للأجهزة المسموحة (3 فقط)
+        $maxDevices = 3;
+        
+        // التحقق من عدد الأجهزة الحالية
+        $currentDeviceCount = $user->tokens()->count();
+        
+        if ($currentDeviceCount >= $maxDevices) {
+            // حذف أقدم توكن بناءً على آخر استخدام
+            $user->tokens()
+                ->orderBy('last_used_at', 'asc')
+                ->first()
+                ->delete();
+        }
+        
+        // حذف التوكنات القديمة جداً (أكثر من 30 يوم بدون استخدام)
+        $user->tokens()
+            ->where('last_used_at', '<', now()->subDays(30))
+            ->delete();
+        
+        // إنشاء توكن جديد للجهاز الحالي
+        $token = $user->createToken($deviceName)->plainTextToken;
+        
+        // عدد الأجهزة النشطة
+        $activeDevices = $user->tokens()->count();
 
         return response()->json([
             'user' => $user,
             'token' => $token,
-            'message' => 'تم الدخول بنجاح'
+            'message' => "تم الدخول بنجاح - لديك {$activeDevices} أجهزة نشطة من أصل {$maxDevices}",
+            'active_devices' => $activeDevices,
+            'max_devices' => $maxDevices
         ]);
     }
 
@@ -136,5 +191,80 @@ class AuthController extends Controller
         return response()->json(['message' => 'تم إعادة إرسال بريد التحقق.']);
     }
 
-    // باقي الدوال (logout, user) تبقى كما هي
+    public function updateEmail(Request $request)
+    {
+        $request->validate([
+            'old_email' => 'required|email|exists:users,email',
+            'new_email' => 'required|email|unique:users,email',
+        ]);
+
+        $user = User::where('email', $request->old_email)->first();
+
+        // التأكد من أن الحساب غير مفعل
+        if ($user->email_verified_at) {
+            return response()->json([
+                'message' => 'لا يمكن تعديل البريد الإلكتروني لحساب مفعل بالفعل.'
+            ], 400);
+        }
+
+        // تحديث البريد الإلكتروني وإنشاء توكن جديد
+        $verificationToken = Str::random(60);
+        $user->email = $request->new_email;
+        $user->verification_token = $verificationToken;
+        $user->save();
+
+        // إرسال بريد التحقق للإيميل الجديد
+        Mail::to($user->email)->send(new EmailVerification($user, $verificationToken));
+
+        return response()->json([
+            'message' => 'تم تحديث البريد الإلكتروني بنجاح. يرجى التحقق من بريدك الجديد لتفعيل الحساب.',
+            'new_email' => $user->email
+        ]);
+    }
+
+    public function getCurrentEmail(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:users,student_id',
+        ]);
+
+        $user = User::where('student_id', $request->student_id)->first();
+        
+        // التأكد من أن الحساب غير مفعل
+        if ($user->email_verified_at) {
+            return response()->json([
+                'message' => 'هذا الحساب مفعل بالفعل.'
+            ], 400);
+        }
+
+        return response()->json([
+            'current_email' => $user->email,
+            'name' => $user->name,
+            'student_id' => $user->student_id
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        // حذف التوكن الحالي فقط
+        $request->user()->currentAccessToken()->delete();
+        
+        return response()->json([
+            'message' => 'تم تسجيل الخروج بنجاح'
+        ]);
+    }
+
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    public function checkToken(Request $request)
+    {
+        // للتحقق من صلاحية التوكن
+        return response()->json([
+            'valid' => true,
+            'user' => $request->user()
+        ]);
+    }
 }

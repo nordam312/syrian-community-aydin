@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { User, Mail, Lock, Phone, GraduationCap, RefreshCw } from 'lucide-react';
+import { User, Mail, Lock, Phone, GraduationCap, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { API_URL } from '@/config';
 
 
@@ -30,13 +30,90 @@ const Auth = () => {
   const [academicYear, setAcademicYear] = useState('');
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [showEmailUpdate, setShowEmailUpdate] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [updateEmailLoading, setUpdateEmailLoading] = useState(false);
+  const [currentEmail, setCurrentEmail] = useState('');
 
   // متغيرات منفصلة لتسجيل الدخول
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  
+  // متغيرات للتحقق من البريد الإلكتروني
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+
+  const { token } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login } = useAuth();
+
+  // التحقق من البريد الإلكتروني عند تحميل الصفحة
+  useEffect(() => {
+    if (token) {
+      verifyEmail(token);
+    }
+  }, [token]);
+
+  // جلب البريد الحالي للمستخدمين غير المفعلين
+  useEffect(() => {
+    if (showVerificationMessage && studentId && !currentEmail && !email.includes('@')) {
+      fetchCurrentEmail();
+    }
+  }, [showVerificationMessage, studentId, currentEmail, email]);
+
+  const verifyEmail = async (token: string) => {
+    setIsVerifying(true);
+    try {
+      const res = await fetch(`${API_URL}/verify-email/${token}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setVerificationResult({
+          success: true,
+          message: data.message || 'تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول.'
+        });
+        toast({
+          title: 'تم التفعيل بنجاح!',
+          description: 'يمكنك الآن تسجيل الدخول إلى حسابك',
+          variant: 'success',
+        });
+      } else {
+        setVerificationResult({
+          success: false,
+          message: data.message || 'رابط التحقق غير صالح أو منتهي الصلاحية'
+        });
+        toast({
+          title: data.already_verified ? 'حسابك مفعل بالفعل' : 'فشل في التفعيل',
+          description: data.message || 'رابط التحقق غير صالح أو منتهي الصلاحية',
+          variant: data.already_verified ? 'default' : 'warning',
+        });
+      }
+    } catch (error) {
+      console.error('Email verification error:', error);
+      setVerificationResult({
+        success: false,
+        message: 'حدث خطأ في الاتصال'
+      });
+      toast({
+        title: 'خطأ في التحقق',
+        description: 'حدث خطأ أثناء التحقق من البريد الإلكتروني',
+        variant: 'warning',
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +169,12 @@ const Auth = () => {
 
   const handleResendVerification = async () => {
     setResendLoading(true);
+    
+    // جلب البريد الحالي أولاً
+    if (studentId && !currentEmail) {
+      await fetchCurrentEmail();
+    }
+    
     try {
       const res = await fetch(`${API_URL}/resend-verification`, {
         method: 'POST',
@@ -99,7 +182,7 @@ const Auth = () => {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: currentEmail || email }),
       });
 
       const data = await res.json();
@@ -128,6 +211,77 @@ const Auth = () => {
     }
   };
 
+  const fetchCurrentEmail = async () => {
+    try {
+      const res = await fetch(`${API_URL}/get-current-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ student_id: studentId }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setCurrentEmail(data.current_email);
+      } else {
+        // إذا فشل، استخدم البريد الحالي المحفوظ
+        setCurrentEmail(email);
+      }
+    } catch (error) {
+      console.error('Error fetching current email:', error);
+      setCurrentEmail(email);
+    }
+  };
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdateEmailLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/update-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ 
+          old_email: currentEmail, 
+          new_email: newEmail 
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast({
+          title: 'خطأ في التحديث',
+          description: data.message || 'حدث خطأ أثناء تحديث البريد الإلكتروني',
+          variant: 'warning',
+        });
+      } else {
+        toast({
+          title: 'تم تحديث البريد الإلكتروني',
+          description: data.message,
+          variant: 'success',
+        });
+        setEmail(newEmail);
+        setCurrentEmail(newEmail);
+        setShowEmailUpdate(false);
+        setShowVerificationMessage(true);
+        setNewEmail('');
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ غير متوقع',
+        variant: 'warning',
+      });
+    } finally {
+      setUpdateEmailLoading(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -149,11 +303,27 @@ const Auth = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        toast({
-          title: 'خطأ في تسجيل الدخول',
-          description: data.message || 'بيانات غير صحيحة',
-          variant: 'warning',
-        });
+        // إذا كان الخطأ بسبب عدم تفعيل البريد
+        if (data.message && data.message.includes('غير مفعل')) {
+          // إذا المستخدم دخل رقم الطالب
+          if (!loginEmail.includes('@')) {
+            setStudentId(loginEmail);
+          } else {
+            setEmail(loginEmail);
+          }
+          setShowVerificationMessage(true);
+          toast({
+            title: 'حسابك غير مفعل',
+            description: data.message,
+            variant: 'warning',
+          });
+        } else {
+          toast({
+            title: 'خطأ في تسجيل الدخول',
+            description: data.message || 'بيانات غير صحيحة',
+            variant: 'warning',
+          });
+        }
       } else {
         toast({
           title: 'تم تسجيل الدخول بنجاح!',
@@ -177,6 +347,164 @@ const Auth = () => {
     }
   };
 
+  // عرض شاشة التحقق من البريد الإلكتروني
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+        <Card className="animate-fade-in w-full max-w-md border-2 border-syria-green-100">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-syria-green-600">
+              جارٍ التحقق...
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-syria-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">يرجى الانتظار أثناء التحقق من بريدك الإلكتروني</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // عرض نتيجة التحقق
+  if (verificationResult) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+        <Card className="animate-fade-in w-full max-w-md border-2 border-syria-green-100">
+          <CardHeader className="text-center">
+            <CardTitle className={`text-2xl font-bold ${verificationResult.success ? 'text-syria-green-600' : 'text-red-600'}`}>
+              {verificationResult.success ? (
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-8 w-8" />
+                  تم التفعيل بنجاح!
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <XCircle className="h-8 w-8" />
+                  فشل في التفعيل
+                </div>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-center text-gray-600">
+              {verificationResult.message}
+            </p>
+            <div className="flex flex-col space-y-2">
+              {verificationResult.success ? (
+                <Button 
+                  onClick={() => {
+                    setVerificationResult(null);
+                    // إعادة توجيه إلى تسجيل الدخول
+                    navigate('/auth?tab=login');
+                  }}
+                  className="border-2 border-syria-green-600 hover:bg-syria-green-600 hover:text-white"
+                >
+                  تسجيل الدخول
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    onClick={() => {
+                      setVerificationResult(null);
+                      setShowVerificationMessage(true);
+                    }}
+                    variant="outline"
+                    className="border-syria-green-600 text-syria-green-600 hover:bg-syria-green-50"
+                  >
+                    طلب رابط تفعيل جديد
+                  </Button>
+                  
+                  <Button 
+                    onClick={async () => {
+                      setVerificationResult(null);
+                      await fetchCurrentEmail();
+                      setShowEmailUpdate(true);
+                    }}
+                    variant="outline"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  >
+                    تعديل البريد الإلكتروني
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => {
+                      setVerificationResult(null);
+                      navigate('/auth');
+                    }}
+                    variant="ghost"
+                  >
+                    العودة للتسجيل
+                  </Button>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // عرض نموذج تحديث البريد الإلكتروني
+  if (showEmailUpdate) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+        <Card className="animate-fade-in w-full max-w-md border-2 border-syria-green-100">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-syria-green-600">
+              تعديل البريد الإلكتروني
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdateEmail} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentEmail">البريد الحالي</Label>
+                <Input
+                  id="currentEmail"
+                  type="email"
+                  value={currentEmail || email}
+                  disabled
+                  className="bg-gray-100"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="newEmail">البريد الجديد</Label>
+                <Input
+                  id="newEmail"
+                  type="email"
+                  placeholder="أدخل بريدك الإلكتروني الصحيح"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="placeholder:text-gray-400"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col space-y-2">
+                <Button
+                  type="submit"
+                  disabled={updateEmailLoading || !newEmail}
+                  className="border-2 border-syria-green-600 hover:bg-syria-green-600 hover:text-white"
+                >
+                  {updateEmailLoading ? 'جاري التحديث...' : 'تحديث البريد الإلكتروني'}
+                </Button>
+                
+                <Button
+                  type="button"
+                  onClick={() => setShowEmailUpdate(false)}
+                  variant="ghost"
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (showVerificationMessage) {
     return (
       <div className="  min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
@@ -188,7 +516,7 @@ const Auth = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-center">
-              تم إرسال رابط التفعيل إلى بريدك الإلكتروني: <strong>{email}</strong>
+              تم إرسال رابط التفعيل إلى بريدك الإلكتروني: <strong>{currentEmail || email}</strong>
             </p>
             <p className="text-center text-sm text-gray-600">
               يرجى النقر على الرابط في البريد الإلكتروني لتفعيل حسابك.
@@ -205,6 +533,19 @@ const Auth = () => {
                 ) : null}
                 إعادة إرسال بريد التفعيل
               </Button>
+              
+              <Button 
+                onClick={async () => {
+                  setShowVerificationMessage(false);
+                  await fetchCurrentEmail();
+                  setShowEmailUpdate(true);
+                }}
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              >
+                تعديل البريد الإلكتروني
+              </Button>
+              
               <Button 
                 onClick={() => setShowVerificationMessage(false)}
                 variant="ghost"

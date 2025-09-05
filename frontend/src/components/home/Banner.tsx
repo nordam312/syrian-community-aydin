@@ -48,12 +48,25 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
   return (
     <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
       {isLoading ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-syria-green-50">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-syria-green-200 border-t-transparent mb-4"></div>
-            <p className="text-syria-green-800 font-medium">
-              جاري تحميل البنرات...
-            </p>
+        <div className="absolute inset-0 bg-gradient-to-br from-syria-green-50 to-syria-green-100">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-20 w-20 border-4 border-syria-green-200 border-t-syria-green-600"></div>
+                <div className="absolute inset-0 rounded-full bg-syria-green-100 opacity-20 animate-pulse"></div>
+              </div>
+              <div className="text-center space-y-2">
+                <p className="text-syria-green-800 font-semibold text-lg animate-pulse">
+                  جاري تحميل البنرات...
+                </p>
+                <div className="flex space-x-1 justify-center">
+                  <div className="w-2 h-2 bg-syria-green-600 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                  <div className="w-2 h-2 bg-syria-green-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-syria-green-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -66,9 +79,14 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
               }`}
             >
               <img
-                src={`${STORAGE_URL}/${banner.image}`} //http://127.0.0.1:8000/storage/banners/fZu1aheVgIanSgH4K9HxuWuvOIIYkIaRky1C5BoY.jpg
+                src={`${STORAGE_URL}/${banner.image}`}
                 alt={banner.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                loading="lazy"
+                decoding="async"
+                onLoad={(e) => {
+                  e.currentTarget.classList.add('animate-fade-in');
+                }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-40"></div>
             </div>
@@ -77,13 +95,16 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
       )}
 
       <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-4 text-center">
-        <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-lg animate-fade-in">
-          {content?.home_title || (
-            <span className="animate-pulse bg-white/40 rounded px-6 py-2">
-              ......
-            </span>
-          )}
-        </h1>
+        <div className="transform transition-all duration-1000 animate-slide-up">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-2xl text-white animate-fade-in leading-tight py-2" style={{textShadow: '0 0 20px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.5)'}}>
+            {content?.home_title || (
+              <div className="space-y-2">
+                <div className="h-8 bg-gradient-to-r from-white/40 via-white/60 to-white/40 rounded animate-shimmer w-64"></div>
+                <div className="h-6 bg-gradient-to-r from-white/30 via-white/50 to-white/30 rounded animate-shimmer w-48 mx-auto"></div>
+              </div>
+            )}
+          </h1>
+        </div>
         {/* <p
 					className="text-lg md:text-xl max-w-2xl drop-shadow-md animate-fade-in"
 					style={{ animationDelay: '0.2s' }}

@@ -22,12 +22,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'student_id',    // أضف هذه الحقول
+        'student_id',
         'phone',
         'major',
         'academic_year',
+        'role',
         'verification_token',
-        'role'
+        'email_verified_at'
     ];
 
     /**
@@ -38,6 +39,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_token',
     ];
 
     /**

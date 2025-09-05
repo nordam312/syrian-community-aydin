@@ -113,7 +113,8 @@ class SettingController extends Controller
             'social_telegram' => Setting::get('social_telegram'),
             'enable_registration' => Setting::get('enable_registration', true),
             'email_verification' => Setting::get('email_verification', false),
-            'maintenance_mode' => Setting::get('maintenance_mode', false)
+            'maintenance_mode' => Setting::get('maintenance_mode', false),
+            'maintenance_message' => Setting::get('maintenance_message', 'الموقع في وضع الصيانة حالياً. يرجى المحاولة لاحقاً.')
         ];
 
         return response()->json($settings);
@@ -132,7 +133,8 @@ class SettingController extends Controller
             'social_telegram' => 'nullable|url',
             'enable_registration' => 'nullable|boolean',
             'email_verification' => 'nullable|boolean',
-            'maintenance_mode' => 'nullable|boolean'
+            'maintenance_mode' => 'nullable|boolean',
+            'maintenance_message' => 'nullable|string|max:500'
         ]);
 
         foreach ($request->all() as $key => $value) {
@@ -145,5 +147,20 @@ class SettingController extends Controller
         return response()->json([
             'message' => 'تم تحديث إعدادات الموقع بنجاح'
         ]);
+    }
+
+    // إعدادات عامة للمستخدمين (بدون authentication)
+    public function getPublicSettings()
+    {
+        $settings = [
+            'maintenance_mode' => Setting::get('maintenance_mode', false),
+            'maintenance_message' => Setting::get('maintenance_message', 'الموقع في وضع الصيانة حالياً. يرجى المحاولة لاحقاً.'),
+            'site_name' => Setting::get('site_name', 'المجتمع السوري في أيدن'),
+            'site_description' => Setting::get('site_description', 'مجتمع داعم للطلاب السوريين في أيدن'),
+            'enable_registration' => Setting::get('enable_registration', true),
+            'email_verification' => Setting::get('email_verification', false)
+        ];
+
+        return response()->json($settings);
     }
 }

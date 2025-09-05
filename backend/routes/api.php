@@ -19,17 +19,21 @@ use App\Http\Controllers\Api\UserQuestionController;
 |--------------------------------------------------------------------------
 */
 
-// Authentication
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+// Authentication - with rate limiting
+Route::middleware(['throttle:5,1'])->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+    Route::post('/update-email', [AuthController::class, 'updateEmail']);
+    Route::post('/get-current-email', [AuthController::class, 'getCurrentEmail']);
+});
 
 Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
-Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
 
 
 // Content & Settings
 Route::get('/content', [ContentController::class, 'index']);
-Route::get('/settings/public', [SettingController::class, 'getSiteSettings']);
+Route::get('/settings/public', [SettingController::class, 'getPublicSettings']);
 
 // Banners & Logos
 Route::get('/banners', [BannerController::class, 'index']);

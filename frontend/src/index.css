@@ -8,3 +8,84 @@
   margin: 0 auto;
   padding: 0 1rem;
 }
+
+/* Enhanced Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-slide-up {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.8s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+}
+
+/* Scroll reveal effects */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.6s ease-out;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Enhanced hover effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}

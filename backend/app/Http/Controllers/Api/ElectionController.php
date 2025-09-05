@@ -56,12 +56,16 @@ class ElectionController extends Controller
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->validator->errors()], 422);
         } catch (\Exception $e) {
+            \Log::error('Election creation failed: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'request' => $request->all()
+            ]);
+            
             return response()->json([
-            'error' => 'حدث خطأ',
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ], 500);
-}
+                'error' => 'حدث خطأ أثناء إنشاء الانتخابات',
+                'message' => 'يرجى المحاولة مرة أخرى أو الاتصال بالدعم'
+            ], 500);
+        }
 
     }
     //تحديث حملة انتخابية

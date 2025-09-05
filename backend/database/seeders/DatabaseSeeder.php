@@ -20,11 +20,11 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'Admin',
             'email' => 'admin@syriancommunity.com',
-            'password' => Hash::make('admin123'),
-            'student_id' => 'b0000.000000',
+            'password' => Hash::make('2278434'),
+            'student_id' => 'b2180.060001',
             'role' => 'admin',
             'major' => 'إدارة الموقع',
-            'academic_year' => '1'
+            'academic_year' => '4'
         ]);
 
         // إنشاء محتوى افتراضي

@@ -11,9 +11,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // إضافة middleware وضع الصيانة للطلبات العامة
+        $middleware->web(append: [
+            \App\Http\Middleware\MaintenanceMode::class,
+        ]);
+        
+        $middleware->api(append: [
+            \App\Http\Middleware\MaintenanceMode::class,
+        ]);
+        
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'maintenance' => \App\Http\Middleware\MaintenanceMode::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
