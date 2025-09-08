@@ -16,7 +16,7 @@ const GpaCalculator = lazy(() => import('./pages/GpaCalculator'));
 const Admin = lazy(() => import('./pages/Admin'));
 const Auth = lazy(() => import('./pages/Auth'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-const EventPage = lazy(() => import('./components/event/EventPage'));
+const EventPage = lazy(() => import('./components/event/eventPage'));
 const ElectionsPage = lazy(() => import('./pages/ElectionsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
 const FAQPage = lazy(() => import('./pages/FAQPage'));
