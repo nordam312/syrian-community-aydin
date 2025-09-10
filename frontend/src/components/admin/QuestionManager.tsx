@@ -151,7 +151,7 @@ const QuestionManager = () => {
 
   return(
     <>
-      <TabsContent value="questions" className="space-y-6 animate-fade-in">
+      <TabsContent value="questions" className="space-y-6 animate-page-enter">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

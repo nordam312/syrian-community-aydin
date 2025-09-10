@@ -368,7 +368,7 @@ const AdminDashboard = () => {
   }, [activeTab, fetchAllUsers]);
 
   return (
-    <div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16 animate-fade-in">
+    <div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16 animate-page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex-1">
@@ -499,7 +499,7 @@ const AdminDashboard = () => {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6 animate-fade-in">
+        <TabsContent value="overview" className="space-y-6 animate-page-enter">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent Users */}
             <Card>
@@ -587,7 +587,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         {/* Users Management Tab */}
-        <TabsContent value="users" className="space-y-6 animate-fade-in">
+        <TabsContent value="users" className="space-y-6 animate-page-enter">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -822,7 +822,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         {/* Events Tab */}
-        <TabsContent value="events" className="space-y-6 animate-fade-in">
+        <TabsContent value="events" className="space-y-6 animate-page-enter">
           <EventManager />
         </TabsContent>
 
@@ -832,7 +832,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6 animate-fade-in">
+        <TabsContent value="settings" className="space-y-6 animate-page-enter">
           <div className="max-w-2xl mx-auto">
             {/* وضع الصيانة */}
             <Card>
@@ -914,7 +914,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         {/* Election Management Tab */}
-        <TabsContent value="elections" className="space-y-6 animate-fade-in">
+        <TabsContent value="elections" className="space-y-6 animate-page-enter">
           <Card>
             <CardHeader>
               <CardTitle>إدارة الانتخابات</CardTitle>
@@ -931,12 +931,12 @@ const AdminDashboard = () => {
         </TabsContent>
 
         {/* FAQ Management Tab */}
-        <TabsContent value="FAQ" className="space-y-6 animate-fade-in">
+        <TabsContent value="FAQ" className="space-y-6 animate-page-enter">
           <FAQManager />
         </TabsContent>
 
         {/* Question Management Tab */}
-        <TabsContent value="questions" className="space-y-6 animate-fade-in">
+        <TabsContent value="questions" className="space-y-6 animate-page-enter">
           <QuestionManager />
         </TabsContent>
       </Tabs>

@@ -88,7 +88,7 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
                 loading="lazy"
                 decoding="async"
                 onLoad={(e) => {
-                  e.currentTarget.classList.add('animate-fade-in');
+                  e.currentTarget.classList.add('animate-page-enter');
                 }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-40"></div>
@@ -99,7 +99,7 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
 
       <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-4 text-center">
         <div className="transform transition-all duration-1000 animate-slide-up">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-2xl text-white animate-fade-in leading-tight py-2" style={{textShadow: '0 0 20px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.5)'}}>
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-2xl text-white animate-page-enter leading-tight py-2" style={{textShadow: '0 0 20px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.5)'}}>
             {content?.home_title || (
               <div className="space-y-2">
                 <div className="h-8 bg-gradient-to-r from-white/40 via-white/60 to-white/40 rounded animate-shimmer w-64"></div>
@@ -109,7 +109,7 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
           </h1>
         </div>
         {/* <p
-					className="text-lg md:text-xl max-w-2xl drop-shadow-md animate-fade-in"
+					className="text-lg md:text-xl max-w-2xl drop-shadow-md animate-page-enter"
 					style={{ animationDelay: '0.2s' }}
 				>
 					Building connections, supporting our community, and preserving our

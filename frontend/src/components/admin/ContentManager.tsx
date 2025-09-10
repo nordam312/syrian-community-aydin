@@ -121,7 +121,7 @@ const ContentManager = () => {
     <TabsContent value="content" className="space-y-6 ">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* الصفحة الرئيسية */}
-        <Card className="animate-fade-in">
+        <Card className="animate-page-enter">
           <CardHeader>
             <CardTitle>محتوى الصفحة الرئيسية</CardTitle>
             <CardDescription>
@@ -173,7 +173,7 @@ const ContentManager = () => {
         </Card>
 
         {/* صفحة من نحن */}
-        <Card className="animate-fade-in">
+        <Card className="animate-page-enter">
           <CardHeader>
             <CardTitle>محتوى صفحة من نحن</CardTitle>
             <CardDescription>تعديل معلومات المجتمع وأهدافه</CardDescription>
@@ -224,7 +224,7 @@ const ContentManager = () => {
       </div>
 
       {/* معلومات التواصل */}
-      <Card className="animate-fade-in">
+      <Card className="animate-page-enter">
         <CardHeader>
           <CardTitle>معلومات التواصل</CardTitle>
           <CardDescription>تحديث البريد، الهاتف، والعنوان</CardDescription>
@@ -285,7 +285,7 @@ const ContentManager = () => {
       </Card>
 
       {/* وسائل التواصل الاجتماعي */}
-      <Card className="animate-fade-in">
+      <Card className="animate-page-enter">
         <CardHeader>
           <CardTitle>وسائل التواصل الاجتماعي</CardTitle>
           <CardDescription>
@@ -347,7 +347,7 @@ const ContentManager = () => {
       </Card>
 
       {/* Banner Images Management */}
-      <Card className="animate-fade-in">
+      <Card className="animate-page-enter">
         <CardHeader>
           <CardTitle className="flex items-center">
             <ImagePlus className="mr-2 h-5 w-5" />
@@ -363,7 +363,7 @@ const ContentManager = () => {
       </Card>
 
       {/* Logo Images Management */}
-      <Card className="animate-fade-in">
+      <Card className="animate-page-enter">
         <CardHeader>
           <CardTitle className="flex items-center">
             <ImagePlus className="mr-2 h-5 w-5" />

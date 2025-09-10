@@ -552,7 +552,7 @@ const openEditAddFormCampaign = (campaign: ElectionForm | null) => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-page-enter">
       {/* Header */}
       <Card className="border-l-4 border-l-syria-green-600 bg-gradient-to-r from-syria-green-100/30 via-syria-green-200/20 to-background shadow-lg">
         <CardHeader>
@@ -729,7 +729,7 @@ const openEditAddFormCampaign = (campaign: ElectionForm | null) => {
           <CardContent>
             {candidatesLoading ? (
               <div className="flex items-center justify-center p-8">
-                <div className="text-center animate-fade-in">
+                <div className="text-center animate-page-enter">
                   <div className="animate-spin rounded-full h-10 w-10 border-3 border-syria-green-500 border-t-transparent mx-auto mb-4"></div>
                   <p className="text-muted-foreground font-medium">
                     جاري تحميل بيانات المرشحين...

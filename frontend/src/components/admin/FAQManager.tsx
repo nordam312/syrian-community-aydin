@@ -277,7 +277,7 @@ const FAQManager = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-page-enter">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">إدارة الأسئلة الشائعة</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -440,7 +440,7 @@ const FAQManager = () => {
       ) : (
         <div className="space-y-4">
           {filteredFaqItems.map((item, index) => (
-            <Card key={item.id} className="animate-fade-in">
+            <Card key={item.id} className="animate-page-enter">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
