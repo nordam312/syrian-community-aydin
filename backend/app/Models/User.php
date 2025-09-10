@@ -26,10 +26,17 @@ class User extends Authenticatable
         'phone',
         'major',
         'academic_year',
-        'role',
+        // 'role', // Removed from fillable to prevent mass assignment
         'verification_token',
         'email_verified_at'
     ];
+    
+    /**
+     * The attributes that should be guarded from mass assignment.
+     *
+     * @var array<string>
+     */
+    protected $guarded = ['role', 'id'];
 
     /**
      * The attributes that should be hidden for serialization.

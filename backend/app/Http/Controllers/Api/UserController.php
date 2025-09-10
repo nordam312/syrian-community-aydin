@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -13,12 +14,13 @@ class UserController extends Controller
     {
         $query = User::query();
 
-        // البحث
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('email', 'like', '%' . $request->search . '%')
-                    ->orWhere('student_id', 'like', '%' . $request->search . '%');
+        // البحث - Fixed SQL Injection vulnerability
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('student_id', 'like', '%' . $search . '%');
             });
         }
 
@@ -56,13 +58,18 @@ class UserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
             'student_id' => $request->student_id,
             'phone' => $request->phone,
             'major' => $request->major,
             'academic_year' => $request->academic_year,
-            'role' => $request->role ?? 'user'
         ]);
+        
+        // Set role separately to prevent mass assignment
+        if ($request->has('role') && auth()->user() && auth()->user()->isAdmin()) {
+            $user->role = $request->role;
+            $user->save();
+        }
 
         return response()->json([
             'message' => 'تم إنشاء العضو بنجاح',
@@ -87,15 +94,22 @@ class UserController extends Controller
             'role' => 'nullable|string|in:user,admin'
         ]);
 
-        $user->update($request->only([
+        // Fixed Mass Assignment vulnerability
+        $allowedFields = [
             'name',
             'email',
             'student_id',
             'phone',
             'major',
-            'academic_year',
-            'role'
-        ]));
+            'academic_year'
+        ];
+        
+        // Only allow role update if current user is admin
+        if (auth()->user() && auth()->user()->isAdmin()) {
+            $allowedFields[] = 'role';
+        }
+        
+        $user->update($request->only($allowedFields));
 
         return response()->json([
             'message' => 'تم تحديث بيانات العضو بنجاح',

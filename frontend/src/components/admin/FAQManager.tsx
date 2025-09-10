@@ -2,6 +2,7 @@ import { API_URL } from '@/config';
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import CsrfService from '@/hooks/Csrf';
+import { sanitizeInput, sanitizeHTML } from '@/utils/sanitize';
 import {
   Card,
   CardContent,
@@ -311,8 +312,8 @@ const FAQManager = () => {
                   value={editingItem?.question || ''}
                   onChange={(e) =>
                     setEditingItem(prev =>
-                      prev ? { ...prev, question: e.target.value } : {
-                        question: e.target.value,
+                      prev ? { ...prev, question: sanitizeInput(e.target.value) } : {
+                        question: sanitizeInput(e.target.value),
                         answer: '',
                         order: 0,
                         category: 'general'
@@ -330,9 +331,9 @@ const FAQManager = () => {
                   value={editingItem?.answer || ''}
                   onChange={(e) =>
                     setEditingItem(prev =>
-                      prev ? { ...prev, answer: e.target.value } : {
+                      prev ? { ...prev, answer: sanitizeInput(e.target.value) } : {
                         question: '',
-                        answer: e.target.value,
+                        answer: sanitizeInput(e.target.value),
                         order: 0,
                         category: 'general'
                       }
@@ -448,9 +449,9 @@ const FAQManager = () => {
                       <span className="text-xs bg-syria-green-100 text-syria-green-800 px-2 py-1 rounded-full">
                         {item.category}
                       </span>
-                      <h3 className="font-semibold text-lg">{item.question}</h3>
+                      <h3 className="font-semibold text-lg">{sanitizeInput(item.question)}</h3>
                     </div>
-                    <p className="text-muted-foreground whitespace-pre-line">{item.answer}</p>
+                    <p className="text-muted-foreground whitespace-pre-line">{sanitizeInput(item.answer)}</p>
                   </div>
                   <div className="flex flex-col ml-4 gap-2">
                     <Button

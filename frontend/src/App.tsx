@@ -7,6 +7,8 @@ import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 // import MaintenanceChecker from '@/components/MaintenanceChecker';
 import { AuthProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { SessionTimeoutProvider } from '@/hooks/useSessionTimeout';
 
 // Lazy load all pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -37,14 +39,19 @@ const App = () => (
         <Toaster />
         <Sonner />
         {/* <MaintenanceChecker> */}
-        <AuthProvider> {/* 🔥 ضع AuthProvider هنا */}
-          <BrowserRouter>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
+        <BrowserRouter>
+          <AuthProvider> {/* 🔥 ضع AuthProvider هنا */}
+            <SessionTimeoutProvider>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/gpa-calculator" element={<GpaCalculator />} />
-                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/verify-email/:token" element={<Auth />} />
                 <Route path="/elections" element={<ElectionsPage />} />
@@ -55,8 +62,9 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
-          </BrowserRouter>
-        </AuthProvider> {/* 🔥 أغلق AuthProvider هنا */}
+            </SessionTimeoutProvider>
+          </AuthProvider> {/* 🔥 أغلق AuthProvider هنا */}
+        </BrowserRouter>
         {/* </MaintenanceChecker> */}
       </TooltipProvider>
     </QueryClientProvider>

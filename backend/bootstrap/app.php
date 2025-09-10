@@ -37,5 +37,35 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Customize exception handling to prevent information leakage
+        $exceptions->renderable(function (\Exception $e, $request) {
+            if ($request->is('api/*')) {
+                // For production, hide sensitive error details
+                if (app()->environment('production')) {
+                    if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                        return response()->json(['message' => 'Resource not found'], 404);
+                    }
+                    
+                    if ($e instanceof \Illuminate\Validation\ValidationException) {
+                        return response()->json([
+                            'message' => 'Validation failed',
+                            'errors' => $e->errors()
+                        ], 422);
+                    }
+                    
+                    if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                        return response()->json(['message' => 'Endpoint not found'], 404);
+                    }
+                    
+                    if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                        return response()->json(['message' => 'Unauthenticated'], 401);
+                    }
+                    
+                    // Generic error message for all other exceptions in production
+                    return response()->json([
+                        'message' => 'An error occurred. Please try again later.'
+                    ], 500);
+                }
+            }
+        });
     })->create();

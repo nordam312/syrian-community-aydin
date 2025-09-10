@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class BannerController extends Controller
 {
@@ -21,13 +23,18 @@ class BannerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'nullable|string',
-            'description' => 'nullable|string',
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'is_active' => 'boolean',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048|dimensions:max_width=2000,max_height=2000'
         ]);
         
-        $imagePath = $request->file('image')->store('banners', 'public');
+        // Secure file upload with sanitized filename
+        $file = $request->file('image');
+        $extension = $file->getClientOriginalExtension();
+        $filename = Str::uuid() . '.' . $extension;
+        $imagePath = $file->storeAs('banners', $filename, 'public');
+        
         $banner = Banner::create([
             'title' => $request->title,
             'image' => $imagePath,
@@ -46,20 +53,43 @@ class BannerController extends Controller
     public function update(Request $request, $id)
     {
         $banner = Banner::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048|dimensions:max_width=2000,max_height=2000'
+        ]);
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('banners', 'public');
+            // Delete old image
+            if ($banner->image) {
+                Storage::disk('public')->delete($banner->image);
+            }
+            
+            // Secure file upload with sanitized filename
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $filename = Str::uuid() . '.' . $extension;
+            $imagePath = $file->storeAs('banners', $filename, 'public');
             $banner->image = $imagePath;
         }
 
-        $banner->update($request->except('image'));
+        $banner->update($request->only(['title', 'description', 'is_active']));
         return response()->json($banner);
     }
     
     public function destroy($id)
     {
-        Banner::findOrFail($id)->delete();
-        return response()->json(['message' => 'Banner deleted']);
+        $banner = Banner::findOrFail($id);
+        
+        // Delete image file from storage
+        if ($banner->image) {
+            Storage::disk('public')->delete($banner->image);
+        }
+        
+        $banner->delete();
+        return response()->json(['message' => 'Banner deleted successfully']);
     }
 }
 

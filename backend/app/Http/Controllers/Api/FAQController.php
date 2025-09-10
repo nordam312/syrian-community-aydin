@@ -21,12 +21,12 @@ class FAQController extends Controller
             $query->where('category', $request->category);
         }
         
-        // البحث
-        if ($request->has('search')) {
-            $search = $request->search;
+        // البحث - Fixed SQL Injection vulnerability
+        if ($request->filled('search')) {
+            $search = trim($request->search);
             $query->where(function($q) use ($search) {
-                $q->where('question', 'like', "%{$search}%")
-                ->orWhere('answer', 'like', "%{$search}%");
+                $q->where('question', 'like', '%' . $search . '%')
+                ->orWhere('answer', 'like', '%' . $search . '%');
             });
         }
         

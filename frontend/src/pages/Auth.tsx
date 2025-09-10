@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import { sanitizeInput } from '@/utils/sanitize';
 
 import {
   Card,
@@ -130,14 +131,14 @@ const Auth = () => {
     try {
       await CsrfService.withCsrf(async(csrfToken) => {
         const response = await axios.post(`${API_URL}/register`, {
-          name: fullName,
-          email,
+          name: sanitizeInput(fullName),
+          email: sanitizeInput(email),
           password,
           password_confirmation: passwordConfirmation,
-          student_id: studentId,
-          phone,
-          major,
-          academic_year: academicYear,
+          student_id: sanitizeInput(studentId),
+          phone: sanitizeInput(phone),
+          major: sanitizeInput(major),
+          academic_year: sanitizeInput(academicYear),
         }, {
           withCredentials: true,
           headers: {
@@ -282,7 +283,7 @@ const Auth = () => {
     try {
       await CsrfService.withCsrf(async(csrfToken)=>{
         const response = await axios.post(`${API_URL}/login`, {
-          login: loginEmail,
+          login: sanitizeInput(loginEmail),
           password: loginPassword
         }, {
           withCredentials: true,

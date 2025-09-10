@@ -7,6 +7,7 @@ use App\Models\Logo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class LogoController extends Controller
 {
@@ -45,7 +46,7 @@ class LogoController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048|dimensions:max_width=2000,max_height=2000',
             'alt_text' => 'nullable|string|max:255',
             'position' => 'nullable|in:header,footer,mobile',
         ]);
@@ -58,8 +59,11 @@ class LogoController extends Controller
         }
 
         try {
-            // Handle image upload
-            $imagePath = $request->file('image')->store('logos', 'public');
+            // Handle image upload with secure filename
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $filename = Str::uuid() . '.' . $extension;
+            $imagePath = $file->storeAs('logos', $filename, 'public');
 
             // Get image dimensions
             $imageInfo = getimagesize(storage_path('app/public/' . $imagePath));
@@ -87,9 +91,11 @@ class LogoController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
+            // Log the error for debugging but don't expose details to user
+            \Log::error('Logo upload failed: ' . $e->getMessage());
+            
             return response()->json([
-                'message' => 'Error uploading logo',
-                'error' => $e->getMessage()
+                'message' => 'Error uploading logo'
             ], 500);
         }
     }
@@ -101,7 +107,7 @@ public function update(Request $request, Logo $logo)
 {
     $validator = Validator::make($request->all(), [
         'name' => 'nullable|string|max:255',
-        'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'image_path' => 'nullable|image|mimes:jpeg,png,jpg|max:2048|dimensions:max_width=2000,max_height=2000',
         'alt_text' => 'nullable|string|max:255',
         'position' => 'nullable|in:header,footer,mobile',
         'is_active' => 'boolean',
@@ -124,7 +130,11 @@ public function update(Request $request, Logo $logo)
                 Storage::disk('public')->delete($logo->image_path);
             }
 
-            $imagePath = $request->file('image_path')->store('logos', 'public');
+            // Secure file upload with sanitized filename
+            $file = $request->file('image_path');
+            $extension = $file->getClientOriginalExtension();
+            $filename = Str::uuid() . '.' . $extension;
+            $imagePath = $file->storeAs('logos', $filename, 'public');
             $updateData['image_path'] = $imagePath;
 
             $imageInfo = getimagesize(storage_path('app/public/' . $imagePath));
@@ -147,9 +157,11 @@ public function update(Request $request, Logo $logo)
         ]);
 
     } catch (\Exception $e) {
+        // Log the error for debugging but don't expose details to user
+        \Log::error('Logo update failed: ' . $e->getMessage());
+        
         return response()->json([
-            'message' => 'Error updating logo',
-            'error' => $e->getMessage()
+            'message' => 'Error updating logo'
         ], 500);
     }
 }
@@ -172,9 +184,11 @@ public function update(Request $request, Logo $logo)
             ]);
 
         } catch (\Exception $e) {
+            // Log the error for debugging but don't expose details to user
+            \Log::error('Logo deletion failed: ' . $e->getMessage());
+            
             return response()->json([
-                'message' => 'Error deleting logo',
-                'error' => $e->getMessage()
+                'message' => 'Error deleting logo'
             ], 500);
         }
     }

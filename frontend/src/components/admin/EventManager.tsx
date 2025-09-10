@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { sanitizeInput, sanitizeHTML } from '@/utils/sanitize';
 import {
   Card,
   CardContent,
@@ -178,7 +179,8 @@ const EventManager = () => {
   const handleEventChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setEventForm({ ...eventForm, [e.target.name]: e.target.value });
+    const sanitizedValue = sanitizeInput(e.target.value);
+    setEventForm({ ...eventForm, [e.target.name]: sanitizedValue });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -470,7 +472,7 @@ const EventManager = () => {
       )}
       <CardHeader>
         <CardTitle className="text-lg flex justify-between items-start">
-          <span>{event.title}</span>
+          <span>{sanitizeInput(event.title)}</span>
           <Badge variant={new Date(event.date) > now ? "default" : "secondary"}>
             {new Date(event.date) > now ? "قادمة" : "منتهية"}
           </Badge>
@@ -483,14 +485,14 @@ const EventManager = () => {
           {event.location && (
             <div className="flex items-center">
               <span className="ml-1">📍</span>
-              {event.location}
+              {sanitizeInput(event.location)}
             </div>
           )}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {event.description}
+          {sanitizeInput(event.description)}
         </p>
         <div className="flex justify-between items-center mb-4">
           <span className="text-sm text-syria-green-600 font-medium">
