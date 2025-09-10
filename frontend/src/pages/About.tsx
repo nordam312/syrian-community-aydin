@@ -113,16 +113,16 @@ const About = () => {
       id: 3,
       name: currentContent.contactOptions[2].name,
       icon: Instagram,
-      link: "https://instagram.com/syriancommunityaydin",
+      link: "https://www.instagram.com/iau.syria",
       color: currentContent.contactOptions[2].color
     },
-    {
-      id: 4,
-      name: currentContent.contactOptions[3].name,
-      icon: Facebook,
-      link: "https://facebook.com/syriancommunityaydin",
-      color: currentContent.contactOptions[3].color
-    }
+    // {
+    //   id: 4,
+    //   name: currentContent.contactOptions[3].name,
+    //   icon: Facebook,
+    //   link: "https://facebook.com/syriancommunityaydin",
+    //   color: currentContent.contactOptions[3].color
+    // }
   ];
 
   return (

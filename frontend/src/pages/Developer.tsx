@@ -39,7 +39,7 @@ const Developer = () => {
       hideButton: "إخفاء وسائل التواصل",
       contactMethodsTitle: "وسائل التواصل",
       chooseContact: "اختر الوسيلة المناسبة لك للتواصل معي",
-      availability: "أنا دائماً متاح للرد على استفساراتكم خلال 24 ساعة",
+      availability: "أنا دائماً متاح للرد على استفساراتكم",
       contactOptions: [
         { name: "البريد الإلكتروني", color: "bg-red-100 text-red-600 hover:bg-red-200" },
         { name: "واتساب", color: "bg-green-100 text-green-600 hover:bg-green-200" },
@@ -102,7 +102,7 @@ const Developer = () => {
       id: 3,
       name: currentContent.contactOptions[2].name,
       icon: Instagram,
-      link: "https://instagram.com/mohammeddamlaki",
+      link: "https://www.instagram.com/nor_damlahi",
       color: currentContent.contactOptions[2].color
     },
     {
