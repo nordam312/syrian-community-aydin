@@ -117,7 +117,7 @@ const EventCarousel = ({
         {displayed.map((event) => (
           <div
             key={event.id}
-            className="bg-white rounded-2xl shadow-md border border-syria-green-100 overflow-hidden hover:shadow-xl hover:-translate-y-2 transition duration-300 flex flex-col w-80 flex-shrink-0"
+            className="bg-white rounded-3xl shadow-xl border border-syria-green-100 overflow-hidden hover:shadow-2xl hover:-translate-y-4 transition-all duration-700 flex flex-col w-80 flex-shrink-0 group relative transform hover:scale-105 cursor-pointer"
             onClick={() => navigate(`/events/${event.id}`)}
           >
             <div className="relative h-52">
@@ -131,13 +131,13 @@ const EventCarousel = ({
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              <div className="absolute bottom-3 right-3 bg-white/90 rounded-full px-3 py-1 flex items-center gap-2 shadow font-tajawal text-syria-green-800 text-xs">
+              <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-2 shadow-lg font-tajawal text-syria-green-800 text-xs border border-syria-green-200/30">
                 <Calendar size={14} className="text-syria-green-700" />
                 {formatDate(event.date)}
               </div>
             </div>
-            <div className="p-5 flex-1 flex flex-col">
-              <h4 className="font-bold text-xl mb-2 text-syria-green-700 font-tajawal line-clamp-2">
+            <div className="p-5 flex-1 flex flex-col relative z-10">
+              <h4 className="font-bold text-xl mb-2 text-syria-green-700 font-tajawal line-clamp-2 group-hover:text-syria-green-800 transition-colors duration-300">
                 {event.title}
               </h4>
               {event.location && (
@@ -153,10 +153,14 @@ const EventCarousel = ({
               )}
               <div className="mt-auto">
                 <Button
-                  className="w-full bg-gradient-to-r from-syria-green-700 to-syria-green-600 hover:from-syria-green-800 hover:to-syria-green-700 text-white rounded-full font-tajawal shadow-md"
+                  className="w-full bg-gradient-to-r from-syria-green-700 to-syria-green-600 hover:from-syria-green-800 hover:to-syria-green-700 text-white rounded-full font-tajawal shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 relative overflow-hidden group/button"
                   onClick={() => navigate(`/events/${event.id}`)}
                 >
-                  تفاصيل الحدث
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <Calendar size={16} />
+                    تفاصيل الحدث
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-syria-green-800 to-syria-green-700 opacity-0 group-hover/button:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </div>
             </div>
@@ -206,29 +210,78 @@ const EventGallery = () => {
   const previousEvents = events.filter((event) => new Date(event.date) < now);
 
   return (
-    <section className="section bg-white pb-20">
-      <div className="page-container max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold font-tajawal text-center pb-6 text-syria-green-800">
-          الفعاليات
-        </h2>
-        <div className="mb-14">
-          <h3 className="text-2xl font-bold font-tajawal text-syria-green-800 mb-6 text-center">
-            الفعاليات القادمة
-          </h3>
+    <section className="py-20 bg-white relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-to-br from-syria-green-50/30 via-transparent to-syria-green-50/30"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-syria-green-100/20 rounded-full -translate-x-48 -translate-y-48"></div>
+      <div className="absolute bottom-0 right-0 w-80 h-80 bg-syria-green-100/20 rounded-full translate-x-40 translate-y-40"></div>
+      
+      <div className="page-container max-w-7xl mx-auto relative z-10">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center p-2 bg-gradient-to-r from-syria-green-600 to-syria-green-500 rounded-full mb-6">
+            <div className="bg-white rounded-full px-6 py-3">
+              <Calendar className="h-8 w-8 text-syria-green-600 mx-auto" />
+            </div>
+          </div>
+          <h2 className="text-5xl font-bold font-tajawal text-syria-green-800 mb-6">
+            فعالياتنا المميزة
+          </h2>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="w-16 h-1 bg-gradient-to-r from-transparent to-syria-green-600 rounded-full"></div>
+            <div className="w-8 h-1 bg-syria-green-600 rounded-full"></div>
+            <div className="w-16 h-1 bg-gradient-to-l from-transparent to-syria-green-600 rounded-full"></div>
+          </div>
+          <p className="text-syria-green-700 text-xl max-w-3xl mx-auto leading-relaxed">
+            انضم إلى فعالياتنا المتنوعة واستمتع بتجربة رائعة مع مجتمعنا النشط
+          </p>
+        </div>
+        {/* Upcoming Events */}
+        <div className="mb-20">
+          <div className="relative mb-12">
+            <div className="bg-gradient-to-r from-syria-green-600 via-syria-green-500 to-syria-green-600 rounded-3xl p-1 shadow-2xl">
+              <div className="bg-white rounded-3xl p-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-syria-green-50/50 via-transparent to-syria-green-50/50"></div>
+                <h3 className="text-3xl font-bold font-tajawal text-syria-green-800 text-center flex items-center justify-center gap-4 relative z-10">
+                  <div className="bg-syria-green-100 p-3 rounded-full">
+                    <Calendar className="h-8 w-8 text-syria-green-600" />
+                  </div>
+                  الفعاليات القادمة
+                  <div className="bg-syria-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                    {upcomingEvents.length}
+                  </div>
+                </h3>
+              </div>
+            </div>
+          </div>
           <EventCarousel
             events={upcomingEvents}
             loading={loading}
-            emptyText="لا يوجد فعاليات قادمة"
+            emptyText="لا يوجد فعاليات قادمة حالياً"
           />
         </div>
+        
+        {/* Previous Events */}
         <div>
-          <h3 className="text-2xl font-bold font-tajawal text-syria-green-800 mb-6 text-center">
-            الفعاليات السابقة
-          </h3>
+          <div className="relative mb-12">
+            <div className="bg-gradient-to-r from-syria-green-500 via-syria-green-400 to-syria-green-500 rounded-3xl p-1 shadow-2xl">
+              <div className="bg-white rounded-3xl p-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-syria-green-50/30 via-transparent to-syria-green-50/30"></div>
+                <h3 className="text-3xl font-bold font-tajawal text-syria-green-800 text-center flex items-center justify-center gap-4 relative z-10">
+                  <div className="bg-syria-green-100 p-3 rounded-full">
+                    <Calendar className="h-8 w-8 text-syria-green-600" />
+                  </div>
+                  الفعاليات السابقة
+                  <div className="bg-syria-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                    {previousEvents.length}
+                  </div>
+                </h3>
+              </div>
+            </div>
+          </div>
           <EventCarousel
             events={previousEvents}
             loading={loading}
-            emptyText="لا يوجد فعاليات سابقة"
+            emptyText="لا توجد فعاليات سابقة لعرضها"
           />
         </div>
       </div>
