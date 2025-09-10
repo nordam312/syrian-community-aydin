@@ -17,9 +17,14 @@ class ElectionController extends Controller
     // 🔹 عرض جميع الانتخابات
     public function index()
     {
-    $elections = Election::withCount('candidates') // يحسب عدد المرشحين
-                ->withCount('votes')      // يحسب عدد الأصوات (إذا عندك علاقة votes بالانتخابات)
-                ->get();
+        // تحديث فوري للانتخابات المنتهية
+        Election::where('status', 'active')
+               ->where('end_date', '<', now())
+               ->update(['status' => 'completed']);
+
+        $elections = Election::withCount('candidates') // يحسب عدد المرشحين
+                    ->withCount('votes')      // يحسب عدد الأصوات (إذا عندك علاقة votes بالانتخابات)
+                    ->get();
         return response()->json($elections);
     }
     // 🔹 إنشاء انتخابات جديدة
@@ -40,12 +45,12 @@ class ElectionController extends Controller
                 $imagePath = $request->file('image')->store('elections', 'public');
             }
 
-            // إنشاء الانتخابات
+            // إنشاء الانتخابات مع معالجة التوقيت
             $election = Election::create([
                 'name' => $request->name,
                 'description' => $request->description,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
+                'start_date' => $request->start_date ? \Carbon\Carbon::parse($request->start_date)->setTimezone('Europe/Istanbul') : null,
+                'end_date' => $request->end_date ? \Carbon\Carbon::parse($request->end_date)->setTimezone('Europe/Istanbul') : null,
                 'status' => $request->status ?? 'pending',
                 'image' => $imagePath ?? null,
 
@@ -82,8 +87,8 @@ class ElectionController extends Controller
         // تحديث الحقول العادية
         $election->name = $request->name ?? $election->name;
         $election->description = $request->description ?? $election->description;
-        $election->start_date = $request->start_date ?? $election->start_date;
-        $election->end_date = $request->end_date ?? $election->end_date;
+        $election->start_date = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->setTimezone('Europe/Istanbul') : $election->start_date;
+        $election->end_date = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->setTimezone('Europe/Istanbul') : $election->end_date;
         $election->status = $request->status ?? $election->status;
 
         // التعامل مع الصورة
@@ -232,6 +237,24 @@ class ElectionController extends Controller
         $request->validate([
             'candidate_id' => 'required|exists:candidates,id,election_id,' . $electionId
         ]);
+
+        // جلب معلومات الانتخاب للتحقق من الحالة والتاريخ
+        $election = Election::findOrFail($electionId);
+
+        // التحقق من حالة الانتخاب
+        if ($election->status !== 'active') {
+            return response()->json(['error' => 'هذه الانتخابات غير نشطة حالياً'], 400);
+        }
+
+        // التحقق من انتهاء موعد التصويت
+        if ($election->end_date && $election->end_date < now()) {
+            return response()->json(['error' => 'انتهت فترة التصويت لهذه الانتخابات'], 400);
+        }
+
+        // التحقق من بداية موعد التصويت
+        if ($election->start_date && $election->start_date > now()) {
+            return response()->json(['error' => 'لم تبدأ فترة التصويت لهذه الانتخابات بعد'], 400);
+        }
 
         $userId = auth()->user()->id;
 
