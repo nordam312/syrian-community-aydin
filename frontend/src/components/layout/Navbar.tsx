@@ -64,7 +64,7 @@ const Navbar = () => {
   const navLinks = getNavLinks();
 
   return (
-    <nav className="bg-white shadow-sm py-4">
+    <nav className="bg-white shadow-sm py-4 border-b-2 border-syria-green-500" style={{ boxShadow: '0 1px 0 0 rgba(34, 197, 94, 0.3), 0 2px 8px -2px rgba(34, 197, 94, 0.2)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex-shrink-0">
