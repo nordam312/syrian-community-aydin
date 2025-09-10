@@ -20,7 +20,7 @@ use App\Http\Controllers\Api\UserQuestionController;
 */
 
 // Authentication - with rate limiting
-Route::middleware(['throttle:5,1'])->group(function () {
+Route::middleware(['throttle:5,1','web'])->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
@@ -61,11 +61,14 @@ Route::get('user-questions', [UserQuestionController::class, 'index']);
 | API Routes - Authenticated Users (Require Authentication)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->group(function () {
-    // Authentication
+Route::middleware(['web'])->group(function () {
+    // Authentication - تحتاج فقط web middleware للـ session
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+});
 
+// Routes that require authentication (session-based)
+Route::middleware(['web', 'auth'])->group(function () {
     // Events
     Route::post('/events/{event}/attendees', [EventController::class, 'addAttendee']);
     Route::delete('/events/{event}/attendees', [EventController::class, 'removeAttendee']);
@@ -88,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
 | API Routes - Admin Only (Require Authentication & Admin Role)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::middleware(['web', 'auth', 'admin'])->group(function () {
     // Dashboard & Statistics
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);

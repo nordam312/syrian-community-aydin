@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 import { Button } from '../ui/button';
 import {
   Card,
@@ -117,12 +118,12 @@ const ElectionManager = () => {
     image: null,
   });
   const [getCandidatess, setGetCandidates] = useState<Candidate[]>([]);
-  const userToken = localStorage.getItem('userToken');
 
   const GetElections = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/elections`, {
+        withCredentials: true,
         headers: {
           Accept: 'application/json',
         },
@@ -147,10 +148,8 @@ const ElectionManager = () => {
 
 
   useEffect(() => {
-    if (userToken) {
-      GetElections();
-    }
-  }, [GetElections, userToken]);
+    GetElections();
+  }, [GetElections]);
 
   // Elections handle functions
   const handleAddElection = async () => {
@@ -163,11 +162,14 @@ const ElectionManager = () => {
       formData.append('status', newElectionForm.status);
       if (newElectionForm.image) formData.append('image', newElectionForm.image);
 
-      await axios.post(`${API_URL}/elections/create`, formData, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/elections/create`, formData, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       });
       toast({ title: 'تم اضافة الحملة بنجاح', variant: 'default' });
       GetElections();
@@ -192,11 +194,14 @@ const ElectionManager = () => {
       formData.append('status', newElectionForm.status);
       if (newElectionForm.image) formData.append('image', newElectionForm.image);
 
-      await axios.post(`${API_URL}/elections/${id}/update`, formData, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/elections/${id}/update`, formData, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       });
       toast({ title: 'تم تعديل الحملة بنجاح', variant: 'default' });
       GetElections();
@@ -241,16 +246,19 @@ const ElectionManager = () => {
       if (candidateForm.image) formData.append('image', candidateForm.image);
 
       const electionId = localStorage.getItem('electionId');
-      await axios.post(
-        `${API_URL}/elections/${electionId}/candidates`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-            'Content-Type': 'multipart/form-data',
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(
+          `${API_URL}/elections/${electionId}/candidates`,
+          formData,
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Content-Type': 'multipart/form-data',
+            },
           },
-        },
-      );
+        );
+      });
       toast({ title: 'تم اضافة مرشح بنجاح', variant: 'default' });
       setFormType(null);
       getCandidates();
@@ -276,16 +284,19 @@ const ElectionManager = () => {
 
       if (candidateForm.image) formData.append('image', candidateForm.image);
 
-      const response = await axios.post(
-        `${API_URL}/elections/candidates/${editingCandidate.id}/update`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+      const response = await CsrfService.withCsrf(async (csrfToken) => {
+        return await axios.post(
+          `${API_URL}/elections/candidates/${editingCandidate.id}/update`,
+          formData,
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+      });
 
       toast({
         title: 'تم تحديث المرشح بنجاح',
@@ -309,14 +320,18 @@ const ElectionManager = () => {
     if (!candidateIdToDelete) return;
 
     try {
-      await axios.delete(
-        `${API_URL}/elections/candidates/${candidateIdToDelete}`,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        }
-      );
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(
+          `${API_URL}/elections/candidates/${candidateIdToDelete}`,
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              Accept: 'application/json',
+            },
+          }
+        );
+      });
 
       toast({
         title: 'تم حذف المرشح بنجاح',
@@ -345,8 +360,8 @@ const ElectionManager = () => {
       const response = await axios.get(
         `${API_URL}/elections/${electionId}/candidates`,
         {
+          withCredentials: true,
           headers: {
-            Authorization: `Bearer ${userToken}`,
             Accept: 'application/json',
           },
         },
@@ -482,8 +497,14 @@ const openEditAddFormCampaign = (campaign: ElectionForm | null) => {
   const handleElectionDelete = async () => {
     if (!electionIdToDelete) return;
     try {
-      await axios.delete(`${API_URL}/elections/${electionIdToDelete}`, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(`${API_URL}/elections/${electionIdToDelete}`, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+          },
+        });
       });
       toast({
         title: 'تم الحذف بنجاح',

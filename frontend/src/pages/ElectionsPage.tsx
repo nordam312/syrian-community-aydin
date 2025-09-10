@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 import { API_URL, STORAGE_URL } from '@/config';
 import {
   Card,
@@ -56,7 +57,10 @@ export default function ElectionsPage() {
   const fetchActiveElections = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get<Election[]>(`${API_URL}/elections`);
+      const response = await axios.get<Election[]>(`${API_URL}/elections`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
       const activeElections = response.data.filter(
         (election) => election.status === 'active'
       );
@@ -81,22 +85,12 @@ export default function ElectionsPage() {
   const fetchCandidates = useCallback(async (electionId: number) => {
     try {
       setIsLoadingCandidates(true);
-      const userToken = localStorage.getItem('userToken');
-
-      if (!userToken) {
-        toast({
-          title: 'يجب تسجيل الدخول',
-          description: 'يجب تسجيل الدخول لعرض المرشحين',
-          variant: 'destructive',
-        });
-        return;
-      }
 
       const response = await axios.get<Candidate[]>(
         `${API_URL}/elections/${electionId}/candidates`,
         {
+          withCredentials: true,
           headers: {
-            'Authorization': `Bearer ${userToken}`,
             'Accept': 'application/json'
           }
         }
@@ -125,16 +119,20 @@ export default function ElectionsPage() {
         candidate_id: selectedCandidate
       };
 
-      await axios.post(
-        `${API_URL}/elections/${selectedElection.id}/vote`,
-        voteData,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
-            'Content-Type': 'application/json'
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(
+          `${API_URL}/elections/${selectedElection.id}/vote`,
+          voteData,
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
           }
-        }
-      );
+        );
+      });
 
       toast({
         title: 'تم التصويت بنجاح',

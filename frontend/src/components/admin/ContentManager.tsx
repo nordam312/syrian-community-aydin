@@ -1,6 +1,7 @@
 import { API_URL } from '@/config';
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 import { TabsContent } from '../ui/tabs';
 import {
   Card,
@@ -39,13 +40,14 @@ const ContentManager = () => {
   const [loading, setLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const { toast } = useToast();
-  const userToken = localStorage.getItem('userToken');
+  // userToken removed - using sessions instead
 
   const GetContentItems = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/content`, {
-        headers: { Authorization: `Bearer ${userToken}` },
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
       });
       setContentItems(response.data);
     } catch (error) {
@@ -58,14 +60,21 @@ const ContentManager = () => {
     } finally {
       setLoading(false);
     }
-  }, [userToken, toast]);
+  }, [toast]);
 
   const handleUpdateContentItems = useCallback(
     async (updatedData: Partial<ContentItem>) => {
       setUpdateLoading(true);
       try {
-        await axios.put(`${API_URL}/content`, updatedData, {
-          headers: { Authorization: `Bearer ${userToken}` },
+        await CsrfService.withCsrf(async (csrfToken) => {
+          await axios.put(`${API_URL}/content`, updatedData, {
+            withCredentials: true,
+            headers: { 
+              'X-XSRF-TOKEN': csrfToken,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+          });
         });
         await GetContentItems();
         toast({
@@ -86,7 +95,7 @@ const ContentManager = () => {
         setUpdateLoading(false);
       }
     },
-    [userToken, toast, GetContentItems],
+    [toast, GetContentItems],
   );
 
   useEffect(() => {

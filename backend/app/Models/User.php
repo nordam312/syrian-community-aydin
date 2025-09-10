@@ -92,4 +92,26 @@ class User extends Authenticatable
     {
         return $this->events()->wherePivot('status', 'confirmed')->count();
     }
+
+        /**
+     * العلاقة مع جلسات المستخدم.
+     *
+     */
+    public function sessions()
+    {
+        return $this->hasMany(Session::class);
+    }
+
+    /**
+     * الحصول على الجلسات النشطة فقط.
+     *
+     */
+    public function activeSessions()
+    {
+        $sessionLifetime = config('session.lifetime') * 60;
+        $minActivityTime = time() - $sessionLifetime;
+        
+        return $this->hasMany(Session::class)
+                    ->where('last_activity', '>', $minActivityTime);
+    }
 }

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
+
 import {
   Card,
   CardContent,
@@ -12,10 +14,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
 import { User, Mail, Lock, Phone, GraduationCap, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { API_URL } from '@/config';
+import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 
+
+const api = axios.create({
+  baseURL: `${API_URL}`,
+  withCredentials: true,
+});
 
 
 const Auth = () => {
@@ -38,7 +46,7 @@ const Auth = () => {
   // متغيرات منفصلة لتسجيل الدخول
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  
+
   // متغيرات للتحقق من البريد الإلكتروني
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<{
@@ -46,17 +54,17 @@ const Auth = () => {
     message: string;
   } | null>(null);
 
-  const { token } = useParams();
+  // const { token } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login } = useAuth();
 
   // التحقق من البريد الإلكتروني عند تحميل الصفحة
-  useEffect(() => {
-    if (token) {
-      verifyEmail(token);
-    }
-  }, [token]);
+  // useEffect(() => {
+  //   if (token) {
+  //     verifyEmail(token);
+  //   }
+  // }, [token]);
 
   // جلب البريد الحالي للمستخدمين غير المفعلين
   useEffect(() => {
@@ -65,101 +73,94 @@ const Auth = () => {
     }
   }, [showVerificationMessage, studentId, currentEmail, email]);
 
-  const verifyEmail = async (token: string) => {
-    setIsVerifying(true);
-    try {
-      const res = await fetch(`${API_URL}/verify-email/${token}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
+  // const verifyEmail = async (token: string) => {
+  //   setIsVerifying(true);
+  //   try {
+  //     const res = await fetch(`${API_URL}/verify-email/${token}`, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Accept': 'application/json',
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
 
-      const data = await res.json();
+  //     const data = await res.json();
 
-      if (res.ok && data.success) {
-        setVerificationResult({
-          success: true,
-          message: data.message || 'تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول.'
-        });
-        toast({
-          title: 'تم التفعيل بنجاح!',
-          description: 'يمكنك الآن تسجيل الدخول إلى حسابك',
-          variant: 'success',
-        });
-      } else {
-        setVerificationResult({
-          success: false,
-          message: data.message || 'رابط التحقق غير صالح أو منتهي الصلاحية'
-        });
-        toast({
-          title: data.already_verified ? 'حسابك مفعل بالفعل' : 'فشل في التفعيل',
-          description: data.message || 'رابط التحقق غير صالح أو منتهي الصلاحية',
-          variant: data.already_verified ? 'default' : 'warning',
-        });
-      }
-    } catch (error) {
-      console.error('Email verification error:', error);
-      setVerificationResult({
-        success: false,
-        message: 'حدث خطأ في الاتصال'
-      });
-      toast({
-        title: 'خطأ في التحقق',
-        description: 'حدث خطأ أثناء التحقق من البريد الإلكتروني',
-        variant: 'warning',
-      });
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+  //     if (res.ok && data.success) {
+  //       setVerificationResult({
+  //         success: true,
+  //         message: data.message || 'تم تفعيل حسابك بنجاح! يمكنك الآن تسجيل الدخول.'
+  //       });
+  //       toast({
+  //         title: 'تم التفعيل بنجاح!',
+  //         description: 'يمكنك الآن تسجيل الدخول إلى حسابك',
+  //         variant: 'success',
+  //       });
+  //     } else {
+  //       setVerificationResult({
+  //         success: false,
+  //         message: data.message || 'رابط التحقق غير صالح أو منتهي الصلاحية'
+  //       });
+  //       toast({
+  //         title: data.already_verified ? 'حسابك مفعل بالفعل' : 'فشل في التفعيل',
+  //         description: data.message || 'رابط التحقق غير صالح أو منتهي الصلاحية',
+  //         variant: data.already_verified ? 'default' : 'warning',
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error('Email verification error:', error);
+  //     setVerificationResult({
+  //       success: false,
+  //       message: 'حدث خطأ في الاتصال'
+  //     });
+  //     toast({
+  //       title: 'خطأ في التحقق',
+  //       description: 'حدث خطأ أثناء التحقق من البريد الإلكتروني',
+  //       variant: 'warning',
+  //     });
+  //   } finally {
+  //     setIsVerifying(false);
+  //   }
+  // };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const payload = {
-      name: fullName,
-      email,
-      password,
-      password_confirmation: passwordConfirmation,
-      student_id: studentId,
-      phone,
-      major,
-      academic_year: academicYear,
-    };
-
     try {
-      const res = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      await CsrfService.withCsrf(async(csrfToken) => {
+        const response = await axios.post(`${API_URL}/register`, {
+          name: fullName,
+          email,
+          password,
+          password_confirmation: passwordConfirmation,
+          student_id: studentId,
+          phone,
+          major,
+          academic_year: academicYear,
+        }, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          }
+        });
 
-      const data = await res.json();
-      if (!res.ok) {
-        toast({
-          title: 'خطأ في التسجيل',
-          description: data.message || 'حدث خطأ أثناء التسجيل',
-          variant: 'warning',
-        });
-      } else {
-        toast({
-          title: 'تم إنشاء الحساب بنجاح!',
-          description: 'يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب',
-          variant: 'success',
-        });
-        setShowVerificationMessage(true);
-      }
+        if (response.data) {
+          toast({
+            title: 'تم إنشاء الحساب بنجاح!',
+            description: 'يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب',
+            variant: 'success',
+          });
+          setShowVerificationMessage(true);
+        }
+      });
     } catch (error) {
       console.error(error);
+      const errorMessage = error.response?.data?.message || 'حدث خطأ أثناء التسجيل';
       toast({
-        title: 'خطأ',
-        description: 'حدث خطأ غير متوقع',
+        title: 'خطأ في التسجيل',
+        description: errorMessage,
         variant: 'warning',
       });
     } finally {
@@ -169,41 +170,38 @@ const Auth = () => {
 
   const handleResendVerification = async () => {
     setResendLoading(true);
-    
+
     // جلب البريد الحالي أولاً
     if (studentId && !currentEmail) {
       await fetchCurrentEmail();
     }
-    
-    try {
-      const res = await fetch(`${API_URL}/resend-verification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ email: currentEmail || email }),
-      });
 
-      const data = await res.json();
-      if (!res.ok) {
-        toast({
-          title: 'خطأ',
-          description: data.message || 'حدث خطأ أثناء إعادة الإرسال',
-          variant: 'warning',
+    try {
+      await CsrfService.withCsrf(async(csrfToken) => {
+        const response = await axios.post(`${API_URL}/resend-verification`, {
+          email: currentEmail || email
+        }, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          }
         });
-      } else {
-        toast({
-          title: 'تم الإرسال',
-          description: 'تم إعادة إرسال بريد التحقق بنجاح',
-          variant: 'success',
-        });
-      }
+
+        if (response.data) {
+          toast({
+            title: 'تم الإرسال',
+            description: 'تم إعادة إرسال بريد التحقق بنجاح',
+            variant: 'success',
+          });
+        }
+      });
     } catch (error) {
       console.error(error);
+      const errorMessage = error.response?.data?.message || 'حدث خطأ أثناء إعادة الإرسال';
       toast({
         title: 'خطأ',
-        description: 'حدث خطأ غير متوقع',
+        description: errorMessage,
         variant: 'warning',
       });
     } finally {
@@ -213,24 +211,24 @@ const Auth = () => {
 
   const fetchCurrentEmail = async () => {
     try {
-      const res = await fetch(`${API_URL}/get-current-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ student_id: studentId }),
-      });
+      await CsrfService.withCsrf(async(csrfToken) => {
+        const response = await axios.post(`${API_URL}/get-current-email`, {
+          student_id: studentId
+        }, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          }
+        });
 
-      const data = await res.json();
-      if (res.ok) {
-        setCurrentEmail(data.current_email);
-      } else {
-        // إذا فشل، استخدم البريد الحالي المحفوظ
-        setCurrentEmail(email);
-      }
+        if (response.data) {
+          setCurrentEmail(response.data.current_email);
+        }
+      });
     } catch (error) {
       console.error('Error fetching current email:', error);
+      // إذا فشل، استخدم البريد الحالي المحفوظ
       setCurrentEmail(email);
     }
   };
@@ -238,43 +236,39 @@ const Auth = () => {
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setUpdateEmailLoading(true);
+    
     try {
-      const res = await fetch(`${API_URL}/update-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ 
-          old_email: currentEmail, 
-          new_email: newEmail 
-        }),
-      });
+      await CsrfService.withCsrf(async(csrfToken) => {
+        const response = await axios.post(`${API_URL}/update-email`, {
+          old_email: currentEmail,
+          new_email: newEmail
+        }, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          }
+        });
 
-      const data = await res.json();
-      if (!res.ok) {
-        toast({
-          title: 'خطأ في التحديث',
-          description: data.message || 'حدث خطأ أثناء تحديث البريد الإلكتروني',
-          variant: 'warning',
-        });
-      } else {
-        toast({
-          title: 'تم تحديث البريد الإلكتروني',
-          description: data.message,
-          variant: 'success',
-        });
-        setEmail(newEmail);
-        setCurrentEmail(newEmail);
-        setShowEmailUpdate(false);
-        setShowVerificationMessage(true);
-        setNewEmail('');
-      }
+        if (response.data) {
+          toast({
+            title: 'تم تحديث البريد الإلكتروني',
+            description: response.data.message,
+            variant: 'success',
+          });
+          setEmail(newEmail);
+          setCurrentEmail(newEmail);
+          setShowEmailUpdate(false);
+          setShowVerificationMessage(true);
+          setNewEmail('');
+        }
+      });
     } catch (error) {
       console.error(error);
+      const errorMessage = error.response?.data?.message || 'حدث خطأ أثناء تحديث البريد الإلكتروني';
       toast({
-        title: 'خطأ',
-        description: 'حدث خطأ غير متوقع',
+        title: 'خطأ في التحديث',
+        description: errorMessage,
         variant: 'warning',
       });
     } finally {
@@ -284,57 +278,26 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    const payload = {
-      login: loginEmail,
-      password: loginPassword,
-    };
 
     try {
-      const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        // إذا كان الخطأ بسبب عدم تفعيل البريد
-        if (data.message && data.message.includes('غير مفعل')) {
-          // إذا المستخدم دخل رقم الطالب
-          if (!loginEmail.includes('@')) {
-            setStudentId(loginEmail);
-          } else {
-            setEmail(loginEmail);
+      await CsrfService.withCsrf(async(csrfToken)=>{
+        const response = await axios.post(`${API_URL}/login`, {
+          login: loginEmail,
+          password: loginPassword
+        }, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
           }
-          setShowVerificationMessage(true);
-          toast({
-            title: 'حسابك غير مفعل',
-            description: data.message,
-            variant: 'warning',
-          });
-        } else {
-          toast({
-            title: 'خطأ في تسجيل الدخول',
-            description: data.message || 'بيانات غير صحيحة',
-            variant: 'warning',
-          });
-        }
-      } else {
-        toast({
-          title: 'تم تسجيل الدخول بنجاح!',
-          description: data.message,
-          variant: 'success',
         });
-        localStorage.setItem('userToken', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
-        login(data.user, data.token);
-        navigate('/');
-      }
+        console.log('Login successful:', response.data);
+        // استخدام دالة login من Context
+        if (response.data.user) {
+          login(response.data.user);
+        }
+        navigate("/");
+      })
     } catch (error) {
       console.error(error);
       toast({
@@ -347,103 +310,7 @@ const Auth = () => {
     }
   };
 
-  // عرض شاشة التحقق من البريد الإلكتروني
-  if (isVerifying) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
-        <Card className="animate-fade-in w-full max-w-md border-2 border-syria-green-100">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-syria-green-600">
-              جارٍ التحقق...
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-syria-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">يرجى الانتظار أثناء التحقق من بريدك الإلكتروني</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
-  // عرض نتيجة التحقق
-  if (verificationResult) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
-        <Card className="animate-fade-in w-full max-w-md border-2 border-syria-green-100">
-          <CardHeader className="text-center">
-            <CardTitle className={`text-2xl font-bold ${verificationResult.success ? 'text-syria-green-600' : 'text-red-600'}`}>
-              {verificationResult.success ? (
-                <div className="flex items-center justify-center gap-2">
-                  <CheckCircle className="h-8 w-8" />
-                  تم التفعيل بنجاح!
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <XCircle className="h-8 w-8" />
-                  فشل في التفعيل
-                </div>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-center text-gray-600">
-              {verificationResult.message}
-            </p>
-            <div className="flex flex-col space-y-2">
-              {verificationResult.success ? (
-                <Button 
-                  onClick={() => {
-                    setVerificationResult(null);
-                    // إعادة توجيه إلى تسجيل الدخول
-                    navigate('/auth?tab=login');
-                  }}
-                  className="border-2 border-syria-green-600 hover:bg-syria-green-600 hover:text-white"
-                >
-                  تسجيل الدخول
-                </Button>
-              ) : (
-                <>
-                  <Button 
-                    onClick={() => {
-                      setVerificationResult(null);
-                      setShowVerificationMessage(true);
-                    }}
-                    variant="outline"
-                    className="border-syria-green-600 text-syria-green-600 hover:bg-syria-green-50"
-                  >
-                    طلب رابط تفعيل جديد
-                  </Button>
-                  
-                  <Button 
-                    onClick={async () => {
-                      setVerificationResult(null);
-                      await fetchCurrentEmail();
-                      setShowEmailUpdate(true);
-                    }}
-                    variant="outline"
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                  >
-                    تعديل البريد الإلكتروني
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => {
-                      setVerificationResult(null);
-                      navigate('/auth');
-                    }}
-                    variant="ghost"
-                  >
-                    العودة للتسجيل
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // عرض نموذج تحديث البريد الإلكتروني
   if (showEmailUpdate) {
@@ -467,7 +334,7 @@ const Auth = () => {
                   className="bg-gray-100"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="newEmail">البريد الجديد</Label>
                 <Input
@@ -489,7 +356,7 @@ const Auth = () => {
                 >
                   {updateEmailLoading ? 'جاري التحديث...' : 'تحديث البريد الإلكتروني'}
                 </Button>
-                
+
                 <Button
                   type="button"
                   onClick={() => setShowEmailUpdate(false)}
@@ -522,7 +389,7 @@ const Auth = () => {
               يرجى النقر على الرابط في البريد الإلكتروني لتفعيل حسابك.
             </p>
             <div className="flex flex-col space-y-2">
-              <Button 
+              <Button
                 onClick={handleResendVerification}
                 disabled={resendLoading}
                 variant="outline"
@@ -533,8 +400,8 @@ const Auth = () => {
                 ) : null}
                 إعادة إرسال بريد التفعيل
               </Button>
-              
-              <Button 
+
+              <Button
                 onClick={async () => {
                   setShowVerificationMessage(false);
                   await fetchCurrentEmail();
@@ -545,8 +412,8 @@ const Auth = () => {
               >
                 تعديل البريد الإلكتروني
               </Button>
-              
-              <Button 
+
+              <Button
                 onClick={() => setShowVerificationMessage(false)}
                 variant="ghost"
               >
@@ -626,7 +493,7 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            <TabsContent className="animate-fade-in"  value="signup">
+            <TabsContent className="animate-fade-in" value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullname">الاسم الكامل</Label>

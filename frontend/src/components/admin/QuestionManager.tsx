@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 import { API_URL } from '@/config';
 import { useToast } from '../ui/use-toast';
 import { TabsContent } from '../ui/tabs';
@@ -47,7 +48,6 @@ const QuestionManager = () => {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<UserQuestion | null>(null);
   const [answerText, setAnswerText] = useState('');
-  const userToken = localStorage.getItem('userToken')
   const { toast } = useToast();
 
 
@@ -55,8 +55,9 @@ const QuestionManager = () => {
     try {
       setLoadingQuestions(true);
       const response = await axios.get(`${API_URL}/admin/user-questions`, {
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${userToken}`,
+          Accept: 'application/json',
         },
       });
       setUserQuestions(response.data);
@@ -70,23 +71,28 @@ const QuestionManager = () => {
     } finally {
       setLoadingQuestions(false);
     }
-  }, [userToken, toast]);
+  }, [toast]);
 
   // أضف هذه الدالة للرد على السؤال
   const handleAnswerQuestion = async (questionId: number, answer: string, isPublic: boolean = true) => {
     try {
-      const response = await axios.post(
-        `${API_URL}/admin/user-questions/${questionId}/answer`,
-        {
-          answer,
-          is_public: isPublic,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
+      const response = await CsrfService.withCsrf(async (csrfToken) => {
+        return await axios.post(
+          `${API_URL}/admin/user-questions/${questionId}/answer`,
+          {
+            answer,
+            is_public: isPublic,
           },
-        }
-      );
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          }
+        );
+      });
 
       // تحديث القائمة
       setUserQuestions(prev =>
@@ -111,10 +117,14 @@ const QuestionManager = () => {
   };
   const handleDeleteQuestion = async (id: number) => {
     try {
-      await axios.delete(`${API_URL}/admin/user-questions/${id}`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`
-        }
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(`${API_URL}/admin/user-questions/${id}`, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+          }
+        });
       });
 
       // تحديث القائمة بعد الحذف
@@ -137,7 +147,7 @@ const QuestionManager = () => {
   useEffect(() => {
       fetchUserQuestions();
     
-  }, [userToken, fetchUserQuestions]);
+  }, [fetchUserQuestions]);
 
   return(
     <>

@@ -29,6 +29,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 
 interface Logo {
   id: number;
@@ -64,7 +65,10 @@ const LogoManager: React.FC = () => {
 
   const fetchLogos = async () => {
     try {
-      const response = await axios.get(`${API_URL}/logos`);
+      const response = await axios.get(`${API_URL}/logos`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
       setLogos(response.data);
     } catch (error) {
       toast({
@@ -113,15 +117,18 @@ const LogoManager: React.FC = () => {
         : `${API_URL}/logos`;
 
       const method = editingLogo ? 'PUT' : 'POST';
-      const token = localStorage.getItem('userToken');
-      const response = await axios({
-        method,
-        url,
-        data: formDataToSend,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      
+      const response = await CsrfService.withCsrf(async (csrfToken) => {
+        return await axios({
+          method,
+          url,
+          data: formDataToSend,
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -150,30 +157,22 @@ const LogoManager: React.FC = () => {
 
   const handleToggleActive = async (logo: Logo) => {
     try {
-      const token = localStorage.getItem('userToken');
-
-      if (!token) {
-        toast({
-          title: 'خطأ',
-          description: 'يرجى تسجيل الدخول أولاً',
-          variant: 'warning',
-        });
-        return;
-      }
-
-      await axios.post(
-        `${API_URL}/logos/${logo.id}`,
-        {
-          is_active: !logo.is_active,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(
+          `${API_URL}/logos/${logo.id}`,
+          {
+            is_active: !logo.is_active,
           },
-        },
-      );
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          },
+        );
+      });
 
       // تحديث حالة اللوجو محلياً لتجنب الحاجة لإعادة تحميل الكل
       setLogos((prevLogos) =>
@@ -202,10 +201,14 @@ const LogoManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this logo?')) return;
 
     try {
-      await axios.delete(`${API_URL}/logos/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(`${API_URL}/logos/${id}`, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+          },
+        });
       });
 
       toast({

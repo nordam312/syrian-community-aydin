@@ -28,6 +28,10 @@ const Logo = () => {
       setIsLoading(true);
       const response = await axios.get(
         `${API_URL}/logos/active?position=header`,
+        {
+          withCredentials: true,
+          headers: { Accept: 'application/json' },
+        }
       );
       setLogo(response.data);
     } catch (error) {

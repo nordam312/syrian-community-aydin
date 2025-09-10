@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Search, LogOut, Users, Calendar, FileText, MessageSquare, BarChart3, Crown, MessageCircle, HelpCircle, Settings, Eye, Plus, Edit, Trash2 } from 'lucide-react';
+import CsrfService from '@/hooks/Csrf';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -64,7 +65,7 @@ const AdminDashboard = () => {
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const userToken = localStorage.getItem('userToken');
+  // userToken removed - using sessions instead
 
   const [siteSettings, setSiteSettings] = useState({
     maintenance_mode: false,
@@ -85,8 +86,8 @@ const AdminDashboard = () => {
   const fetchDashboardData = useCallback(async () => {
     try {
       const statsRes = await axios.get(`${API_URL}/dashboard/stats`, {
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${userToken}`,
           Accept: 'application/json',
         },
       });
@@ -132,13 +133,13 @@ const AdminDashboard = () => {
         variant: 'destructive',
       });
     }
-  }, [userToken, toast]);
+  }, [toast]);
 
   const fetchSiteSettings = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/settings/site`, {
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${userToken}`,
           Accept: 'application/json',
         },
       });
@@ -160,14 +161,14 @@ const AdminDashboard = () => {
         variant: 'destructive',
       });
     }
-  }, [userToken, toast]);
+  }, [toast]);
 
   const fetchAllUsers = useCallback(async () => {
     try {
       setUsersLoading(true);
       const response = await axios.get(`${API_URL}/users`, {
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${userToken}`,
           Accept: 'application/json',
         },
       });
@@ -199,20 +200,23 @@ const AdminDashboard = () => {
     } finally {
       setUsersLoading(false);
     }
-  }, [userToken, toast]);
+  }, [toast]);
 
   const saveSiteSettings = async () => {
     try {
-      await axios.put(
-        `${API_URL}/settings/site`,
-        siteSettings,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-            Accept: 'application/json',
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.put(
+          `${API_URL}/settings/site`,
+          siteSettings,
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              Accept: 'application/json',
+            },
           },
-        },
-      );
+        );
+      });
       toast({
         title: 'تم الحفظ',
         description: 'تم حفظ إعدادات الموقع بنجاح',
@@ -271,23 +275,32 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post(
-        `${API_URL}/logout`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${userToken}` },
-        },
-      );
-      toast({
-        title: 'تسجيل الخروج',
-        description: response.data.message,
-        variant: 'success',
+      await CsrfService.withCsrf(async (csrfToken) => {
+        const response = await axios.post(
+          `${API_URL}/logout`,
+          {},
+          {
+            withCredentials: true,
+            headers: { 
+              'X-XSRF-TOKEN': csrfToken,
+              'Accept': 'application/json'
+            },
+          },
+        );
+        toast({
+          title: 'تسجيل الخروج',
+          description: response.data.message,
+          variant: 'success',
+        });
       });
+      
+      // تنظيف البيانات المحلية
       localStorage.removeItem('userData');
-      localStorage.removeItem('userToken');
-      navigate('/');
+      navigate('/auth');
     } catch (error) {
       console.error(error);
+      // حتى لو فشل، نوجه المستخدم للخروج
+      navigate('/auth');
     }
   };
 
@@ -307,16 +320,24 @@ const AdminDashboard = () => {
     if (!userToDelete) return;
 
     try {
-      const response = await axios.delete(`${API_URL}/users/${userToDelete}`, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        const response = await axios.delete(`${API_URL}/users/${userToDelete}`, {
+          withCredentials: true,
+          headers: { 
+            'X-XSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          },
+        });
+        
+        toast({
+          title: 'تم حذف العضو',
+          description: response.data.message,
+          variant: 'success',
+        });
+        
+        // إعادة جلب قائمة المستخدمين
+        fetchAllUsers();
       });
-      toast({
-        title: 'تم حذف العضو',
-        description: response.data.message,
-        variant: 'success',
-      });
-      // إعادة جلب قائمة المستخدمين
-      fetchAllUsers();
       closeDeleteModal();
     } catch (error: unknown) {
       let errorMsg = 'حدث خطأ غير متوقع أثناء حذف العضو';
@@ -335,18 +356,16 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    if (userToken) {
-      fetchDashboardData();
-      fetchSiteSettings();
-    }
-  }, [userToken, refreshTrigger, fetchDashboardData, fetchSiteSettings]);
+    fetchDashboardData();
+    fetchSiteSettings();
+  }, [refreshTrigger, fetchDashboardData, fetchSiteSettings]);
 
   // جلب جميع المستخدمين عند تفعيل تاب الأعضاء
   useEffect(() => {
-    if (activeTab === 'users' && userToken) {
+    if (activeTab === 'users') {
       fetchAllUsers();
     }
-  }, [activeTab, userToken, fetchAllUsers]);
+  }, [activeTab, fetchAllUsers]);
 
   return (
     <div className="w-full space-y-6 pt-6 pb-10 px-4 md:px-8 lg:px-16 animate-fade-in">

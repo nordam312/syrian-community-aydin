@@ -52,6 +52,7 @@ const EventsPage = () => {
       try {
         setLoading(true);
         const res = await axios.get<EventsResponse>(`${API_URL}/events`, {
+          withCredentials: true,
           headers: { Accept: 'application/json' },
         });
 

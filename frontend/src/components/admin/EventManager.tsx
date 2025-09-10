@@ -31,6 +31,7 @@ import { Badge } from '../ui/badge';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/config';
+import CsrfService from '@/hooks/Csrf';
 
 type Event = {
   id: number;
@@ -78,15 +79,15 @@ const EventManager = () => {
   });
 
   const { toast } = useToast();
-  const userToken = localStorage.getItem('userToken');
+  // userToken removed - using sessions instead
 
   // دالة لجلب جميع الأحداث
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/events`, {
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${userToken}`,
           Accept: 'application/json',
         },
       });
@@ -106,14 +107,14 @@ const EventManager = () => {
     } finally {
       setLoading(false);
     }
-  }, [userToken, toast]);
+  }, [toast]);
 
   // دالة لجلب المشتركين في فعالية
   const fetchEventAttendees = async (eventId: number, eventTitle: string) => {
     try {
       const response = await axios.get(`${API_URL}/events/${eventId}/attendees`, {
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${userToken}`,
           Accept: 'application/json',
         },
       });
@@ -138,10 +139,14 @@ const EventManager = () => {
   // دالة حذف حدث
   const handleDeleteEvent = async (eventId: number) => {
     try {
-      await axios.delete(`${API_URL}/events/${eventId}`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(`${API_URL}/events/${eventId}`, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+          },
+        });
       });
       toast({
         title: 'تم الحذف',
@@ -165,10 +170,8 @@ const EventManager = () => {
   };
 
   useEffect(() => {
-    if (userToken) {
-      fetchEvents();
-    }
-  }, [userToken, fetchEvents]);
+    fetchEvents();
+  }, [fetchEvents]);
 
   const openEventForm = () => setShowEventForm(true);
 
@@ -197,11 +200,14 @@ const EventManager = () => {
         formData.append('image', eventForm.image);
       }
 
-      await axios.post(`${API_URL}/events`, formData, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/events`, formData, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       });
 
       toast({
@@ -408,11 +414,14 @@ const EventManager = () => {
       }
       formData.append('_method', 'PUT');
 
-      await axios.post(`${API_URL}/events/${editingEvent.id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/events/${editingEvent.id}`, formData, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       });
 
       toast({

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -41,7 +42,7 @@ const BannerImageManager = () => {
   const [showDialog, setShowDialog] = useState(false);
 
   const { toast } = useToast();
-  const userToken = localStorage.getItem('userToken');
+  // userToken removed - using sessions instead
 
   useEffect(() => {
     fetchBanners();
@@ -49,7 +50,10 @@ const BannerImageManager = () => {
 
   const fetchBanners = async () => {
     try {
-      const response = await axios.get(`${API_URL}/banners`);
+      const response = await axios.get(`${API_URL}/banners`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
       setBanners(response.data);
     } catch (error) {
       toast({
@@ -84,11 +88,14 @@ const BannerImageManager = () => {
       // 	);
       // 	toast({ title: 'تم التحديث بنجاح', variant: 'success' });
       // } else {
-      await axios.post(`${API_URL}/banners`, formDataToSend, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/banners`, formDataToSend, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       });
       toast({ title: 'تم الإضافة بنجاح', variant: 'success' });
       resetForm();
@@ -109,8 +116,14 @@ const BannerImageManager = () => {
     if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) return;
 
     try {
-      await axios.delete(`${API_URL}/banners/${id}`, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(`${API_URL}/banners/${id}`, {
+          withCredentials: true,
+          headers: { 
+            'X-XSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          },
+        });
       });
       toast({ title: 'تم الحذف بنجاح', variant: 'success' });
       fetchBanners();
@@ -150,30 +163,22 @@ const BannerImageManager = () => {
 
   const handleToggleActive = async (banner: Banner) => {
     try {
-      const token = localStorage.getItem('userToken');
-
-      if (!token) {
-        toast({
-          title: 'خطأ',
-          description: 'يرجى تسجيل الدخول أولاً',
-          variant: 'warning',
-        });
-        return;
-      }
-
-      await axios.post(
-        `${API_URL}/banners/${banner.id}`,
-        {
-          is_active: !banner.is_active,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(
+          `${API_URL}/banners/${banner.id}`,
+          {
+            is_active: !banner.is_active,
           },
-        },
-      );
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          },
+        );
+      });
 
       // تحديث حالة اللوجو محلياً لتجنب الحاجة لإعادة تحميل الكل
       setBanners((prevBanners) =>
@@ -386,8 +391,14 @@ const BannerImageManager = () => {
               onClick={async () => {
                 if (!deleteId) return;
                 try {
-                  await axios.delete(`${API_URL}/banners/${deleteId}`, {
-                    headers: { Authorization: `Bearer ${userToken}` },
+                  await CsrfService.withCsrf(async (csrfToken) => {
+                    await axios.delete(`${API_URL}/banners/${deleteId}`, {
+                      withCredentials: true,
+                      headers: { 
+                        'X-XSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                      },
+                    });
                   });
                   toast({ title: 'تم الحذف بنجاح', variant: 'success' });
                   fetchBanners();

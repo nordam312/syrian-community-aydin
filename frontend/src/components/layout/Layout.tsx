@@ -16,7 +16,10 @@ const Layout = ({ children }: LayoutProps) => {
   const GetContent = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`${API_URL}/content`);
+      const response = await axios.get(`${API_URL}/content`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
       setContent(response.data);
 
       // console.log(response.data);

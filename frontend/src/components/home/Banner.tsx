@@ -21,7 +21,10 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
   const fetchBanners = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get<BannerItem[]>(`${API_URL}/banners`);
+      const response = await axios.get<BannerItem[]>(`${API_URL}/banners`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
       setBanners(response.data);
       // console.log(response.data);
     } catch (error) {

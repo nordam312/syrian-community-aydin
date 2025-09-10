@@ -1,4 +1,3 @@
-
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -6,10 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import MaintenanceChecker from '@/components/MaintenanceChecker';
+// import MaintenanceChecker from '@/components/MaintenanceChecker';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Lazy load all pages for code splitting
-// for enhance user usage by just loading the page he want
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 const GpaCalculator = lazy(() => import('./pages/GpaCalculator'));
@@ -37,7 +36,8 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <MaintenanceChecker>
+        {/* <MaintenanceChecker> */}
+        <AuthProvider> {/* 🔥 ضع AuthProvider هنا */}
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
@@ -56,7 +56,8 @@ const App = () => (
               </Routes>
             </Suspense>
           </BrowserRouter>
-        </MaintenanceChecker>
+        </AuthProvider> {/* 🔥 أغلق AuthProvider هنا */}
+        {/* </MaintenanceChecker> */}
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>

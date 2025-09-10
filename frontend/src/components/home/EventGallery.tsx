@@ -124,7 +124,7 @@ const EventCarousel = ({
               <img
                 src={
                   event.image
-                    ? `http://127.0.0.1:8000/storage/${event.image}`
+                    ? `${STORAGE_URL}/${event.image}`
                     : 'https://via.placeholder.com/600x400?text=No+Image'
                 }
                 alt={event.title}
@@ -186,6 +186,7 @@ const EventGallery = () => {
       try {
         setLoading(true);
         const res = await axios.get(`${API_URL}/events`, {
+          withCredentials: true,
           headers: {
             Accept: 'application/json',
           },

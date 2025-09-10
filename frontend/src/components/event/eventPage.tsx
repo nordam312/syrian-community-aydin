@@ -5,6 +5,8 @@ import { Calendar, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/layout/Layout';
 import { API_URL, STORAGE_URL } from '@/config';
+import { useAuth } from '@/contexts/AuthContext';
+import CsrfService from '@/hooks/Csrf';
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -35,8 +37,10 @@ const EventPage = () => {
   const [event, setEvent] = useState<EventType | null>(null);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
+  const [unregistering, setUnregistering] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,118 +50,141 @@ const EventPage = () => {
         const eventData = res.data;
         setEvent(eventData);
 
-        const user = JSON.parse(localStorage.getItem('userData'));
         setRegistered(
           user?.id ? eventData.attendees.some((a) => a.id === user.id) : false,
         );
       } catch (err) {
         console.error('Error fetching event:', err);
         setEvent(null);
+        setError('فشل في تحميل بيانات الحدث');
       } finally {
         setLoading(false);
       }
     };
     fetchEvent();
-  }, [id]);
+  }, [id, user?.id]);
 
   const handleRegister = async () => {
-    setRegistering(true);
-    setError(null);
-    const user = JSON.parse(localStorage.getItem('userData'));
-    const token = localStorage.getItem('userToken');
-
-    if (!user?.id) {
-      setError('يجب تسجيل الدخول أولاً.');
+    if (!isAuthenticated || !user) {
       toast({
-        title: 'خطأ في التسجيل',
-        description: 'يجب تسجيل الدخول أولاً',
+        title: 'يجب تسجيل الدخول',
+        description: 'يجب تسجيل الدخول للتسجيل في الحدث',
         variant: 'warning',
       });
-      setRegistering(false);
       return;
     }
 
+    setRegistering(true);
+    setError(null);
+
     try {
-      const res = await axios.post(
-        `${API_URL}/events/${id}/attendees`,
-        { user_id: user.id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
-          },
-        },
-      );
+      await CsrfService.withCsrf(async (csrfToken) => {
+        const response = await axios.post(
+          `${API_URL}/events/${id}/attendees`,
+          {}, // لا حاجة لإرسال user_id، الخادم يعرفه من الجلسة
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
 
-      toast({
-        title: 'تم التسجيل بنجاح!',
-        description: res.data.message,
-        variant: 'success',
-      });
-      setRegistered(true);
+        toast({
+          title: 'تم التسجيل بنجاح!',
+          description: response.data.message,
+          variant: 'success',
+        });
 
-      setEvent((prev) =>
-        prev
-          ? {
+        setRegistered(true);
+        setEvent((prev) =>
+          prev
+            ? {
               ...prev,
               remaining_slots: (prev.remaining_slots || 0) - 1,
+              confirmed_attendees_count: (prev.confirmed_attendees_count || 0) + 1,
             }
-          : prev,
-      );
+            : prev
+        );
+
+        return response;
+      });
     } catch (err) {
+      const errorMessage = err?.response?.data?.message || 'حدث خطأ أثناء التسجيل';
+      setError(errorMessage);
       toast({
         title: 'خطأ في التسجيل',
-        description: err?.response?.data?.message || 'حدث خطأ أثناء التسجيل',
+        description: errorMessage,
         variant: 'warning',
       });
-      setError(
-        err?.response?.data?.message || 'حدث خطأ أثناء التسجيل في الحدث',
-      );
     } finally {
       setRegistering(false);
     }
   };
 
   const handleUnregister = async () => {
-    setRegistering(true);
-    setError(null);
-    const user = JSON.parse(localStorage.getItem('userData'));
-    const token = localStorage.getItem('userToken');
-
-    if (!user?.id) {
-      setError('يجب تسجيل الدخول أولاً.');
-      setRegistering(false);
+    if (!isAuthenticated || !user) {
+      toast({
+        title: 'يجب تسجيل الدخول',
+        description: 'يجب تسجيل الدخول لإلغاء التسجيل',
+        variant: 'warning',
+      });
       return;
     }
 
+    setUnregistering(true);
+    setError(null);
+
     try {
-      await axios.delete(`${API_URL}/events/${id}/attendees`, {
-        data: { user_id: user.id },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(
+          `${API_URL}/events/${id}/attendees`,
+          {
+            withCredentials: true,
+            headers: {
+              'X-XSRF-TOKEN': csrfToken,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        toast({
+          title: 'تم إلغاء التسجيل',
+          description: 'تم إلغاء التسجيل من الحدث بنجاح',
+          variant: 'warning',
+        });
+
+        setRegistered(false);
+        setEvent((prev) =>
+          prev
+            ? {
+              ...prev,
+              remaining_slots: (prev.remaining_slots || 0) + 1,
+              confirmed_attendees_count: (prev.confirmed_attendees_count || 0) - 1,
+            }
+            : prev
+        );
       });
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || 'حدث خطأ أثناء إلغاء التسجيل';
+      setError(errorMessage);
       toast({
-        title: 'تم إلغاء التسجيل',
-        description: 'تم إلغاء التسجيل من الحدث',
+        title: 'خطأ في إلغاء التسجيل',
+        description: errorMessage,
         variant: 'warning',
       });
-      setRegistered(false);
-      setEvent((prev) =>
-        prev
-          ? { ...prev, remaining_slots: (prev.remaining_slots || 0) + 1 }
-          : prev,
-      );
-    } catch (err) {
-      setError(err?.response?.data?.message || 'حدث خطأ أثناء إلغاء التسجيل');
     } finally {
-      setRegistering(false);
+      setUnregistering(false);
     }
   };
 
   if (loading) return <div className="text-center py-20">جاري التحميل...</div>;
   if (!event) return <div className="text-center py-20">الحدث غير موجود</div>;
+
+  const canRegister = !registered && (event.remaining_slots === undefined || event.remaining_slots > 0);
 
   return (
     <Layout>
@@ -190,13 +217,19 @@ const EventPage = () => {
               </div>
             )}
 
+            {typeof event.confirmed_attendees_count === 'number' && (
+              <div className="mb-2 text-syria-green-800 font-tajawal text-sm">
+                عدد المسجلين:{' '}
+                <span className="font-bold">{event.confirmed_attendees_count}</span>
+              </div>
+            )}
+
             {typeof event.remaining_slots === 'number' && (
               <div
-                className={`mb-2 font-tajawal text-sm ${
-                  event.remaining_slots > 0
+                className={`mb-2 font-tajawal text-sm ${event.remaining_slots > 0
                     ? 'text-syria-green-700'
                     : 'text-red-600'
-                }`}
+                  }`}
               >
                 {event.remaining_slots > 0
                   ? `متبقي ${event.remaining_slots} مكان`
@@ -217,11 +250,13 @@ const EventPage = () => {
               </p>
             )}
 
-            {!registered &&
-            (event.remaining_slots === undefined ||
-              event.remaining_slots > 0) ? (
+            {!isAuthenticated ? (
+              <div className="text-center text-orange-600 font-tajawal mt-4">
+                يجب تسجيل الدخول للتسجيل في الحدث
+              </div>
+            ) : canRegister ? (
               <button
-                className="mt-4 w-full bg-syria-green-700 hover:bg-syria-green-800 text-white py-2 rounded-full font-tajawal transition"
+                className="mt-4 w-full bg-syria-green-700 hover:bg-syria-green-800 text-white py-2 rounded-full font-tajawal transition disabled:opacity-50"
                 onClick={handleRegister}
                 disabled={registering}
               >
@@ -229,13 +264,17 @@ const EventPage = () => {
               </button>
             ) : registered ? (
               <button
-                className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-full font-tajawal transition"
+                className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-full font-tajawal transition disabled:opacity-50"
                 onClick={handleUnregister}
-                disabled={registering}
+                disabled={unregistering}
               >
-                {registering ? 'جاري الإلغاء...' : 'إلغاء التسجيل من الحدث'}
+                {unregistering ? 'جاري الإلغاء...' : 'إلغاء التسجيل من الحدث'}
               </button>
-            ) : null}
+            ) : (
+              <div className="text-center text-red-600 font-tajawal mt-4">
+                اكتمل العدد ولا يمكن التسجيل
+              </div>
+            )}
 
             {error && (
               <div className="mt-2 text-center text-red-600 font-tajawal">

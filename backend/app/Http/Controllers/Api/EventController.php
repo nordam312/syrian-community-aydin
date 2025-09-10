@@ -6,6 +6,8 @@ use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+
 
 class EventController extends Controller
 {
@@ -107,11 +109,20 @@ class EventController extends Controller
 
     public function addAttendee(Request $request, Event $event)
     {
+        // 🔥 إزالة التحقق من user_id لأنه سيعتمد على المستخدم المصادق
         $request->validate([
-            'user_id' => 'required|exists:users,id',
             'status' => 'nullable|string|in:confirmed,pending,cancelled',
             'notes' => 'nullable|string'
         ]);
+
+        // 🔥 الحصول على المستخدم المصادق تلقائياً
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'يجب تسجيل الدخول أولاً'
+            ], 401);
+        }
 
         // التحقق من إمكانية التسجيل
         if (!$event->canRegister()) {
@@ -121,29 +132,34 @@ class EventController extends Controller
         }
 
         // التحقق من عدم التسجيل مسبقاً
-        if ($event->attendees()->where('user_id', $request->user_id)->exists()) {
+        if ($event->attendees()->where('user_id', $user->id)->exists()) {
             return response()->json([
                 'message' => 'أنت مسجل بالفعل في هذه الفعالية'
             ], 400);
         }
 
-        $event->attendees()->attach($request->user_id, [
+        $event->attendees()->attach($user->id, [
             'status' => $request->status ?? 'confirmed',
             'notes' => $request->notes
         ]);
 
-        return response()->json([
-            'message' => 'تم التسجيل في الفعالية بنجاح'
-        ]);
-    }
+    return response()->json([
+        'message' => 'تم التسجيل في الفعالية بنجاح'
+    ]);
+}
 
     public function removeAttendee(Request $request, Event $event)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id'
-        ]);
+        // 🔥 الحصول على المستخدم المصادق تلقائياً
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'يجب تسجيل الدخول أولاً'
+            ], 401);
+        }
 
-        $event->attendees()->detach($request->user_id);
+        $event->attendees()->detach($user->id);
 
         return response()->json([
             'message' => 'تم إلغاء التسجيل من الفعالية بنجاح'

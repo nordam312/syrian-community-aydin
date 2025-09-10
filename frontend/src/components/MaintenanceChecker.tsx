@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { API_URL } from '@/config';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MaintenanceCheckerProps {
   children: React.ReactNode;
@@ -9,32 +11,22 @@ const MaintenanceChecker = ({ children }: MaintenanceCheckerProps) => {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, isAuthenticated } = useAuth();
+  const isAdmin = isAuthenticated && user?.role === 'admin';
 
   useEffect(() => {
     const checkMaintenanceMode = async () => {
       try {
-        // التحقق من كون المستخدم مدير
-        const userToken = localStorage.getItem('userToken');
-        const userData = localStorage.getItem('userData');
-        const user = userData ? JSON.parse(userData) : null;
-        const adminStatus = user?.role === 'admin';
-        setIsAdmin(adminStatus);
-
         // جلب إعدادات الموقع
-        const response = await fetch(`${API_URL}/settings/public`, {
-          method: 'GET',
+        const response = await axios.get(`${API_URL}/settings/public`, {
+          withCredentials: true,
           headers: {
             'Accept': 'application/json',
-            ...(userToken ? { 'Authorization': `Bearer ${userToken}` } : {})
           },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          setIsMaintenanceMode(data.maintenance_mode || false);
-          setMaintenanceMessage(data.maintenance_message || 'الموقع في وضع الصيانة حالياً. يرجى المحاولة لاحقاً.');
-        }
+        setIsMaintenanceMode(response.data.maintenance_mode || false);
+        setMaintenanceMessage(response.data.maintenance_message || 'الموقع في وضع الصيانة حالياً. يرجى المحاولة لاحقاً.');
       } catch (error) {
         console.error('خطأ في التحقق من وضع الصيانة:', error);
       } finally {

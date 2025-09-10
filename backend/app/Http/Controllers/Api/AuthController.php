@@ -6,13 +6,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Str;
-
-
+use Illuminate\Support\Facades\DB;
 class AuthController extends Controller
 {
     public function register(Request $request)
@@ -112,18 +112,10 @@ class AuthController extends Controller
         $request->validate([
             'login' => 'required|string',
             'password' => 'required',
-            'device_name' => 'nullable|string|max:100', // اسم الجهاز (اختياري)
         ]);
 
         $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'student_id';
         $user = User::where($loginField, $request->login)->first();
-
-        // التحقق من أن البريد الإلكتروني مفعل
-        if ($user && !$user->email_verified_at) {
-            throw ValidationException::withMessages([
-                'login' => ['حسابك غير مفعل. يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.'],
-            ]);
-        }
 
         if (!Auth::attempt([$loginField => $request->login, 'password' => $request->password])) {
             throw ValidationException::withMessages([
@@ -133,43 +125,59 @@ class AuthController extends Controller
 
         $user = Auth::user();
         
-        // تحديد اسم الجهاز
-        $deviceName = $request->device_name ?: $request->header('User-Agent') ?: 'Unknown Device';
+        // إنشاء جلسة جديدة للمستخدم
+        $request->session()->regenerate();
         
-        // الحد الأقصى للأجهزة المسموحة (3 فقط)
-        $maxDevices = 3;
+        // 🔥 أهم جزء: ربط الجلسة بالمستخدم في قاعدة البيانات
+        DB::table('sessions')
+            ->where('id', session()->getId())
+            ->update(['user_id' => $user->id]);
         
-        // التحقق من عدد الأجهزة الحالية
-        $currentDeviceCount = $user->tokens()->count();
-        
-        if ($currentDeviceCount >= $maxDevices) {
-            // حذف أقدم توكن بناءً على آخر استخدام
-            $user->tokens()
-                ->orderBy('last_used_at', 'asc')
-                ->first()
-                ->delete();
+        // تخزين بيانات المستخدم في الجلسة
+        session([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $user->student_id,
+                'login_time' => now(),
+                
+            ]
+        ]);
+
+        $maxSessions = 3;
+                
+        // التحقق من عدد الجلسات النشطة
+        $activeSessions = DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->count();
+
+        if ($activeSessions >= $maxSessions) {
+            // حذف أقدم جلسة
+            $oldestSession = DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->orderBy('last_activity', 'asc')
+                ->first();
+                
+            if ($oldestSession) {
+                DB::table('sessions')
+                    ->where('id', $oldestSession->id)
+                    ->delete();
+                    
+                // إعادة حساب الجلسات النشطة بعد الحذف
+                $activeSessions = DB::table('sessions')
+                    ->where('user_id', $user->id)
+                    ->count();
+            }
         }
-        
-        // حذف التوكنات القديمة جداً (أكثر من 30 يوم بدون استخدام)
-        $user->tokens()
-            ->where('last_used_at', '<', now()->subDays(30))
-            ->delete();
-        
-        // إنشاء توكن جديد للجهاز الحالي
-        $token = $user->createToken($deviceName)->plainTextToken;
-        
-        // عدد الأجهزة النشطة
-        $activeDevices = $user->tokens()->count();
 
         return response()->json([
             'user' => $user,
-            'token' => $token,
-            'message' => "تم الدخول بنجاح - لديك {$activeDevices} أجهزة نشطة من أصل {$maxDevices}",
-            'active_devices' => $activeDevices,
-            'max_devices' => $maxDevices
+            'message' => "تم الدخول بنجاح - لديك {$activeSessions} جلسات نشطة من أصل {$maxSessions}",
+            'active_sessions' => $activeSessions,
+            'max_sessions' => $maxSessions
         ]);
     }
-
     public function resendVerification(Request $request)
     {
         $request->validate([
@@ -246,17 +254,69 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // حذف التوكن الحالي فقط
-        $request->user()->currentAccessToken()->delete();
-        
-        return response()->json([
-            'message' => 'تم تسجيل الخروج بنجاح'
-        ]);
+        try {
+            // التحقق من وجود مستخدم مسجل الدخول
+            if (Auth::check()) {
+                // تسجيل الخروج من الجلسة
+                Auth::logout();
+            }
+            
+            // حذف الجلسة من قاعدة البيانات
+            if ($request->hasSession()) {
+                $sessionId = $request->session()->getId();
+                
+                // حذف من قاعدة البيانات
+                DB::table('sessions')
+                    ->where('id', $sessionId)
+                    ->delete();
+                    
+                // تدمير الجلسة
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+            
+            return response()->json([
+                'message' => 'تم تسجيل الخروج بنجاح',
+                'success' => true
+            ]);
+        } catch (\Exception $e) {
+            // في حالة حدوث أي خطأ، نرجع نجاح لأن الهدف هو تسجيل الخروج
+            return response()->json([
+                'message' => 'تم تسجيل الخروج',
+                'success' => true
+            ]);
+        }
     }
 
+    // في app/Http/Controllers/AuthController.php أو أي controller مناسب
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        // التحقق إذا كان المستخدم مصادقاً
+        if (!Auth::check()) {
+            return response()->json([
+                'message' => 'غير مصادق',
+                'authenticated' => false
+            ], 401);
+        }
+
+        $user = Auth::user();
+
+        // إرجاع بيانات المستخدم بشكل منظم وآمن
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $user->student_id,
+                'phone' => $user->phone,
+                'major' => $user->major,
+                'role' => $user->role,
+                'academic_year' => $user->academic_year,
+                // يمكنك إضافة المزيد من الحقول حسب الحاجة
+            ],
+            'authenticated' => true,
+            'message' => 'تم جلب بيانات المستخدم بنجاح'
+        ]);
     }
 
     public function checkToken(Request $request)
@@ -268,3 +328,7 @@ class AuthController extends Controller
         ]);
     }
 }
+
+
+
+

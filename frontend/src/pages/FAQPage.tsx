@@ -9,8 +9,9 @@ import Layout from '@/components/layout/Layout';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useCallback } from 'react';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 import { API_URL } from '@/config';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface FAQItem {
@@ -63,7 +64,10 @@ const FAQPage = () => {
     const fetchFAQs = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/faqs`);
+        const response = await axios.get(`${API_URL}/faqs`, {
+          withCredentials: true,
+          headers: { Accept: 'application/json' },
+        });
         setAllFaqs(response.data);
       } catch (error) {
         console.error('Error fetching FAQs:', error);
@@ -84,7 +88,10 @@ const FAQPage = () => {
   const fetchUserQuestions = useCallback(async () => {
     try {
       setLoadingQuestions(true);
-      const response = await axios.get(`${API_URL}/user-questions`);
+      const response = await axios.get(`${API_URL}/user-questions`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
       setUserQuestions(response.data);
     } catch (error) {
       console.error('Error fetching user questions:', error);
@@ -154,13 +161,17 @@ const FAQPage = () => {
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('userToken');
-      await axios.post(`${API_URL}/user-questions`, {
-        question: newQuestion,
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/user-questions`, {
+          question: newQuestion,
+        }, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          }
+        });
       });
 
       // إعادة جلب الأسئلة من الخادم

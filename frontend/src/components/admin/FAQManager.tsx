@@ -1,6 +1,7 @@
 import { API_URL } from '@/config';
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import CsrfService from '@/hooks/Csrf';
 import {
   Card,
   CardContent,
@@ -52,7 +53,6 @@ const FAQManager = () => {
   const [editingItem, setEditingItem] = useState<FAQItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
-  const userToken = localStorage.getItem('userToken');
 
   // قائمة التصنيفات الثابتة
   const categories = [
@@ -67,7 +67,8 @@ const FAQManager = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/faqs`, {
-        headers: { Authorization: `Bearer ${userToken}` },
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
       });
       setFaqItems(response.data);
       setFilteredFaqItems(response.data);
@@ -81,15 +82,20 @@ const FAQManager = () => {
     } finally {
       setLoading(false);
     }
-  }, [userToken, toast]);
+  }, [toast]);
 
   const handleCreateFAQ = useCallback(async (faqData: Omit<FAQItem, 'id'>) => {
-    const userToken = localStorage.getItem('userToken');
-
     setUpdateLoading(true);
     try {
-      await axios.post(`${API_URL}/faqs`, faqData, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/faqs`, faqData, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        });
       });
       await getFAQItems();
       toast({
@@ -110,13 +116,20 @@ const FAQManager = () => {
     } finally {
       setUpdateLoading(false);
     }
-  }, [userToken, toast, getFAQItems]);
+  }, [toast, getFAQItems]);
 
   const handleUpdateFAQ = useCallback(async (id: number, faqData: Partial<FAQItem>) => {
     setUpdateLoading(true);
     try {
-      await axios.post(`${API_URL}/faqs/${id}`, faqData, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.post(`${API_URL}/faqs/${id}`, faqData, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        });
       });
       await getFAQItems();
       toast({
@@ -137,13 +150,19 @@ const FAQManager = () => {
     } finally {
       setUpdateLoading(false);
     }
-  }, [userToken, toast, getFAQItems]);
+  }, [toast, getFAQItems]);
 
   const handleDeleteFAQ = useCallback(async (id: number) => {
     setUpdateLoading(true);
     try {
-      await axios.delete(`${API_URL}/faqs/${id}`, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.delete(`${API_URL}/faqs/${id}`, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+          },
+        });
       });
       await getFAQItems();
       toast({
@@ -162,7 +181,7 @@ const FAQManager = () => {
     } finally {
       setUpdateLoading(false);
     }
-  }, [userToken, toast, getFAQItems]);
+  }, [toast, getFAQItems]);
 
   const handleMoveItem = useCallback(async (id: number, direction: 'up' | 'down') => {
     const itemIndex = faqItems.findIndex(item => item.id === id);
@@ -187,18 +206,25 @@ const FAQManager = () => {
     setFaqItems(newItems);
 
     try {
-      await axios.put(`${API_URL}/faqs/${id}/order`, {
-        order: newItems[itemIndex].order,
-        direction
-      }, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      await CsrfService.withCsrf(async (csrfToken) => {
+        await axios.put(`${API_URL}/faqs/${id}/order`, {
+          order: newItems[itemIndex].order,
+          direction
+        }, {
+          withCredentials: true,
+          headers: {
+            'X-XSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        });
       });
     } catch (error) {
       console.error('Error updating order:', error);
       // Revert on error
       getFAQItems();
     }
-  }, [faqItems, userToken, getFAQItems]);
+  }, [faqItems, getFAQItems]);
 
   // تصفية الأسئلة حسب التصنيف
   useEffect(() => {
