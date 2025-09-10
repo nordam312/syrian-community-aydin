@@ -3,6 +3,9 @@ dist
 dist-ssr
 *.local
 
+.claude
+.nul
+
 # ملفات أنظمة التشغيل
 .DS_Store
 .DS_Store?
