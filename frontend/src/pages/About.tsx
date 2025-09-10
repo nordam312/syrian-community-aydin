@@ -127,7 +127,7 @@ const About = () => {
 
   return (
     <Layout>
-      <div className="animate-fade-in bg-gray-50 min-h-screen" dir={textDirection}>
+      <div className="animate-page-enter bg-gray-50 min-h-screen" dir={textDirection}>
         {/* زر تبديل اللغة */}
         <div className="fixed top-20 right-4 z-50">
           <Button
@@ -282,7 +282,7 @@ const About = () => {
 
               {/* مواقع التواصل تظهر بشكل كبير عند الضغط على الزر */}
               {showContactOptions && (
-                <div className="animate-fade-in mt-6 p-6 bg-white rounded-2xl shadow-lg border border-syria-green-200">
+                <div className="animate-slide-up-large mt-6 p-6 bg-white rounded-2xl shadow-lg border border-syria-green-200">
                   <h4 className="text-xl font-semibold text-syria-green-700 mb-6">{currentContent.contactMethodsTitle}</h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

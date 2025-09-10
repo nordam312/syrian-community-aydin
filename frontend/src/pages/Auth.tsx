@@ -316,7 +316,7 @@ const Auth = () => {
   if (showEmailUpdate) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
-        <Card className="animate-fade-in w-full max-w-md border-2 border-syria-green-100">
+        <Card className="animate-page-enter w-full max-w-md border-2 border-syria-green-100">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-syria-green-600">
               تعديل البريد الإلكتروني
@@ -375,7 +375,7 @@ const Auth = () => {
   if (showVerificationMessage) {
     return (
       <div className="  min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
-        <Card className=" animate-fade-in w-full max-w-md border-2 border-syria-green-100">
+        <Card className=" animate-page-enter w-full max-w-md border-2 border-syria-green-100">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-syria-green-600">
               تفعيل الحساب
@@ -427,7 +427,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="animate-fade-in min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+    <div className="animate-page-enter min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md border-2 border-syria-green-100">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-syria-green-600">
@@ -454,7 +454,7 @@ const Auth = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent className="animate-fade-in" value="signin">
+            <TabsContent className="animate-page-enter" value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="loginEmail">
@@ -493,7 +493,7 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            <TabsContent className="animate-fade-in" value="signup">
+            <TabsContent className="animate-page-enter" value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullname">الاسم الكامل</Label>

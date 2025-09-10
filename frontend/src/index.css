@@ -30,6 +30,72 @@
   }
 }
 
+@keyframes slide-up-large {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rotate-in {
+  from {
+    opacity: 0;
+    transform: rotate(-10deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
 @keyframes slide-down {
   from {
     opacity: 0;
@@ -56,16 +122,83 @@
 }
 
 .animate-slide-up {
-  opacity: 1 !important;
-  transform: translateY(0) !important;
+  opacity: 0;
+  animation: slide-up 0.8s ease-out forwards;
+}
+
+.animate-slide-up-large {
+  opacity: 0;
+  animation: slide-up-large 0.8s ease-out forwards;
+}
+
+.animate-page-enter {
+  opacity: 0;
+  animation: page-enter 1s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  opacity: 0;
+  animation: slide-in-left 0.8s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  opacity: 0;
+  animation: slide-in-right 0.8s ease-out forwards;
+}
+
+.animate-scale-in {
+  opacity: 0;
+  animation: scale-in 0.8s ease-out forwards;
+}
+
+.animate-rotate-in {
+  opacity: 0;
+  animation: rotate-in 0.8s ease-out forwards;
 }
 
 .animate-slide-down {
+  opacity: 0;
   animation: slide-down 0.8s ease-out forwards;
 }
 
 .animate-fade-in {
+  opacity: 0;
   animation: fade-in 1s ease-out forwards;
+}
+
+/* تأثيرات متدرجة */
+.stagger-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-delay-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-delay-4 {
+  animation-delay: 0.4s;
+}
+
+.stagger-delay-5 {
+  animation-delay: 0.5s;
+}
+
+.stagger-delay-6 {
+  animation-delay: 0.6s;
+}
+
+/* تأثيرات إضافية */
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  transform: translateY(-2px);
 }
 
 /* Scroll reveal effects */

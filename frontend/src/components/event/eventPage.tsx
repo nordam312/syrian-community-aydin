@@ -10,13 +10,13 @@ import CsrfService from '@/hooks/Csrf';
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('ar-EG', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}/${month}/${day} الساعة ${hours}:${minutes}`;
 }
 
 type EventType = {
@@ -184,11 +184,12 @@ const EventPage = () => {
   if (loading) return <div className="text-center py-20">جاري التحميل...</div>;
   if (!event) return <div className="text-center py-20">الحدث غير موجود</div>;
 
-  const canRegister = !registered && (event.remaining_slots === undefined || event.remaining_slots > 0);
+  const isEventPast = new Date(event.date) < new Date();
+  const canRegister = !registered && !isEventPast && (event.remaining_slots === undefined || event.remaining_slots > 0);
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto py-10 animate-fade-in">
+      <div className="max-w-2xl mx-auto py-10 animate-page-enter">
         <div className="bg-white rounded-2xl shadow-lg border border-syria-green-100 overflow-hidden">
           <div className="relative h-64">
             <img
@@ -263,13 +264,23 @@ const EventPage = () => {
                 {registering ? 'جاري التسجيل...' : 'تسجيل في الحدث'}
               </button>
             ) : registered ? (
-              <button
-                className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-full font-tajawal transition disabled:opacity-50"
-                onClick={handleUnregister}
-                disabled={unregistering}
-              >
-                {unregistering ? 'جاري الإلغاء...' : 'إلغاء التسجيل من الحدث'}
-              </button>
+              !isEventPast ? (
+                <button
+                  className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-full font-tajawal transition disabled:opacity-50"
+                  onClick={handleUnregister}
+                  disabled={unregistering}
+                >
+                  {unregistering ? 'جاري الإلغاء...' : 'إلغاء التسجيل من الحدث'}
+                </button>
+              ) : (
+                <div className="text-center text-gray-600 font-tajawal mt-4">
+                  انتهى هذا الحدث - مسجل مسبقاً
+                </div>
+              )
+            ) : isEventPast ? (
+              <div className="text-center text-gray-600 font-tajawal mt-4">
+                انتهى وقت هذا الحدث ولا يمكن التسجيل
+              </div>
             ) : (
               <div className="text-center text-red-600 font-tajawal mt-4">
                 اكتمل العدد ولا يمكن التسجيل

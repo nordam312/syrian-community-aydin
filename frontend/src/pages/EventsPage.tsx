@@ -74,13 +74,13 @@ const EventsPage = () => {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('ar-EG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}/${month}/${day} الساعة ${hours}:${minutes}`;
   };
 
   const getEventStatus = (eventDate: string) => {
@@ -101,7 +101,7 @@ const EventsPage = () => {
   if (loading) {
     return (
       <Layout>
-        <div className=" animate-fade-in min-h-screen bg-gray-50">
+        <div className="animate-page-enter min-h-screen bg-gray-50">
           <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
             <div className="max-w-4xl mx-auto px-6 text-center">
               <h1 className="text-4xl font-bold mb-4">الفعاليات</h1>
@@ -130,7 +130,7 @@ const EventsPage = () => {
 
   return (
     <Layout>
-      <div className="animate-fade-in min-h-screen bg-gray-50">
+      <div className="animate-page-enter min-h-screen bg-gray-50">
         {/* الهيدر */}
         <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-16 text-white">
           <div className="max-w-4xl mx-auto px-6 text-center">
@@ -295,10 +295,15 @@ const EventsPage = () => {
                       )}
 
                       <Button
-                        className="w-full bg-gradient-to-r from-syria-green-500 to-syria-green-600 hover:from-syria-green-600 hover:to-syria-green-700 text-white"
+                        className={cn(
+                          "w-full text-white",
+                          isUpcoming 
+                            ? "bg-gradient-to-r from-syria-green-500 to-syria-green-600 hover:from-syria-green-600 hover:to-syria-green-700"
+                            : "bg-gray-500 hover:bg-gray-600"
+                        )}
                         onClick={() => navigate(`/events/${event.id}`)}
                       >
-                        <span>عرض التفاصيل</span>
+                        <span>{isUpcoming ? 'عرض التفاصيل والتسجيل' : 'عرض تفاصيل الحدث'}</span>
                         <ArrowRight className="h-4 w-4 mr-2" />
                       </Button>
                     </CardContent>

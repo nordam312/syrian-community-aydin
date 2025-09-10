@@ -4,7 +4,7 @@ import GpaCalculator from '@/components/gpa/GpaCalculator';
 const GpaCalculatorPage = () => {
   return (
     <Layout>
-      <div className="animate-fade-in">
+      <div className="animate-page-enter">
         {/* الهيدر */}
         <div className="bg-gradient-to-r from-syria-green-400 to-syria-green-500 py-12 text-white">
           <div className="max-w-4xl mx-auto px-6 text-center">
