@@ -41,6 +41,8 @@ ENV/
 env.bak/
 venv.bak/
 
+
+
 # بيانات وحزم بايثون
 *.egg
 *.egg-info
@@ -72,3 +74,16 @@ lib64/
 .gitconfig
 *.xml
 *.txt
+.gitignore
+DEPLOYMENT_GUIDE.md
+EMAIL_SETUP_GUIDE.md
+DEPLOYMENT_CHECKLIST.md
+backend/.env.example
+frontend/.env.production
+backend/.env.example
+backend/.env.example
+EASY_DEPLOYMENT.md
+HOSTINGER_DEPLOYMENT.md
+SIMPLE_ALTERNATIVE.md
+frontend/src/App.tsx
+backend/.env.example

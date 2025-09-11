@@ -24,6 +24,7 @@ const FAQPage = lazy(() => import('./pages/FAQPage'));
 const Developer = lazy(() => import('./pages/Developer'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
 const queryClient = new QueryClient();
 
@@ -55,7 +56,7 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/verify-email/:token" element={<Auth />} />
+                <Route path="/verify-email/:token" element={<VerifyEmail />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/elections" element={<ElectionsPage />} />
