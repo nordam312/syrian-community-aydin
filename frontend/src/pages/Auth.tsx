@@ -299,13 +299,29 @@ const Auth = () => {
         }
         navigate("/");
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast({
-        title: 'خطأ',
-        description: 'حدث خطأ غير متوقع',
-        variant: 'warning',
-      });
+      
+      // التحقق من عدم تفعيل البريد الإلكتروني
+      if (error.response?.status === 403 && error.response?.data?.email_not_verified) {
+        setShowVerificationMessage(true);
+        setCurrentEmail(error.response.data.email);
+        setEmail(error.response.data.email);
+        setStudentId(error.response.data.student_id);
+        
+        toast({
+          title: 'البريد الإلكتروني غير مفعل',
+          description: 'يجب تفعيل البريد الإلكتروني أولاً للدخول إلى حسابك',
+          variant: 'warning',
+        });
+      } else {
+        const errorMessage = error.response?.data?.message || 'المعلومات المدخلة غير صحيحة';
+        toast({
+          title: 'خطأ في تسجيل الدخول',
+          description: errorMessage,
+          variant: 'warning',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -485,6 +501,16 @@ const Auth = () => {
                     required
                   />
                 </div>
+                
+                <div className="flex justify-end">
+                  <a 
+                    href="/forgot-password" 
+                    className="text-sm text-syria-green-600 hover:underline"
+                  >
+                    نسيت كلمة المرور؟
+                  </a>
+                </div>
+                
                 <Button
                   type="submit"
                   disabled={isLoading}

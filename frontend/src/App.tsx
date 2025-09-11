@@ -22,6 +22,8 @@ const ElectionsPage = lazy(() => import('./pages/ElectionsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
 const FAQPage = lazy(() => import('./pages/FAQPage'));
 const Developer = lazy(() => import('./pages/Developer'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,8 @@ const App = () => (
                 } />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/verify-email/:token" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/elections" element={<ElectionsPage />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/events/:id" element={<EventPage />} />

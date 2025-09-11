@@ -11,8 +11,10 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EmailVerification;
+use App\Mail\PasswordResetMail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 class AuthController extends Controller
 {
     public function register(Request $request)
@@ -124,6 +126,18 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+        
+        // التحقق من تفعيل البريد الإلكتروني
+        if (!$user->email_verified_at) {
+            Auth::logout();
+            
+            return response()->json([
+                'message' => 'يجب تفعيل البريد الإلكتروني أولاً',
+                'email_not_verified' => true,
+                'email' => $user->email,
+                'student_id' => $user->student_id
+            ], 403);
+        }
         
         // إنشاء جلسة جديدة للمستخدم
         $request->session()->regenerate();
@@ -249,6 +263,89 @@ class AuthController extends Controller
             'current_email' => $user->email,
             'name' => $user->name,
             'student_id' => $user->student_id
+        ]);
+    }
+
+    /**
+     * Request password reset link
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        
+        // Generate password reset token
+        $token = Str::random(64);
+        
+        // Delete any existing tokens for this email
+        DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->delete();
+        
+        // Insert new token
+        DB::table('password_reset_tokens')->insert([
+            'email' => $request->email,
+            'token' => hash('sha256', $token),
+            'created_at' => Carbon::now()
+        ]);
+        
+        // Send password reset email
+        Mail::to($user->email)->send(new PasswordResetMail($user, $token));
+        
+        return response()->json([
+            'message' => 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني'
+        ]);
+    }
+    
+    /**
+     * Reset password with token
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|min:6|confirmed'
+        ]);
+        
+        // Check if token is valid
+        $passwordReset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', hash('sha256', $request->token))
+            ->first();
+        
+        if (!$passwordReset) {
+            return response()->json([
+                'message' => 'رابط استعادة كلمة المرور غير صالح أو منتهي الصلاحية'
+            ], 400);
+        }
+        
+        // Check if token is not expired (24 hours)
+        if (Carbon::parse($passwordReset->created_at)->addHours(24)->isPast()) {
+            DB::table('password_reset_tokens')
+                ->where('email', $request->email)
+                ->delete();
+                
+            return response()->json([
+                'message' => 'انتهت صلاحية رابط استعادة كلمة المرور'
+            ], 400);
+        }
+        
+        // Update user password
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+        
+        // Delete the token
+        DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->delete();
+        
+        return response()->json([
+            'message' => 'تم تغيير كلمة المرور بنجاح'
         ]);
     }
 

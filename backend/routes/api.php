@@ -26,6 +26,10 @@ Route::middleware(['throttle:5,1','web'])->group(function () {
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
     Route::post('/update-email', [AuthController::class, 'updateEmail']);
     Route::post('/get-current-email', [AuthController::class, 'getCurrentEmail']);
+    
+    // Password Reset Routes
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
 Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
