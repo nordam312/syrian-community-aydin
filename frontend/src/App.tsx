@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
-// import MaintenanceChecker from '@/components/MaintenanceChecker';
+import MaintenanceChecker from '@/components/MaintenanceChecker';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { SessionTimeoutProvider } from '@/hooks/useSessionTimeout';
@@ -41,9 +41,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        {/* <MaintenanceChecker> */}
         <BrowserRouter>
           <AuthProvider> {/* 🔥 ضع AuthProvider هنا */}
+            <MaintenanceChecker>
             <SessionTimeoutProvider>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -68,9 +68,11 @@ const App = () => (
               </Routes>
             </Suspense>
             </SessionTimeoutProvider>
+            </MaintenanceChecker>
+
           </AuthProvider> {/* 🔥 أغلق AuthProvider هنا */}
+          
         </BrowserRouter>
-        {/* </MaintenanceChecker> */}
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
