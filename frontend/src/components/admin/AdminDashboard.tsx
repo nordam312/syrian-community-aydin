@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Search, LogOut, Users, Calendar, FileText, MessageSquare, BarChart3, Crown, MessageCircle, HelpCircle, Settings, Eye, Plus, Edit, Trash2 } from 'lucide-react';
+import { Search, LogOut, Users, Calendar, FileText, MessageSquare, BarChart3, Crown, MessageCircle, HelpCircle, Settings, Eye, Plus, Edit, Trash2, Mail } from 'lucide-react';
 import CsrfService from '@/hooks/Csrf';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -17,6 +17,7 @@ import ContentManager from './ContentManager';
 import ElectionManager from './ElectionManager';
 import FAQManager from './FAQManager';
 import EventManager from './EventManager';
+import EmailStats from './EmailStats';
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -57,7 +58,7 @@ const AdminDashboard = () => {
 
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem('adminDashboardActiveTab');
-    const validTabs = ['overview', 'users', 'events', 'content', 'elections', 'questions', 'FAQ', 'settings'];
+    const validTabs = ['overview', 'users', 'events', 'content', 'elections', 'questions', 'FAQ', 'emails', 'settings'];
     return savedTab && validTabs.includes(savedTab) ? savedTab : 'overview';
   });
 
@@ -491,6 +492,11 @@ const AdminDashboard = () => {
           <TabsTrigger value="FAQ" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
             <HelpCircle className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
             <span>FAQ</span>
+          </TabsTrigger>
+          <TabsTrigger value="emails" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <Mail className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">الإيميلات</span>
+            <span className="sm:hidden">📧</span>
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
             <Settings className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
@@ -933,6 +939,11 @@ const AdminDashboard = () => {
         {/* FAQ Management Tab */}
         <TabsContent value="FAQ" className="space-y-6 animate-page-enter">
           <FAQManager />
+        </TabsContent>
+
+        {/* Email Management Tab */}
+        <TabsContent value="emails" className="space-y-6 animate-page-enter">
+          <EmailStats />
         </TabsContent>
 
         {/* Question Management Tab */}

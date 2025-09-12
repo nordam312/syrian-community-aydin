@@ -12,9 +12,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EmailVerification;
 use App\Mail\PasswordResetMail;
+use App\Services\SmartMailService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     public function register(Request $request)
@@ -44,12 +46,22 @@ class AuthController extends Controller
             'email_verified_at' => null, // لم يتم التحقق بعد
         ]);
 
-        // إرسال بريد التحقق
-        Mail::to($user->email)->send(new EmailVerification($user, $verificationToken));
-
-        return response()->json([
-            'message' => 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.'
-        ], 201);
+        // إرسال بريد التحقق بالخدمة الذكية
+        try {
+            SmartMailService::sendVerificationEmail($user, $verificationToken);
+            
+            return response()->json([
+                'message' => 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.',
+                'email_sent' => true
+            ], 201);
+        } catch (\Exception $e) {
+            // الحساب تم إنشاؤه لكن الإيميل فشل
+            return response()->json([
+                'message' => 'تم إنشاء الحساب. سنرسل إيميل التفعيل قريباً.',
+                'email_sent' => false,
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 201);
+        }
     }
     public function verifyEmail(Request $request, $token)
     {
@@ -208,9 +220,15 @@ class AuthController extends Controller
         $verificationToken = Str::random(60);
         $user->update(['verification_token' => $verificationToken]);
 
-        Mail::to($user->email)->send(new EmailVerification($user, $verificationToken));
-
-        return response()->json(['message' => 'تم إعادة إرسال بريد التحقق.']);
+        try {
+            SmartMailService::sendVerificationEmail($user, $verificationToken);
+            return response()->json(['message' => 'تم إعادة إرسال بريد التحقق.']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'فشل إرسال البريد. حاول لاحقاً.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     public function updateEmail(Request $request)
@@ -235,8 +253,16 @@ class AuthController extends Controller
         $user->verification_token = $verificationToken;
         $user->save();
 
-        // إرسال بريد التحقق للإيميل الجديد
-        Mail::to($user->email)->send(new EmailVerification($user, $verificationToken));
+        // إرسال بريد التحقق للإيميل الجديد باستخدام SmartMailService
+        try {
+            SmartMailService::sendVerificationEmail($user, $verificationToken);
+        } catch (\Exception $e) {
+            // الإيميل تم تحديثه لكن فشل الإرسال
+            Log::error('Failed to send verification email after update', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return response()->json([
             'message' => 'تم تحديث البريد الإلكتروني بنجاح. يرجى التحقق من بريدك الجديد لتفعيل الحساب.',
@@ -292,12 +318,24 @@ class AuthController extends Controller
             'created_at' => Carbon::now()
         ]);
         
-        // Send password reset email
-        Mail::to($user->email)->send(new PasswordResetMail($user, $token));
-        
-        return response()->json([
-            'message' => 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني'
-        ]);
+        // Send password reset email using SmartMailService
+        try {
+            SmartMailService::sendPasswordResetEmail($user, $token);
+            
+            return response()->json([
+                'message' => 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني'
+            ]);
+        } catch (\Exception $e) {
+            // حذف التوكن إذا فشل الإرسال
+            DB::table('password_reset_tokens')
+                ->where('email', $request->email)
+                ->delete();
+                
+            return response()->json([
+                'message' => 'فشل إرسال البريد. حاول لاحقاً.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
     
     /**

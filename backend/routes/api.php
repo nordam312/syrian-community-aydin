@@ -101,6 +101,11 @@ Route::middleware(['web', 'auth', 'admin'])->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/user-stats', [DashboardController::class, 'userStats']);
     Route::get('/dashboard/event-stats', [DashboardController::class, 'eventStats']);
+    
+    // Email Management
+    Route::get('/admin/email-stats', [AdminController::class, 'getEmailStats']);
+    Route::post('/admin/resend-email', [AdminController::class, 'resendFailedEmail']);
+    Route::delete('/admin/clear-email-logs', [AdminController::class, 'clearOldEmailLogs']);
 
     // User Management
     Route::apiResource('users', UserController::class);
