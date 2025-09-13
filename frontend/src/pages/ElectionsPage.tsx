@@ -134,10 +134,36 @@ export default function ElectionsPage() {
         );
       });
 
+      // رسائل عشوائية جميلة ومعبرة للتصويت
+      const voteMessages = [
+        { title: 'صوتك وصل! 🗳️', subtitle: 'شكراً لمشاركتك في صنع القرار' },
+        { title: 'تم تسجيل صوتك بنجاح! ✅', subtitle: 'كل صوت يُحدث فرقاً' },
+        { title: 'صوتك أمانة.. وقد أديتها! 🌟', subtitle: 'فخورون بمشاركتك الديمقراطية' },
+        { title: 'شكراً لمساهمتك! 🎯', subtitle: 'معاً نبني مستقبل مجتمعنا' },
+        { title: 'صوتك يعني الكثير! 💚', subtitle: 'أنت جزء من التغيير الإيجابي' }
+      ];
+
+      const randomVoteMessage = voteMessages[Math.floor(Math.random() * voteMessages.length)];
+
+      // الحصول على اسم المرشح
+      const votedCandidate = candidates.find(c => c.id === selectedCandidate);
+
       toast({
-        title: 'تم التصويت بنجاح',
-        description: 'شكراً لمشاركتك في الانتخابات',
-        variant: 'default',
+        description: (
+          <div className="text-center">
+            <span className="text-syria-green-600 font-bold animate-pulse"
+              style={{
+                textShadow: '0 0 10px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3)',
+                display: 'inline-block'
+              }}>
+              {randomVoteMessage.title}
+            </span>
+            <br />
+            <span className="text-gray-600 text-sm">{randomVoteMessage.subtitle}</span>
+          </div>
+        ),
+        duration: 4000,
+        className: 'bg-white',
       });
 
       fetchCandidates(selectedElection.id);
@@ -475,6 +501,38 @@ export default function ElectionsPage() {
                     )}
 
                     <div className="text-center">
+                      {/* رسالة تحذيرية قبل التصويت */}
+                      {selectedCandidate && !isSubmitting && (
+                        <div className="mb-6 mx-auto max-w-md animate-fade-in">
+                          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-4 shadow-sm">
+                            <div className="flex items-start space-x-3 space-x-reverse">
+                              <div className="flex-shrink-0">
+                                <div className="bg-amber-100 rounded-full p-2">
+                                  <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div className="flex-1 text-right">
+                                <h3 className="text-sm font-bold text-amber-800 mb-1">
+                                  ⚠️ ملاحظة مهمة قبل التصويت
+                                </h3>
+                                <p className="text-xs text-amber-700 leading-relaxed">
+                                  <span className="font-semibold">التصويت نهائي ولا يمكن التراجع عنه!</span>
+                                  <br />
+                                  تأكد من اختيارك جيداً، فبمجرد تأكيد التصويت لن تتمكن من تغيير قرارك أو التصويت مرة أخرى في هذه الانتخابات.
+                                </p>
+                                <div className="mt-2 pt-2 border-t border-amber-200">
+                                  <p className="text-xs text-amber-600 font-medium">
+                                    💡 نصيحة: راجع برنامج المرشح ورؤيته قبل اتخاذ القرار النهائي
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <Button
                         size="lg"
                         onClick={handleVote}

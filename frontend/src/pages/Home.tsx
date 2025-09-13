@@ -104,9 +104,9 @@ const Home = () => {
     return count;
   };
 
-  const memberCount = useCountUp(150);
+  const memberCount = useCountUp(1100);
   const eventCount = useCountUp(25);
-  const projectCount = useCountUp(8);
+  const projectCount = useCountUp(5);
 
   return (
     <Layout>
@@ -145,7 +145,7 @@ const Home = () => {
                 <div className="transform transition-all duration-700 delay-300 ">
                   <div className="max-w-4xl mx-auto bg-white rounded-2xl p-8 shadow-lg border border-syria-green-200 hover:shadow-xl transition-all duration-300 ">
                     <div className="text-center mb-6">
-                      <h2 className="text-3xl font-bold text-syria-green-800">مرحباً بكم في مجتمعنا</h2>
+                        <h2 className="text-3xl font-bold text-syria-green-800">أهلاً بكم زوارنا الأعزاء</h2>
                     </div>
                     <p className="text-xl text-gray-700 mb-8 whitespace-pre-line leading-relaxed">
                       {content?.home_description}

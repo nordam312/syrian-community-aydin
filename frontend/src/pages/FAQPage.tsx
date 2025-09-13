@@ -13,6 +13,7 @@ import CsrfService from '@/hooks/Csrf';
 import { API_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Linkify } from '@/utils/linkify';
 
 interface FAQItem {
   id: number;
@@ -178,9 +179,33 @@ const FAQPage = () => {
       await fetchUserQuestions();
       setCurrentPage(1); // العودة للصفحة الأولى بعد إضافة سؤال جديد
 
+      // رسائل عشوائية جميلة ومعبرة لإرسال السؤال
+      const questionMessages = [
+        { title: 'سؤالك وصلنا! 💬', subtitle: 'سنجيب عليه في أقرب وقت ممكن' },
+        { title: 'شكراً لمشاركتك! 🌟', subtitle: 'سؤالك قيد المراجعة الآن' },
+        { title: 'تم استلام سؤالك بنجاح! ✉️', subtitle: 'نقدر فضولك ورغبتك في المعرفة' },
+        { title: 'سؤال رائع! 🎯', subtitle: 'سيصلك الرد قريباً جداً' },
+        { title: 'تم إرسال سؤالك! 🚀', subtitle: 'نحن هنا لمساعدتك دائماً' }
+      ];
+
+      const randomQuestionMessage = questionMessages[Math.floor(Math.random() * questionMessages.length)];
+
       toast({
-        title: 'تم إرسال سؤالك',
-        description: 'شكراً لك، سيتم الرد على سؤالك في أقرب وقت ممكن.',
+        description: (
+          <div className="text-center">
+            <span className="text-syria-green-600 font-bold animate-pulse"
+              style={{
+                textShadow: '0 0 10px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3)',
+                display: 'inline-block'
+              }}>
+              {randomQuestionMessage.title}
+            </span>
+            <br />
+            <span className="text-gray-600 text-sm">{randomQuestionMessage.subtitle}</span>
+          </div>
+        ),
+        duration: 4000,
+        className: 'bg-white',
       });
 
       setNewQuestion('');
@@ -297,7 +322,7 @@ const FAQPage = () => {
                     </AccordionTrigger>
                     <AccordionContent className="px-6 pb-4">
                       <p className="text-gray-700 leading-relaxed text-right">
-                        {faq.answer}
+                        <Linkify text={faq.answer} />
                       </p>
                     </AccordionContent>
                   </AccordionItem>
@@ -374,7 +399,7 @@ const FAQPage = () => {
                                   <span className="text-sm font-medium text-green-700">الإجابة:</span>
                                 </div>
                                 <p className="text-gray-800 text-right leading-relaxed">
-                                  {question.answer}
+                                  <Linkify text={question.answer} />
                                 </p>
                               </div>
                             )}

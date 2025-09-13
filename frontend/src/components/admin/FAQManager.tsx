@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Linkify } from '@/utils/linkify';
 
 interface FAQItem {
   id?: number;
@@ -451,7 +452,9 @@ const FAQManager = () => {
                       </span>
                       <h3 className="font-semibold text-lg">{sanitizeInput(item.question)}</h3>
                     </div>
-                    <p className="text-muted-foreground whitespace-pre-line">{sanitizeInput(item.answer)}</p>
+                    <p className="text-muted-foreground whitespace-pre-line">
+                      <Linkify text={sanitizeInput(item.answer)} />
+                    </p>
                   </div>
                   <div className="flex flex-col ml-4 gap-2">
                     <Button

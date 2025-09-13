@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Post;
-use App\Models\Request as UserRequest;
+use App\Models\UserQuestion;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +20,7 @@ class DashboardController extends Controller
             'total_events' => Event::count(),
             'upcoming_events' => Event::upcoming()->count(),
             'total_posts' => Post::count(),
-            'pending_requests' => UserRequest::pending()->count(),
+            'pending_requests' => UserQuestion::pending()->count(),
             'recent_users' => User::latest()->take(5)->get(),
             'upcoming_events_list' => Event::upcoming()
                 ->orderBy('date')

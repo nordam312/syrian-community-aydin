@@ -92,10 +92,35 @@ const EventPage = () => {
           }
         );
 
+        // رسائل عشوائية جميلة ومعبرة
+        const messages = [
+          { title: 'ننتظر حضورك بفارغ الصبر! 🌟', subtitle: 'ستكون الفعالية أجمل بوجودك' },
+          { title: 'نلتقي في الفعالية! 🎉', subtitle: 'استعد لتجربة لا تُنسى' },
+          { title: 'مكانك محجوز! ✨', subtitle: 'لا تنسَ التاريخ والموعد' },
+          { title: 'أهلاً بك في الفعالية! 🎊', subtitle: 'سعداء بانضمامك إلينا' },
+          { title: 'تم حجز مقعدك بنجاح! 🪑', subtitle: 'نتطلع لرؤيتك قريباً' }
+        ];
+
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
         toast({
-          title: 'تم التسجيل بنجاح!',
-          description: response.data.message,
-          variant: 'success',
+          description: (
+            <div className="text-center">
+              <span className="text-syria-green-600 font-bold animate-pulse"
+                    style={{
+                      textShadow: '0 0 10px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3)',
+                      display: 'inline-block'
+                    }}>
+                {randomMessage.title}
+              </span>
+              <br />
+              <span className="text-gray-600 text-sm">{randomMessage.subtitle}</span>
+              <br />
+              <span className="text-xs text-gray-500 mt-1">📍 {event.title}</span>
+            </div>
+          ),
+          duration: 4000,
+          className: 'bg-white',
         });
 
         setRegistered(true);
@@ -152,9 +177,21 @@ const EventPage = () => {
         );
 
         toast({
-          title: 'تم إلغاء التسجيل',
-          description: 'تم إلغاء التسجيل من الحدث بنجاح',
-          variant: 'warning',
+          description: (
+            <div className="text-center">
+              <span className="text-orange-600 font-bold animate-pulse"
+                    style={{
+                      textShadow: '0 0 10px rgba(251, 146, 60, 0.5), 0 0 20px rgba(251, 146, 60, 0.3)',
+                      display: 'inline-block'
+                    }}>
+                تم إلغاء التسجيل 😔
+              </span>
+              <br />
+              <span className="text-gray-600 text-sm">نأمل أن نراك في فعالية أخرى قريباً</span>
+            </div>
+          ),
+          duration: 3000,
+          className: 'bg-white',
         });
 
         setRegistered(false);

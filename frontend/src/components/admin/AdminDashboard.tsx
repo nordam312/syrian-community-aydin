@@ -441,14 +441,14 @@ const AdminDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">طلبات معلقة</CardTitle>
+            <CardTitle className="text-sm font-medium">أسئلة معلقة</CardTitle>
             <MessageSquare className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-700">
               {stats?.pendingRequests ?? '-'}
             </div>
-            <p className="text-xs text-gray-600">طلبات جديدة</p>
+            <p className="text-xs text-gray-600">تحتاج للإجابة</p>
           </CardContent>
         </Card>
       </div>
@@ -462,7 +462,7 @@ const AdminDashboard = () => {
         }}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1 h-auto">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-1 h-auto">
           <TabsTrigger value="overview" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
             <BarChart3 className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
             <span className="hidden sm:inline">نظرة عامة</span>

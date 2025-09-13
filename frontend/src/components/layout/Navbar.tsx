@@ -7,6 +7,7 @@ import { API_URL } from '@/config';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import CsrfService from '@/hooks/Csrf';
+import { useToast } from '@/components/ui/use-toast';
 
 
 const Navbar = () => {
@@ -14,6 +15,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
+  const { toast } = useToast();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -29,9 +31,29 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
+      const userName = user?.name || 'صديقي';
       await logout(); // استخدم الدالة من Context فقط
       closeMenu();
       navigate('/');
+
+      // إظهار رسالة توديع مع الاسم
+      toast({
+        description: (
+          <div className="text-center">
+            <span className="text-syria-green-600 font-bold animate-pulse"
+                  style={{
+                    textShadow: '0 0 10px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3)',
+                    display: 'inline-block'
+                  }}>
+              إلى اللقاء {userName} 👋
+            </span>
+            <br />
+            <span className="text-gray-600 text-sm">نتمنى لك يوماً سعيداً</span>
+          </div>
+        ),
+        duration: 3000,
+        className: 'bg-white',
+      });
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -93,7 +115,7 @@ const Navbar = () => {
 
               {/* عرض معلومات المستخدم وزر تسجيل الخروج */}
               {isAuthenticated && (
-                <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-gray-200">
+                <div className="flex items-center space-x-3 ml-4 pl-4 border-l-2 border-syria-green-400">
                   <div className="flex items-center space-x-2">
                     <User size={16} className="text-syria-green-600" />
                     <span className="text-sm text-gray-700">{user?.name}</span>
@@ -145,8 +167,8 @@ const Navbar = () => {
 
               {/* عرض معلومات المستخدم وزر تسجيل الخروج في النسخة المحمولة */}
               {isAuthenticated && (
-                <div className="border-t border-gray-200 mt-3 pt-3">
-                  <div className="flex items-center space-x-2 px-3 py-2">
+                <div className="border-t-2 border-syria-green-400 mt-3 pt-3">
+                  <div className="flex items-center space-x-2 px-3 py-2 ">
                     <User size={16} className="text-syria-green-600" />
                     <span className="text-sm text-gray-700">{user?.name}</span>
                   </div>

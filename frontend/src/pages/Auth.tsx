@@ -296,10 +296,30 @@ const Auth = () => {
         // استخدام دالة login من Context
         if (response.data.user) {
           login(response.data.user);
+
+          // إظهار رسالة ترحيب مع الاسم
+          const userName = response.data.user.name || 'صديقي';
+          toast({
+            description: (
+              <div className="text-center">
+                <span className="text-syria-green-600 font-bold animate-pulse"
+                      style={{
+                        textShadow: '0 0 10px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3)',
+                        display: 'inline-block'
+                      }}>
+                  أهلاً وسهلاً {userName} 👋
+                </span>
+                <br />
+                <span className="text-gray-600 text-sm">سعداء بعودتك إلينا</span>
+              </div>
+            ),
+            duration: 3000,
+            className: 'bg-white',
+          });
         }
         navigate("/");
       })
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
       
       // التحقق من عدم تفعيل البريد الإلكتروني
@@ -540,7 +560,7 @@ const Auth = () => {
                   <Input
                     id="studentId"
                     type="text"
-                    placeholder="b2180.060001"
+                    placeholder="B1234.123456"
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
                     className="placeholder:text-gray-400"

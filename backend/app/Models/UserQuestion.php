@@ -35,4 +35,11 @@ class UserQuestion extends Model
     {
         return $query->where('status', 'answered');
     }
+
+    // Scope للأسئلة المعلقة (غير المجابة)
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending')
+                     ->orWhereNull('answer');
+    }
 }

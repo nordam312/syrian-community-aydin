@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ContentItem } from '@/pages/Home';
 import { useEffect, useState } from 'react';
-import { Mail, MapPin, Phone, Code, Heart } from 'lucide-react';
+import { Mail, MapPin, Phone, Code, Heart, Facebook, Instagram, Send, Github, Linkedin, MessageCircle} from 'lucide-react';
 
 interface FooterProps {
   content: ContentItem | null;
@@ -106,6 +106,48 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                   </li>
                 )}
               </ul>
+
+              {/* روابط وسائل التواصل الاجتماعي */}
+              {(content?.social_facebook || content?.social_instagram || content?.social_telegram) && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-white mb-3">تابعنا على:</h4>
+                  <div className="flex items-center space-x-reverse space-x-4">
+                    {content?.social_facebook && (
+                      <a
+                        href={content.social_facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all duration-300 group"
+                        aria-label="Facebook"
+                      >
+                        <MessageCircle className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
+                      </a>
+                    )}
+                    {content?.social_instagram && (
+                      <a
+                        href={content.social_instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all duration-300 group"
+                        aria-label="Instagram"
+                      >
+                        <Instagram className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
+                      </a>
+                    )}
+                    {content?.social_telegram && (
+                      <a
+                        href={content.social_telegram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all duration-300 group"
+                        aria-label="Telegram"
+                      >
+                        <Send className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -120,7 +162,7 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
             {/* حقوق الطبع والنشر */}
             <div className="text-center md:text-right" dir="rtl">
               <p className="text-syria-green-200 text-sm">
-                &copy; {currentYear} المجتمع السوري في أيدن. جميع الحقوق محفوظة.
+                &copy; {currentYear} اتحاد الطلاب السوريين - جامعة اسطنبول آيدن.
               </p>
             </div>
 
@@ -142,11 +184,60 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                   </span>
                 </Link>
               </div>
-              
-              <p className="text-xs text-syria-green-300 mb-1 opacity-75">
+
+              <p className="text-xs text-syria-green-300 mb-2 opacity-75">
                 Full Stack Developer
               </p>
-              
+
+              {/* روابط المطور */}
+              <div className="flex items-center justify-center md:justify-start space-x-3 mb-2">
+                <a
+                  href="mailto:nordam312@gmail.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/60 hover:text-white transition-colors duration-300"
+                  aria-label="Email"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href="https://wa.me/905388647079"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/60 hover:text-white transition-colors duration-300"
+                  aria-label="WhatsApp"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href="https://github.com/mohamednour2019"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/60 hover:text-white transition-colors duration-300"
+                  aria-label="GitHub"
+                >
+                  <Github className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/muhammednur-damlahi-59044b382/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/60 hover:text-white transition-colors duration-300"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href="https://www.instagram.com/nor_damlahi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/60 hover:text-white transition-colors duration-300"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="h-3.5 w-3.5" />
+                </a>
+              </div>
+
               {/* النص التحفيزي */}
               <p className="text-xs text-gray-300 italic opacity-80 animate-pulse">
                 "Building bridges between ideas and reality through code"

@@ -21,11 +21,18 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        // تحويل b الصغيرة إلى B كبيرة في رقم الطالب
+        if ($request->has('student_id')) {
+            $request->merge([
+                'student_id' => str_replace('b', 'B', $request->student_id)
+            ]);
+        }
+
         $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'student_id' => ['required', 'regex:/^b\d{4}\.\d{6}$/', 'unique:users'],
+            'student_id' => ['required', 'regex:/^B\d{4}\.\d{6}$/i', 'unique:users'],
             'phone' => 'nullable|string|max:20',
             'major' => 'nullable|string|max:100',
             'academic_year' => 'nullable|string|max:20',
@@ -128,10 +135,16 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'student_id';
-        $user = User::where($loginField, $request->login)->first();
+        // تحويل b الصغيرة إلى B كبيرة في حالة استخدام رقم الطالب
+        $login = $request->login;
+        if (!filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            $login = str_replace('b', 'B', $login);
+        }
 
-        if (!Auth::attempt([$loginField => $request->login, 'password' => $request->password])) {
+        $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'student_id';
+        $user = User::where($loginField, $login)->first();
+
+        if (!Auth::attempt([$loginField => $login, 'password' => $request->password])) {
             throw ValidationException::withMessages([
                 'login' => ['المعلومات المدخلة غير صحيحة.'],
             ]);

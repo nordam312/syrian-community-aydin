@@ -294,7 +294,7 @@ const ContentManager = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>فيسبوك</Label>
+            <Label>واتساب</Label>
             <Input
               placeholder="أدخل رابط فيسبوك..."
               value={contentItems.social_facebook || ''}
