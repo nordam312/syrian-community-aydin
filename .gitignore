@@ -58,3 +58,13 @@ DEPLOYMENT.md
 DEPLOYMENT_GUIDE.md
 DEPLOYMENT_CHECKLIST.md
 BREVO_SETUP.md
+frontend/.env.production
+
+# Syrian Students Data
+أرقام_الطلبة_السوريين.xlsx
+
+convert_excel_to_csv.py
+frontend/src/pages/About.tsx
+FIX_IMAGE_UPLOAD.md
+GITHUB_TO_HOSTINGER.md
+cmdLinesImportant.txt
