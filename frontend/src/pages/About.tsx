@@ -3,13 +3,43 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Users, Target, Heart, BookOpen, GraduationCap, Globe,
-  Mail, Languages, MessageCircle, Instagram, Facebook, ExternalLink
+  Mail, Languages, MessageCircle, Instagram, Facebook, ExternalLink, Loader2
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { API_URL } from '@/config';
 
 const About = () => {
   const [isEnglish, setIsEnglish] = useState(false);
   const [showContactOptions, setShowContactOptions] = useState(false);
+  const [socialMediaLinks, setSocialMediaLinks] = useState({
+    contact_email: '',
+    social_instagram: '',
+    social_facebook: '',
+    social_telegram: ''
+  });
+  const [isLoadingSocial, setIsLoadingSocial] = useState(true);
+
+  // جلب روابط التواصل الاجتماعي من قاعدة البيانات
+  useEffect(() => {
+    const fetchSocialMediaLinks = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/content`);
+        setSocialMediaLinks({
+          contact_email: response.data.contact_email || '',
+          social_instagram: response.data.social_instagram || '',
+          social_facebook: response.data.social_facebook || '',
+          social_telegram: response.data.social_telegram || ''
+        });
+      } catch (error) {
+        console.error('Error fetching social media links:', error);
+      } finally {
+        setIsLoadingSocial(false);
+      }
+    };
+
+    fetchSocialMediaLinks();
+  }, []);
 
   // النصوص باللغتين
   const content = {
@@ -46,9 +76,9 @@ const About = () => {
       thanksMessage: "هذا الموقع هو لكم ومن أجلكم. نجاحه يعتمد على مشاركتكم واقتراحاتكم. نتمنى أن يكون الموقع قد نال إعجابكم. لا تترددوا في التواصل معنا لأي استفسارات أو مقترحات",
       contactOptions: [
         { name: "البريد الإلكتروني", color: "bg-red-100 text-red-600 hover:bg-red-200" },
-        { name: "واتساب", color: "bg-green-100 text-green-600 hover:bg-green-200" },
+        { name: "تيليجرام", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" },
         { name: "إنستغرام", color: "bg-pink-100 text-pink-600 hover:bg-pink-200" },
-        { name: "فيسبوك", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" }
+        {  name: "واتساب", color: "bg-green-100 text-green-600 hover:bg-green-200" }
       ]
     },
     en: {
@@ -84,9 +114,9 @@ const About = () => {
       thanksMessage: "This website is for you and because of you. Its success depends on your participation and suggestions. We hope you liked the website. Feel free to contact us for any inquiries or suggestions.",
       contactOptions: [
         { name: "Email", color: "bg-red-100 text-red-600 hover:bg-red-200" },
-        { name: "WhatsApp", color: "bg-green-100 text-green-600 hover:bg-green-200" },
+        { name: "Telegram", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" },
         { name: "Instagram", color: "bg-pink-100 text-pink-600 hover:bg-pink-200" },
-        { name: "Facebook", color: "bg-blue-100 text-blue-600 hover:bg-blue-200" }
+        { name: "WhatsApp", color: "bg-green-100 text-green-600 hover:bg-green-200" }
       ]
     }
   };
@@ -94,36 +124,52 @@ const About = () => {
   const currentContent = isEnglish ? content.en : content.ar;
   const textDirection = isEnglish ? 'ltr' : 'rtl';
 
-  const contactOptions = [
-    {
+  // بناء قائمة خيارات التواصل بناءً على البيانات من قاعدة البيانات
+  const contactOptions = [];
+
+  // إضافة البريد الإلكتروني إذا كان موجوداً
+  if (socialMediaLinks.contact_email) {
+    contactOptions.push({
       id: 1,
       name: currentContent.contactOptions[0].name,
       icon: Mail,
-      link: "mailto:syrian.community.aydin@example.com",
+      link: `mailto:${socialMediaLinks.contact_email}`,
       color: currentContent.contactOptions[0].color
-    },
-    {
+    });
+  }
+
+  // إضافة واتساب إذا كان موجوداً (التيليجرام مؤقتاً)
+  if (socialMediaLinks.social_telegram) {
+    contactOptions.push({
       id: 2,
       name: currentContent.contactOptions[1].name,
       icon: MessageCircle,
-      link: "https://wa.me/905551234567",
+      link: socialMediaLinks.social_telegram,
       color: currentContent.contactOptions[1].color
-    },
-    {
+    });
+  }
+
+  // إضافة إنستغرام إذا كان موجوداً
+  if (socialMediaLinks.social_instagram) {
+    contactOptions.push({
       id: 3,
       name: currentContent.contactOptions[2].name,
       icon: Instagram,
-      link: "https://www.instagram.com/iau.syria",
+      link: socialMediaLinks.social_instagram.startsWith('http') ? socialMediaLinks.social_instagram : `https://www.instagram.com/${socialMediaLinks.social_instagram}`,
       color: currentContent.contactOptions[2].color
-    },
-    // {
-    //   id: 4,
-    //   name: currentContent.contactOptions[3].name,
-    //   icon: Facebook,
-    //   link: "https://facebook.com/syriancommunityaydin",
-    //   color: currentContent.contactOptions[3].color
-    // }
-  ];
+    });
+  }
+
+  // إضافة فيسبوك إذا كان موجوداً
+  if (socialMediaLinks.social_facebook) {
+    contactOptions.push({
+      id: 4,
+      name: currentContent.contactOptions[3].name,
+      icon: MessageCircle,
+      link: socialMediaLinks.social_facebook.startsWith('http') ? socialMediaLinks.social_facebook : `https://www.facebook.com/${socialMediaLinks.social_facebook}`,
+      color: currentContent.contactOptions[3].color
+    });
+  }
 
   return (
     <Layout>
@@ -285,30 +331,43 @@ const About = () => {
                 <div className="animate-slide-up-large mt-6 p-6 bg-white rounded-2xl shadow-lg border border-syria-green-200">
                   <h4 className="text-xl font-semibold text-syria-green-700 mb-6">{currentContent.contactMethodsTitle}</h4>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {contactOptions.map((option) => {
-                      const Icon = option.icon;
-                      return (
-                        <a
-                          key={option.id}
-                          href={option.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center justify-between p-5 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-md ${option.color} border border-syria-green-100`}
-                        >
-                          <div className="flex items-center">
-                            <Icon className="h-8 w-8 ml-3" />
-                            <span className="text-lg font-medium">{option.name}</span>
-                          </div>
-                          <ExternalLink className="h-5 w-5 text-syria-green-600" />
-                        </a>
-                      );
-                    })}
-                  </div>
+                  {isLoadingSocial ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 text-syria-green-600 animate-spin" />
+                      <span className="mr-3 text-syria-green-600">جاري تحميل وسائل التواصل...</span>
+                    </div>
+                  ) : contactOptions.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {contactOptions.map((option) => {
+                          const Icon = option.icon;
+                          return (
+                            <a
+                              key={option.id}
+                              href={option.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`flex items-center justify-between p-5 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-md ${option.color} border border-syria-green-100`}
+                            >
+                              <div className="flex items-center">
+                                <Icon className="h-8 w-8 ml-3" />
+                                <span className="text-lg font-medium">{option.name}</span>
+                              </div>
+                              <ExternalLink className="h-5 w-5 text-syria-green-600" />
+                            </a>
+                          );
+                        })}
+                      </div>
 
-                  <p className="text-syria-green-600 text-sm mt-6 text-center">
-                    {currentContent.chooseContact}
-                  </p>
+                      <p className="text-syria-green-600 text-sm mt-6 text-center">
+                        {currentContent.chooseContact}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">
+                      لم يتم إضافة وسائل تواصل بعد. يرجى إضافتها من لوحة التحكم.
+                    </p>
+                  )}
                 </div>
               )}
 

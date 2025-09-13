@@ -21,10 +21,13 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        // تحويل b الصغيرة إلى B كبيرة في رقم الطالب
+        // تحويل الأحرف الصغيرة (b, g, y) إلى كبيرة في رقم الطالب
         if ($request->has('student_id')) {
+            $studentId = $request->student_id;
+            // تحويل جميع الأحرف الممكنة إلى كبيرة
+            $studentId = str_replace(['b', 'g', 'y'], ['B', 'G', 'Y'], $studentId);
             $request->merge([
-                'student_id' => str_replace('b', 'B', $request->student_id)
+                'student_id' => $studentId
             ]);
         }
 
@@ -32,7 +35,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'student_id' => ['required', 'regex:/^B\d{4}\.\d{6}$/i', 'unique:users'],
+            'student_id' => ['required', 'regex:/^[BGY]\d{4}\.\d{6}$/i', 'unique:users'],
             'phone' => 'nullable|string|max:20',
             'major' => 'nullable|string|max:100',
             'academic_year' => 'nullable|string|max:20',
@@ -135,10 +138,11 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // تحويل b الصغيرة إلى B كبيرة في حالة استخدام رقم الطالب
+        // تحويل الأحرف الصغيرة (b, g, y) إلى كبيرة في حالة استخدام رقم الطالب
         $login = $request->login;
         if (!filter_var($login, FILTER_VALIDATE_EMAIL)) {
-            $login = str_replace('b', 'B', $login);
+            // تحويل جميع الأحرف الممكنة إلى كبيرة
+            $login = str_replace(['b', 'g', 'y'], ['B', 'G', 'Y'], $login);
         }
 
         $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'student_id';

@@ -38,6 +38,7 @@ Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->nam
 // Content & Settings
 Route::get('/content', [ContentController::class, 'index']);
 Route::get('/settings/public', [SettingController::class, 'getPublicSettings']);
+Route::get('/settings/social-media', [SettingController::class, 'getSocialMediaLinks']);
 
 // Banners & Logos
 Route::get('/banners', [BannerController::class, 'index']);

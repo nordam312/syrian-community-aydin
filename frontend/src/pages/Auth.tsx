@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { User, Mail, Lock, Phone, GraduationCap, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { User, Mail, Lock, Phone, GraduationCap, RefreshCw, CheckCircle, XCircle, Home, ArrowRight } from 'lucide-react';
 import { API_URL } from '@/config';
 import axios from 'axios';
 import CsrfService from '@/hooks/Csrf';
@@ -352,7 +352,20 @@ const Auth = () => {
   // عرض نموذج تحديث البريد الإلكتروني
   if (showEmailUpdate) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4 relative">
+        {/* زر العودة للصفحة الرئيسية */}
+        <Link
+          to="/"
+          className="absolute top-8 right-8 group flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-syria-green-50 border border-syria-green-200"
+        >
+          <span className="text-syria-green-700 font-medium hidden sm:inline-block group-hover:text-syria-green-800">
+            الصفحة الرئيسية
+          </span>
+          <div className="bg-syria-green-100 p-2 rounded-full group-hover:bg-syria-green-200 transition-colors">
+            <Home className="h-5 w-5 text-syria-green-700" />
+          </div>
+        </Link>
+
         <Card className="animate-page-enter w-full max-w-md border-2 border-syria-green-100">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-syria-green-600">
@@ -411,8 +424,21 @@ const Auth = () => {
 
   if (showVerificationMessage) {
     return (
-      <div className="  min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
-        <Card className=" animate-page-enter w-full max-w-md border-2 border-syria-green-100">
+      <div className="min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4 relative">
+        {/* زر العودة للصفحة الرئيسية */}
+        <Link
+          to="/"
+          className="absolute top-8 right-8 group flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-syria-green-50 border border-syria-green-200"
+        >
+          <span className="text-syria-green-700 font-medium hidden sm:inline-block group-hover:text-syria-green-800">
+            الصفحة الرئيسية
+          </span>
+          <div className="bg-syria-green-100 p-2 rounded-full group-hover:bg-syria-green-200 transition-colors">
+            <Home className="h-5 w-5 text-syria-green-700" />
+          </div>
+        </Link>
+
+        <Card className="animate-page-enter w-full max-w-md border-2 border-syria-green-100">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-syria-green-600">
               تفعيل الحساب
@@ -464,7 +490,19 @@ const Auth = () => {
   }
 
   return (
-    <div className="animate-page-enter min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4">
+    <div className="animate-page-enter min-h-screen bg-gradient-to-br from-syria-green-50 to-syria-red-50 flex items-center justify-center p-4 relative">
+      {/* زر العودة للصفحة الرئيسية */}
+      <Link
+        to="/"
+        className="absolute top-8 right-8 group flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-syria-green-50 border border-syria-green-200"
+      >
+        <span className="text-syria-green-700 font-medium hidden sm:inline-block group-hover:text-syria-green-800">
+          الصفحة الرئيسية
+        </span>
+        <div className="bg-syria-green-100 p-2 rounded-full group-hover:bg-syria-green-200 transition-colors">
+          <Home className="h-5 w-5 text-syria-green-700" />
+        </div>
+      </Link>
       <Card className="w-full max-w-md border-2 border-syria-green-100">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-syria-green-600">
@@ -659,6 +697,17 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+
+          {/* رابط نصي للعودة للصفحة الرئيسية */}
+          <div className="mt-6 text-center">
+            <Link
+              to="/"
+              className="text-sm text-syria-green-600 hover:text-syria-green-700 hover:underline transition-colors inline-flex items-center gap-1"
+            >
+              <ArrowRight className="h-4 w-4" />
+              العودة إلى الصفحة الرئيسية
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

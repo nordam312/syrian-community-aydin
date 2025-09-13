@@ -7,6 +7,7 @@ use App\Models\Election;
 use App\Models\Candidate;
 use App\Models\Vote;
 use App\Models\User;
+use App\Models\SyrianStudent;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -256,7 +257,15 @@ class ElectionController extends Controller
             return response()->json(['error' => 'لم تبدأ فترة التصويت لهذه الانتخابات بعد'], 400);
         }
 
-        $userId = auth()->user()->id;
+        $user = auth()->user();
+        $userId = $user->id;
+
+        // 🔴 التحقق من أهلية التصويت (طالب سوري فقط)
+        if (!SyrianStudent::isEligibleToVote($user->student_id)) {
+            return response()->json([
+                'error' => 'عذراً، التصويت متاح فقط للطلاب السوريين المسجلين في القائمة الرسمية'
+            ], 403);
+        }
 
         // التحقق هل صوت هذا المستخدم من قبل؟
         if (Vote::where(['election_id' => $electionId, 'user_id' => $userId])->exists()) {

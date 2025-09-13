@@ -163,4 +163,18 @@ class SettingController extends Controller
 
         return response()->json($settings);
     }
+
+    // جلب روابط التواصل الاجتماعي
+    public function getSocialMediaLinks()
+    {
+        $socialMedia = [
+            'email' => Setting::get('contact_email', 'syrian.community.aydin@example.com'),
+            'whatsapp' => Setting::get('social_whatsapp', ''),
+            'instagram' => Setting::get('social_instagram', ''),
+            'facebook' => Setting::get('social_facebook', ''),
+            'telegram' => Setting::get('social_telegram', ''),
+        ];
+
+        return response()->json($socialMedia);
+    }
 }
