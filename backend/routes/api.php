@@ -42,13 +42,13 @@ Route::get('/settings/social-media', [SettingController::class, 'getSocialMediaL
 
 // Banners & Logos
 Route::get('/banners', [BannerController::class, 'index']);
-Route::get('/banners/{id}', [BannerController::class, 'show']);
 Route::get('/logos', [LogoController::class, 'index']);
 Route::get('/logos/active', [LogoController::class, 'active']);
 Route::get('/logos/{id}', [LogoController::class, 'show']);
 
-// Events
-Route::apiResource('events', EventController::class);
+// Events - Public (Read only)
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/events/{event}', [EventController::class, 'show']);
 
 // FAQ
 Route::get('faqs', [FAQController::class, 'index']);
@@ -135,6 +135,8 @@ Route::middleware(['web', 'auth', 'admin'])->group(function () {
 
     // Banner Management
     Route::prefix('banners')->group(function () {
+        Route::get('/all', [BannerController::class, 'adminIndex']); // Get all banners for admin
+        Route::get('/{id}', [BannerController::class, 'show']); // Get single banner
         Route::post('/', [BannerController::class, 'store']);
         Route::post('/{id}', [BannerController::class, 'update']);
         Route::delete('/{id}', [BannerController::class, 'destroy']);
@@ -169,5 +171,12 @@ Route::middleware(['web', 'auth', 'admin'])->group(function () {
         Route::get('/', [UserQuestionController::class, 'adminIndex']);
         Route::post('/{id}/answer', [UserQuestionController::class, 'adminAnswer']);
         Route::delete('/{id}', [UserQuestionController::class, 'adminDestroy']);
+    });
+
+    // Events Management - Admin only
+    Route::prefix('events')->group(function () {
+        Route::post('/', [EventController::class, 'store']);
+        Route::put('/{event}', [EventController::class, 'update']);
+        Route::delete('/{event}', [EventController::class, 'destroy']);
     });
 });

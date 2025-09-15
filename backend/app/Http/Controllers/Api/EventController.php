@@ -109,13 +109,13 @@ class EventController extends Controller
 
     public function addAttendee(Request $request, Event $event)
     {
-        // 🔥 إزالة التحقق من user_id لأنه سيعتمد على المستخدم المصادق
+        //  إزالة التحقق من user_id لأنه سيعتمد على المستخدم المصادق
         $request->validate([
             'status' => 'nullable|string|in:confirmed,pending,cancelled',
             'notes' => 'nullable|string'
         ]);
 
-        // 🔥 الحصول على المستخدم المصادق تلقائياً
+        //  الحصول على المستخدم المصادق تلقائياً عنطريق ال session ماتسال كيف سحر هذا 
         $user = Auth::user();
         
         if (!$user) {
@@ -150,7 +150,7 @@ class EventController extends Controller
 
     public function removeAttendee(Request $request, Event $event)
     {
-        // 🔥 الحصول على المستخدم المصادق تلقائياً
+        // الحصول على المستخدم المصادق تلقائياً
         $user = Auth::user();
         
         if (!$user) {

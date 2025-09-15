@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, User, LogOut } from 'lucide-react';
@@ -13,9 +13,31 @@ import { useToast } from '@/components/ui/use-toast';
 const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [developerText, setDeveloperText] = useState('مطور الصفحة');
+  const [isAnimating, setIsAnimating] = useState(false);
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const { toast } = useToast();
+
+  // Toggle developer text between Arabic and English every 5 seconds with animation
+  useEffect(() => {
+    const texts = [
+      'مطور الصفحة',
+      'Developer',
+      ];
+    let currentIndex = 0;
+
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        currentIndex = (currentIndex + 1) % texts.length;
+        setDeveloperText(texts[currentIndex]);
+        setIsAnimating(false);
+      }, 400);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -36,7 +58,7 @@ const Navbar = () => {
       closeMenu();
       navigate('/');
 
-      // إظهار رسالة توديع مع الاسم
+      // إظهار رسالة توديع مع الاسم 
       toast({
         description: (
           <div className="text-center">
@@ -68,7 +90,7 @@ const Navbar = () => {
       { name: 'حاسبة المعدل', path: '/gpa-calculator' },
       { name: 'الانتخابات', path: '/elections' },
       { name: 'الفعاليات', path: '/events' },
-      { name: 'مطور الصفحة', path: '/developer' },
+      { name: developerText, path: '/developer' },
     ];
 
     if (isAuthenticated && user?.role === 'admin') {
@@ -104,12 +126,42 @@ const Navbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${isActive(link.path)
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all duration-500 ${isActive(link.path)
                     ? 'bg-syria-green-100 text-syria-green-600'
                     : 'text-gray-700 hover:bg-syria-green-50 hover:text-syria-green-600'
-                    }`}
+                    } ${link.path === '/developer' ? 'min-w-[100px] text-center' : ''}`}
                 >
-                  {link.name}
+                  {link.path === '/developer' ? (
+                    <div className="relative inline-block">
+                      <span
+                        className={`inline-block transition-all ease-in-out ${
+                          isAnimating
+                            ? 'duration-500 opacity-0 transform translate-x-2 -translate-y-3 scale-50 rotate-180 blur-sm'
+                            : 'duration-700 opacity-100 transform translate-x-0 translate-y-0 scale-100 rotate-0 blur-0'
+                        }`}
+                        style={{
+                          textShadow: isAnimating
+                            ? '0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(34, 197, 94, 0.4)'
+                            : '0 1px 2px rgba(34, 197, 94, 0.3)',
+                          background: isAnimating
+                            ? 'linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent)'
+                            : 'none',
+                          animation: !isAnimating
+                            ? 'shimmer 3s ease-in-out infinite, float 4s ease-in-out infinite'
+                            : 'none'
+                        }}
+                      >
+                        {link.name}
+                      </span>
+                      {isAnimating && (
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <span className="animate-spin text-syria-green-500">⚡</span>
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span>{link.name}</span>
+                  )}
                 </Link>
               ))}
 
@@ -156,12 +208,42 @@ const Navbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={closeMenu}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(link.path)
+                  className={`block px-3 py-2 rounded-md text-base font-medium transition-all duration-500 ${isActive(link.path)
                     ? 'bg-syria-green-100 text-syria-green-600'
                     : 'text-gray-700 hover:bg-syria-green-50 hover:text-syria-green-600'
                     }`}
                 >
-                  {link.name}
+                  {link.path === '/developer' ? (
+                    <div className="relative inline-block">
+                      <span
+                        className={`inline-block transition-all ease-in-out ${
+                          isAnimating
+                            ? 'duration-500 opacity-0 transform translate-x-2 -translate-y-3 scale-50 rotate-180 blur-sm'
+                            : 'duration-700 opacity-100 transform translate-x-0 translate-y-0 scale-100 rotate-0 blur-0'
+                        }`}
+                        style={{
+                          textShadow: isAnimating
+                            ? '0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(34, 197, 94, 0.4)'
+                            : '0 1px 2px rgba(34, 197, 94, 0.3)',
+                          background: isAnimating
+                            ? 'linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent)'
+                            : 'none',
+                          animation: !isAnimating
+                            ? 'shimmer 3s ease-in-out infinite, float 4s ease-in-out infinite'
+                            : 'none'
+                        }}
+                      >
+                        {link.name}
+                      </span>
+                      {isAnimating && (
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <span className="animate-spin text-syria-green-500">⚡</span>
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span>{link.name}</span>
+                  )}
                 </Link>
               ))}
 

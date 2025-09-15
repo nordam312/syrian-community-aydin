@@ -43,13 +43,13 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % banners.length);
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [banners]);
 
-  return (
-    <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+return (
+    <div className="relative w-full overflow-hidden" style={{ height: 'clamp(300px, 56vw, 600px)' }}>
       {isLoading ? (
         <div className="absolute inset-0 bg-gradient-to-br from-syria-green-50 to-syria-green-100">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer"></div>
@@ -99,22 +99,15 @@ const Banner: React.FC<BannerProps> = ({ content }) => {
 
       <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-4 text-center">
         <div className="transform transition-all duration-1000 animate-slide-up">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-2xl text-white animate-page-enter leading-tight py-2" style={{textShadow: '0 0 20px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.5)'}}>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-5 drop-shadow-2xl text-white animate-page-enter leading-tight py-2 md:py-3" style={{textShadow: '0 0 20px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.5)'}}>
             {content?.home_title || (
               <div className="space-y-2">
-                <div className="h-8 bg-gradient-to-r from-white/40 via-white/60 to-white/40 rounded animate-shimmer w-64"></div>
-                <div className="h-6 bg-gradient-to-r from-white/30 via-white/50 to-white/30 rounded animate-shimmer w-48 mx-auto"></div>
+                <div className="h-6 md:h-8 bg-gradient-to-r from-white/40 via-white/60 to-white/40 rounded animate-shimmer w-48 md:w-64"></div>
+                <div className="h-5 md:h-6 bg-gradient-to-r from-white/30 via-white/50 to-white/30 rounded animate-shimmer w-36 md:w-48 mx-auto"></div>
               </div>
             )}
           </h1>
         </div>
-        {/* <p
-					className="text-lg md:text-xl max-w-2xl drop-shadow-md animate-page-enter"
-					style={{ animationDelay: '0.2s' }}
-				>
-					Building connections, supporting our community, and preserving our
-					culture
-				</p> */}
       </div>
     </div>
   );

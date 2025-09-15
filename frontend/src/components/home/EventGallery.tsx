@@ -36,10 +36,33 @@ const EventCarousel = ({
   loading: boolean;
   emptyText: string;
 }) => {
-  const visibleCards = 3;
+  // Responsive visible cards based on screen size
+  const [visibleCards, setVisibleCards] = useState(3);
   const [current, setCurrent] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+
+  // Touch/swipe handling
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Detect screen size and adjust visible cards
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setVisibleCards(1); // Mobile
+      } else if (window.innerWidth < 1024) {
+        setVisibleCards(2); // Tablet
+      } else {
+        setVisibleCards(3); // Desktop
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // دالة لإعادة تشغيل الأوتو بلاي
   const resetInterval = () => {
@@ -71,6 +94,33 @@ const EventCarousel = ({
     setCurrent((prev) => (prev - visibleCards + events.length) % events.length);
     console.log(current);
     resetInterval();
+  };
+
+  // Touch handlers
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && events.length > visibleCards) {
+      next();
+    }
+    if (isRightSwipe && events.length > visibleCards) {
+      prev();
+    }
   };
 
   if (loading) {
@@ -107,17 +157,23 @@ const EventCarousel = ({
         <Button
           variant="outline"
           size="icon"
-          className="absolute right-0 z-10 rounded-full border-syria-green-200"
+          className="absolute right-0 z-10 rounded-full border-syria-green-200 hidden md:flex"
           onClick={next}
         >
           <ChevronRight size={22} className="text-syria-green-700" />
         </Button>
       )}
-      <div className="flex gap-6 w-full max-w-5xl px-10 justify-center">
+      <div
+        className="flex gap-4 md:gap-6 w-full max-w-5xl px-4 md:px-10 justify-center overflow-hidden touch-pan-x"
+        ref={containerRef}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
         {displayed.map((event) => (
           <div
             key={event.id}
-            className="bg-white rounded-3xl shadow-xl border border-syria-green-100 overflow-hidden hover:shadow-2xl hover:-translate-y-4 transition-all duration-700 flex flex-col w-80 flex-shrink-0 group relative transform hover:scale-105 cursor-pointer"
+            className="bg-white rounded-3xl shadow-xl border border-syria-green-100 overflow-hidden hover:shadow-2xl md:hover:-translate-y-4 transition-all duration-700 flex flex-col w-full sm:w-80 flex-shrink-0 group relative transform md:hover:scale-105 cursor-pointer"
             onClick={() => navigate(`/events/${event.id}`)}
           >
             <div className="relative h-52">
@@ -171,11 +227,37 @@ const EventCarousel = ({
         <Button
           variant="outline"
           size="icon"
-          className="absolute left-0 z-10 rounded-full border-syria-green-200"
+          className="absolute left-0 z-10 rounded-full border-syria-green-200 hidden md:flex"
           onClick={prev}
         >
           <ChevronLeft size={22} className="text-syria-green-700" />
         </Button>
+      )}
+
+      {/* Dots indicator and swipe hint for mobile */}
+      {events.length > visibleCards && (
+        <div className="md:hidden">
+          <div className="flex justify-center gap-2 mt-4">
+            {Array.from({ length: Math.ceil(events.length / visibleCards) }).map((_, idx) => (
+              <button
+                key={idx}
+                className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                  Math.floor(current / visibleCards) === idx
+                    ? 'bg-syria-green-600 w-6'
+                    : 'bg-syria-green-300'
+                }`}
+                onClick={() => {
+                  setCurrent(idx * visibleCards);
+                  resetInterval();
+                }}
+                aria-label={`Go to page ${idx + 1}`}
+              />
+            ))}
+          </div>
+          <p className="text-center text-sm text-syria-green-600 mt-2 animate-pulse">
+            ← اسحب للتنقل →
+          </p>
+        </div>
       )}
     </div>
   );

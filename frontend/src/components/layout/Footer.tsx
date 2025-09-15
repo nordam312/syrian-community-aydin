@@ -1,21 +1,21 @@
 import { Link } from 'react-router-dom';
 import { ContentItem } from '@/pages/Home';
 import { useEffect, useState } from 'react';
-import { Mail, MapPin, Phone, Code, Heart, Facebook, Instagram, Send, Github, Linkedin, MessageCircle} from 'lucide-react';
+import { Mail, MapPin, Phone, Code, Heart, Facebook, Instagram, Send, Github, Linkedin, MessageCircle } from 'lucide-react';
 
 interface FooterProps {
   content: ContentItem | null;
 }
 const Footer: React.FC<FooterProps> = ({ content }) => {
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="bg-gradient-to-br from-syria-green-800 via-syria-green-700 to-syria-green-600 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* القسم الرئيسي */}
         <div className="py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            
+
             {/* معلومات المجتمع */}
             <div className="lg:col-span-2 space-y-6" dir="rtl">
               <div>
@@ -26,6 +26,60 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                 <p className="text-gray-200 leading-relaxed text-base">
                   {content?.about_content || 'مجتمع داعم ومترابط للسوريين في مدينة أيدن، تركيا. نهدف إلى تقديم الدعم والمساعدة لجميع أفراد الجالية السورية وتعزيز الروابط الاجتماعية والثقافية.'}
                 </p>
+
+                {/* شعارات الجامعات */}
+                <div className="mt-6 flex items-center gap-4">
+                  {/* شعار ISU */}
+                  <a
+                    href="https://www.instagram.com/iau.isu/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block group transition-all duration-300 hover:scale-110"
+                    aria-label="ISU Instagram"
+                  >
+                    <div className="bg-gray-400/20 p-2 rounded-full hover:bg-gray-400/30 transition-colors duration-300">
+                      <img
+                        src="/ISU_Logo.png"
+                        alt="ISU Logo"
+                        className="h-10 w-10 object-contain transition-transform duration-300"
+                      />
+                    </div>
+                  </a>
+
+                  {/* شعار IAU */}
+                  <a
+                    href="https://www.instagram.com/iaukampus/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block group transition-all duration-300 hover:scale-110"
+                    aria-label="IAU Instagram"
+                  >
+                    <div className="bg-gray-400/20 p-2 rounded-full hover:bg-gray-400/30 transition-colors duration-300">
+                      <img
+                        src="/IAU_Logo.png"
+                        alt="IAU Logo"
+                        className="h-10 w-10 object-contain transition-transform duration-300"
+                      />
+                    </div>
+                  </a>
+
+                  {/* شعار ISSA */}
+                  <a
+                    href="https://www.instagram.com/iauissa/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block group transition-all duration-300 hover:scale-110"
+                    aria-label="ISSA Instagram"
+                  >
+                    <div className="bg-gray-400/20 p-2 rounded-full hover:bg-gray-400/30 transition-colors duration-300">
+                      <img
+                        src="/ISSA_Logo.jpg"
+                        alt="ISSA Logo"
+                        className="h-10 w-10 object-cover rounded-full transition-transform duration-300"
+                      />
+                    </div>
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -158,7 +212,7 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
         {/* القسم السفلي */}
         <div className="py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            
+
             {/* حقوق الطبع والنشر */}
             <div className="text-center md:text-right" dir="rtl">
               <p className="text-syria-green-200 text-sm">
@@ -180,7 +234,7 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                 >
                   <Code className="h-4 w-4" />
                   <span className="relative">
-                    <span className="relative z-10 drop-shadow-lg" style={{textShadow: '0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3), 0 0 30px rgba(255,255,255,0.1)'}}>Mohammed Nour Damlakhi</span>
+                    <span className="relative z-10 drop-shadow-lg" style={{ textShadow: '0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3), 0 0 30px rgba(255,255,255,0.1)' }}>Mohammed Nour Damlakhi</span>
                   </span>
                 </Link>
               </div>

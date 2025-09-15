@@ -50,7 +50,7 @@ const BannerImageManager = () => {
 
   const fetchBanners = async () => {
     try {
-      const response = await axios.get(`${API_URL}/banners`, {
+      const response = await axios.get(`${API_URL}/banners/all`, {
         withCredentials: true,
         headers: { Accept: 'application/json' },
       });

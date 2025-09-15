@@ -344,39 +344,44 @@ export default function ElectionsPage() {
 
           {selectedElection && (
             <>
+              {/* صورة البانر للحملة الانتخابية */}
+              {selectedElection.image && (
+                <div className="mb-8 rounded-xl overflow-hidden shadow-xl">
+                  <div className="relative w-full h-[200px] md:h-[250px] lg:h-[300px]">
+                    <img
+                      src={`${STORAGE_URL}/${selectedElection.image}`}
+                      alt={selectedElection.name}
+                      className="w-full h-full object-cover object-center"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-right drop-shadow-2xl">
+                        {selectedElection.name}
+                      </h2>
+                      <p className="text-base md:text-lg text-gray-100 text-right drop-shadow-lg line-clamp-2">
+                        {selectedElection.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* تفاصيل الانتخاب المحدد */}
               <Card className="mb-8 border-syria-green-200 bg-gradient-to-br from-syria-green-50 to-syria-green-100">
                 <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="text-right">
-                      <h2 className="text-2xl font-bold text-syria-green-800 mb-2">
-                        {selectedElection.name}
-                      </h2>
-                      <p className="text-syria-green-600 mb-2">
-                        {selectedElection.description}
-                      </p>
-                      <div className="flex flex-wrap gap-4 text-sm text-syria-green-500">
-                        <span className="flex items-center">
-                          <Calendar className="h-4 w-4 ml-1" />
-                          يبدأ: {formatDate(selectedElection.start_date)}
-                        </span>
-                        <span className="flex items-center">
-                          <Calendar className="h-4 w-4 ml-1" />
-                          ينتهي: {formatDate(selectedElection.end_date)}
-                        </span>
-                        <span className="flex items-center">
-                          <Users className="h-4 w-4 ml-1" />
-                          {selectedElection.candidates_count} مرشح
-                        </span>
-                      </div>
-                    </div>
-                    {selectedElection.image && (
-                      <img
-                        src={`${STORAGE_URL}/${selectedElection.image}`}
-                        alt={selectedElection.name}
-                        className="w-32 h-32 object-cover rounded-lg shadow-md"
-                      />
-                    )}
+                  <div className="flex flex-wrap gap-3 text-sm text-syria-green-600 justify-center">
+                    <span className="flex items-center bg-white px-4 py-2 rounded-full shadow-sm">
+                      <Calendar className="h-4 w-4 ml-2 text-syria-green-500" />
+                      يبدأ: {formatDate(selectedElection.start_date)}
+                    </span>
+                    <span className="flex items-center bg-white px-4 py-2 rounded-full shadow-sm">
+                      <Calendar className="h-4 w-4 ml-2 text-syria-green-500" />
+                      ينتهي: {formatDate(selectedElection.end_date)}
+                    </span>
+                    <span className="flex items-center bg-white px-4 py-2 rounded-full shadow-sm">
+                      <Users className="h-4 w-4 ml-2 text-syria-green-500" />
+                      {selectedElection.candidates_count} مرشح
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -464,14 +469,14 @@ export default function ElectionsPage() {
 
                           <CardContent className="p-5 flex-grow flex flex-col">
                             <div className="mb-4">
-                              <h4 className="font-medium text-syria-green-700 mb-2 text-right">نبذة عن المرشح:</h4>
+                              <h4 className="font-medium text-syria-green-700 mb-2 text-right">:نبذة عن المرشح</h4>
                               <p className="text-sm text-gray-600 leading-relaxed text-right">
                                 {candidate.bio}
                               </p>
                             </div>
 
                             <div className="mb-4">
-                              <h4 className="font-medium text-syria-green-700 mb-2 text-right">المنصة الانتخابية:</h4>
+                              <h4 className="font-medium text-syria-green-700 mb-2 text-right">:البرنامج الانتخابي</h4>
                               <p className="text-sm text-gray-600 leading-relaxed text-right">
                                 {candidate.platform}
                               </p>
