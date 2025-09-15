@@ -70,3 +70,5 @@ GITHUB_TO_HOSTINGER.md
 cmdLinesImportant.txt
 cookies.txt
 HOSTINGER_DEPLOY_COMMANDS.md
+deploy-to-hostinger.sh
+DNS-SETUP-GUIDE.md
