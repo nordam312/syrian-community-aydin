@@ -164,7 +164,7 @@ const EventCarousel = ({
         </Button>
       )}
       <div
-        className="flex gap-4 md:gap-6 w-full max-w-5xl px-4 md:px-10 justify-center overflow-hidden touch-pan-x"
+        className="flex gap-4 md:gap-6 w-full max-w-5xl px-4 md:px-10 justify-center overflow-hidden"
         ref={containerRef}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -173,10 +173,12 @@ const EventCarousel = ({
         {displayed.map((event) => (
           <div
             key={event.id}
-            className="bg-white rounded-3xl shadow-xl border border-syria-green-100 overflow-hidden hover:shadow-2xl md:hover:-translate-y-4 transition-all duration-700 flex flex-col w-full sm:w-80 flex-shrink-0 group relative transform md:hover:scale-105 cursor-pointer"
-            onClick={() => navigate(`/events/${event.id}`)}
+            className="bg-white rounded-3xl shadow-xl border border-syria-green-100 overflow-hidden hover:shadow-2xl md:hover:-translate-y-4 transition-all duration-700 flex flex-col w-full sm:w-80 flex-shrink-0 group relative transform md:hover:scale-105 select-none"
           >
-            <div className="relative h-52">
+            <div
+              className="relative h-52 cursor-pointer"
+              onClick={() => navigate(`/events/${event.id}`)}
+            >
               <img
                 src={
                   event.image
@@ -193,7 +195,10 @@ const EventCarousel = ({
               </div>
             </div>
             <div className="p-5 flex-1 flex flex-col relative z-10">
-              <h4 className="font-bold text-xl mb-2 text-syria-green-700 font-tajawal line-clamp-2 group-hover:text-syria-green-800 transition-colors duration-300">
+              <h4
+                className="font-bold text-xl mb-2 text-syria-green-700 font-tajawal line-clamp-2 group-hover:text-syria-green-800 transition-colors duration-300 cursor-pointer"
+                onClick={() => navigate(`/events/${event.id}`)}
+              >
                 {event.title}
               </h4>
               {event.location && (
@@ -210,7 +215,10 @@ const EventCarousel = ({
               <div className="mt-auto">
                 <Button
                   className="w-full bg-gradient-to-r from-syria-green-700 to-syria-green-600 hover:from-syria-green-800 hover:to-syria-green-700 text-white rounded-full font-tajawal shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 relative overflow-hidden group/button"
-                  onClick={() => navigate(`/events/${event.id}`)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/events/${event.id}`);
+                  }}
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     <Calendar size={16} />
