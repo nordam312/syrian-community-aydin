@@ -30,6 +30,7 @@ const letterGradeMap: Record<string, number> = {
   CC: 2.0,
   DC: 1.5,
   DD: 1.0,
+  FD: 0.5,
   FF: 0.0,
 };
 
@@ -39,8 +40,9 @@ const numericGradeToLetterGrade = (grade: number): string => {
   if (grade >= 80) return 'BB';
   if (grade >= 75) return 'CB';
   if (grade >= 70) return 'CC';
-  if (grade >= 65) return 'DC';
-  if (grade >= 60) return 'DD';
+  if (grade >= 60) return 'DC';
+  if (grade >= 50) return 'DD';
+  if (grade >= 40) return 'FD';
   return 'FF';
 };
 

@@ -107,17 +107,22 @@ const GpaCalculatorPage = () => {
                     <tr className="border-b">
                       <td className="px-4 py-2">DC</td>
                       <td className="px-4 py-2">1.5</td>
-                      <td className="px-4 py-2">65-69</td>
+                      <td className="px-4 py-2">60-69</td>
                     </tr>
                     <tr className="border-b">
                       <td className="px-4 py-2">DD</td>
                       <td className="px-4 py-2">1.0</td>
-                      <td className="px-4 py-2">60-64</td>
+                      <td className="px-4 py-2">50-59</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="px-4 py-2">FD</td>
+                      <td className="px-4 py-2">0.5</td>
+                      <td className="px-4 py-2">40-49</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-2">FF</td>
                       <td className="px-4 py-2">0.0</td>
-                      <td className="px-4 py-2">0-59</td>
+                      <td className="px-4 py-2">0-39</td>
                     </tr>
                   </tbody>
                 </table>
