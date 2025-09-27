@@ -62,6 +62,12 @@ class User extends Authenticatable
         ];
     }
 
+    // العلاقة مع ملف العضو
+    public function member()
+    {
+        return $this->hasOne(Member::class);
+    }
+
     // العلاقة مع الفعاليات التي يشارك فيها
     public function events()
     {

@@ -1,6 +1,6 @@
 
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,26 +8,42 @@ import { Input } from '@/components/ui/input';
 import {
   Users,
   Search,
-  Mail,
-  Phone,
   Award,
   GraduationCap,
   Shield,
   UserCheck,
   ChevronDown,
-  Loader2
+  Loader2,
+  Instagram,
+  AlertCircle
 } from 'lucide-react';
+import axios from 'axios';
+import { API_URL, STORAGE_URL } from '@/config';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Member {
   id: number;
+  user_id: number;
+  student_id: string;
   name: string;
   role: string;
   department?: string;
   major?: string;
   year?: string;
+  instagram?: string;
   image?: string;
-  isLeader?: boolean;
-  isActive?: boolean;
+  is_leader: boolean;
+  is_active: boolean;
+  display_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface MemberStats {
+  total_members: number;
+  active_members: number;
+  leaders: number;
+  departments: number;
 }
 
 const Members = () => {
@@ -38,154 +54,47 @@ const Members = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [showMore, setShowMore] = useState(false);
+  const [stats, setStats] = useState<MemberStats | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // Mock data - replace with API call
-  useEffect(() => {
-    const fetchMembers = async () => {
+  // Fetch members from API
+  const fetchMembers = useCallback(async () => {
+    try {
       setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        const mockMembers: Member[] = [
-          {
-            id: 1,
-            name: 'Muhammed',
-            role: 'رئيس الجالية',
-            department: 'الإدارة',
-            major: 'هندسة البرمجيات',
-            year: 'السنة الرابعة',
-            isLeader: true,
-            isActive: true
-          },
-          {
-            id: 2,
-            name: 'أحمد محمد',
-            role: 'رئيس الجالية',
-            department: 'الإدارة',
-            major: 'هندسة البرمجيات',
-            year: 'السنة الرابعة',
-            image: '/api/placeholder/150/150',
-            isLeader: true,
-            isActive: true
-          },
-          {
-            id: 3,
-            name: 'سارة أحمد',
-            role: 'مسؤولة الفعاليات',
-            department: 'الفعاليات',
-            major: 'التصميم الجرافيكي',
-            year: 'السنة الثانية',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 4,
-            name: 'عمر حسن',
-            role: 'مسؤول التقنية',
-            department: 'التقنية',
-            major: 'هندسة الحاسوب',
-            year: 'السنة الرابعة',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 5,
-            name: 'ليلى محمود',
-            role: 'مسؤولة الإعلام',
-            department: 'الإعلام',
-            major: 'الإعلام الرقمي',
-            year: 'السنة الثانية',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 6,
-            name: 'خالد سالم',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الطب',
-            year: 'السنة الأولى',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 7,
-            name: 'خالد سالم',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الطب',
-            year: 'السنة الأولى',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 8,
-            name: 'خالد سالم',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الطب',
-            year: 'السنة الأولى',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 9,
-            name: 'خالد سالم',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الطب',
-            year: 'السنة الأولى',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 10,
-            name: 'خالد سالم',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الطب',
-            year: 'السنة الأولى',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 11,
-            name: 'خالد سالم',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الطب',
-            year: 'السنة الأولى',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 12,
-            name: 'خالد سالم',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الطب',
-            year: 'السنة الأولى',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          },
-          {
-            id: 13,
-            name: 'نور الدين',
-            role: 'عضو',
-            department: 'عام',
-            major: 'الهندسة المدنية',
-            year: 'السنة الثانية',
-            image: '/api/placeholder/150/150',
-            isActive: true
-          }
-        ];
-        setMembers(mockMembers);
-        setFilteredMembers(mockMembers);
-        setIsLoading(false);
-      }, 1500);
-    };
+      setError(null);
 
+      // Fetch members
+      const response = await axios.get(`${API_URL}/members`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
+
+      // Fetch statistics
+      const statsResponse = await axios.get(`${API_URL}/members/statistics`, {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
+      });
+
+      setMembers(response.data);
+      setFilteredMembers(response.data);
+      setStats(statsResponse.data);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      setError('حدث خطأ في تحميل البيانات');
+      toast({
+        title: 'خطأ',
+        description: 'فشل في تحميل بيانات الأعضاء',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
     fetchMembers();
-  }, []);
+  }, [fetchMembers]);
 
   // Filter members based on search and filters
   useEffect(() => {
@@ -196,7 +105,8 @@ const Members = () => {
       filtered = filtered.filter(member =>
         member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.major?.toLowerCase().includes(searchTerm.toLowerCase())
+        member.major?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.student_id?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -218,8 +128,8 @@ const Members = () => {
   const departments = ['all', ...new Set(members.map(m => m.department).filter(Boolean))];
 
   // Separate leaders and regular members
-  const leaders = filteredMembers.filter(m => m.isLeader);
-  const regularMembers = filteredMembers.filter(m => !m.isLeader);
+  const leaders = filteredMembers.filter(m => m.is_leader);
+  const regularMembers = filteredMembers.filter(m => !m.is_leader);
   const displayedMembers = showMore ? regularMembers : regularMembers.slice(0, 15);
 
   return (
@@ -243,7 +153,7 @@ const Members = () => {
             <Card className="bg-white border-syria-green-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
               <CardContent className="p-4 md:p-6 text-center">
                 <Users className="h-6 w-6 md:h-8 md:w-8 text-syria-green-600 mx-auto mb-1 md:mb-2" />
-                <div className="text-xl md:text-3xl font-bold text-syria-green-700">{members.length}</div>
+                <div className="text-xl md:text-3xl font-bold text-syria-green-700">{stats?.total_members || members.length}</div>
                 <div className="text-syria-green-600 text-xs md:text-sm">إجمالي الأعضاء</div>
               </CardContent>
             </Card>
@@ -251,7 +161,7 @@ const Members = () => {
             <Card className="bg-white border-syria-green-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
               <CardContent className="p-4 md:p-6 text-center">
                 <Shield className="h-6 w-6 md:h-8 md:w-8 text-syria-green-600 mx-auto mb-1 md:mb-2" />
-                <div className="text-xl md:text-3xl font-bold text-syria-green-700">{leaders.length}</div>
+                <div className="text-xl md:text-3xl font-bold text-syria-green-700">{stats?.leaders || leaders.length}</div>
                 <div className="text-syria-green-600 text-xs md:text-sm">مجلس الإدارة</div>
               </CardContent>
             </Card>
@@ -260,7 +170,7 @@ const Members = () => {
               <CardContent className="p-4 md:p-6 text-center">
                 <UserCheck className="h-6 w-6 md:h-8 md:w-8 text-syria-green-600 mx-auto mb-1 md:mb-2" />
                 <div className="text-xl md:text-3xl font-bold text-syria-green-700">
-                  {members.filter(m => m.isActive).length}
+                  {stats?.active_members || members.filter(m => m.is_active).length}
                 </div>
                 <div className="text-syria-green-600 text-xs md:text-sm">أعضاء نشطون</div>
               </CardContent>
@@ -270,7 +180,7 @@ const Members = () => {
               <CardContent className="p-4 md:p-6 text-center">
                 <Award className="h-6 w-6 md:h-8 md:w-8 text-syria-green-600 mx-auto mb-1 md:mb-2" />
                 <div className="text-xl md:text-3xl font-bold text-syria-green-700">
-                  {[...new Set(members.map(m => m.department))].length}
+                  {stats?.departments || [...new Set(members.map(m => m.department).filter(Boolean))].length}
                 </div>
                 <div className="text-syria-green-600 text-xs md:text-sm">أقسام</div>
               </CardContent>
@@ -357,7 +267,7 @@ const Members = () => {
                               <div className="w-24 h-24 md:w-32 md:h-32 mx-auto bg-gradient-to-br from-syria-green-100 to-syria-green-200 rounded-full flex items-center justify-center shadow-md">
                                 {member.image ? (
                                   <img
-                                    src={member.image}
+                                    src={member.image.startsWith('http') ? member.image : `${STORAGE_URL}/${member.image}`}
                                     alt={member.name}
                                     className="w-full h-full rounded-full object-cover"
                                   />
@@ -376,16 +286,28 @@ const Members = () => {
                             <h3 className="text-lg md:text-xl font-bold text-syria-green-800 mt-4 md:mt-6 mb-2">{member.name}</h3>
 
                             {member.major && (
-                              <div className="flex items-center justify-center text-gray-600 text-sm mb-2">
-                                <GraduationCap className="h-4 w-4 ml-1 text-syria-green-500" />
-                                {member.major}
+                              <div className="flex items-center justify-center gap-1 text-gray-600 text-sm mb-2">
+                                <GraduationCap className="h-4 w-4 text-syria-green-500" />
+                                <span>{member.major}</span>
                               </div>
                             )}
 
                             {member.year && (
                               <div className="text-syria-green-600 text-sm mb-4">
-                                {member.year}
+                                {member.year}  : السنة الدراسية  
                               </div>
+                            )}
+
+                            {member.instagram && (
+                              <a
+                                href={`https://instagram.com/${member.instagram.replace('@', '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-syria-green-600 hover:text-syria-green-700 transition-colors"
+                              >
+                                <Instagram className="h-4 w-4" />
+                                <span className="text-sm">@{member.instagram.replace('@', '')}</span>
+                              </a>
                             )}
                           </div>
                         </CardContent>
@@ -414,7 +336,7 @@ const Members = () => {
                             <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-syria-green-100 to-syria-green-200 rounded-full flex items-center justify-center flex-shrink-0">
                               {member.image ? (
                                 <img
-                                  src={member.image}
+                                  src={member.image.startsWith('http') ? member.image : `${STORAGE_URL}/${member.image}`}
                                   alt={member.name}
                                   className="w-full h-full rounded-full object-cover"
                                 />
@@ -438,7 +360,19 @@ const Members = () => {
                               )}
 
                               {member.year && (
-                                <p className="text-gray-500 text-xs md:text-sm">{member.year}</p>
+                                <p className="text-gray-500 text-xs md:text-sm">{member.year} : السنة الدراسية  </p>
+                              )}
+
+                              {member.instagram && (
+                                <a
+                                  href={`https://instagram.com/${member.instagram.replace('@', '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-syria-green-600 hover:text-syria-green-700 transition-colors mt-2"
+                                >
+                                  <Instagram className="h-3 w-3" />
+                                  <span className="text-xs">@{member.instagram.replace('@', '')}</span>
+                                </a>
                               )}
                             </div>
                           </div>
@@ -454,7 +388,7 @@ const Members = () => {
                         onClick={() => setShowMore(!showMore)}
                         className="bg-syria-green-500 hover:bg-syria-green-600 text-white px-6 md:px-8 text-sm md:text-base"
                       >
-                        {showMore ? 'عرض أقل' : `عرض المزيد (${regularMembers.length - 6} عضو آخر)`}
+                        {showMore ? 'عرض أقل' : `عرض المزيد (${regularMembers.length - displayedMembers.length} عضو آخر)`}
                         <ChevronDown className={`h-3 w-3 md:h-4 md:w-4 mr-2 transition-transform ${showMore ? 'rotate-180' : ''}`} />
                       </Button>
                     </div>
@@ -462,8 +396,18 @@ const Members = () => {
                 </div>
               )}
 
+              {/* Error Message */}
+              {error && (
+                <Card className="border-red-200 bg-red-50 mb-6">
+                  <CardContent className="py-4 md:py-6 text-center">
+                    <AlertCircle className="mx-auto h-8 w-8 md:h-10 md:w-10 text-red-400 mb-2" />
+                    <p className="text-red-600 text-sm md:text-base">{error}</p>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* No Results */}
-              {filteredMembers.length === 0 && (
+              {!error && filteredMembers.length === 0 && !isLoading && (
                 <Card className="border-syria-green-200 bg-syria-green-50">
                   <CardContent className="py-8 md:py-12 text-center">
                     <Users className="mx-auto h-10 w-10 md:h-12 md:w-12 text-syria-green-400 mb-3 md:mb-4" />

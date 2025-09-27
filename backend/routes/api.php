@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\LogoController;
 use App\Http\Controllers\Api\ElectionController;
 use App\Http\Controllers\Api\FAQController;
 use App\Http\Controllers\Api\UserQuestionController;
+use App\Http\Controllers\Api\MemberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,11 @@ Route::get('elections/{election}/results', [ElectionController::class, 'results'
 
 // User Questions
 Route::get('user-questions', [UserQuestionController::class, 'index']);
+
+// Members - Public (Read only)
+Route::get('/members', [MemberController::class, 'index']);
+Route::get('/members/statistics', [MemberController::class, 'statistics']);
+Route::get('/members/{id}', [MemberController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
@@ -178,5 +184,12 @@ Route::middleware(['web', 'auth', 'admin'])->group(function () {
         Route::post('/', [EventController::class, 'store']);
         Route::put('/{event}', [EventController::class, 'update']);
         Route::delete('/{event}', [EventController::class, 'destroy']);
+    });
+
+    // Members Management - Admin only
+    Route::prefix('members')->group(function () {
+        Route::post('/', [MemberController::class, 'store']);
+        Route::put('/{id}', [MemberController::class, 'update']);
+        Route::delete('/{id}', [MemberController::class, 'destroy']);
     });
 });

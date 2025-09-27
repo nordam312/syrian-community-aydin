@@ -18,6 +18,7 @@ import ElectionManager from './ElectionManager';
 import FAQManager from './FAQManager';
 import EventManager from './EventManager';
 import EmailStats from './EmailStats';
+import MembersManager from './MembersManager';
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
 
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem('adminDashboardActiveTab');
-    const validTabs = ['overview', 'users', 'events', 'content', 'elections', 'questions', 'FAQ', 'emails', 'settings'];
+    const validTabs = ['overview', 'users', 'events', 'members', 'content', 'elections', 'questions', 'FAQ', 'emails', 'settings'];
     return savedTab && validTabs.includes(savedTab) ? savedTab : 'overview';
   });
 
@@ -462,7 +463,7 @@ const AdminDashboard = () => {
         }}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-1 h-auto">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-1 h-auto">
           <TabsTrigger value="overview" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
             <BarChart3 className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
             <span className="hidden sm:inline">نظرة عامة</span>
@@ -470,8 +471,13 @@ const AdminDashboard = () => {
           </TabsTrigger>
           <TabsTrigger value="users" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
             <Users className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
-            <span className="hidden sm:inline">إدارة الأعضاء</span>
-            <span className="sm:hidden">الأعضاء</span>
+            <span className="hidden sm:inline">المستخدمين</span>
+            <span className="sm:hidden">مستخدم</span>
+          </TabsTrigger>
+          <TabsTrigger value="members" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
+            <Users className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <span className="hidden sm:inline">الأعضاء</span>
+            <span className="sm:hidden">أعضاء</span>
           </TabsTrigger>
           <TabsTrigger value="events" className="flex flex-col sm:flex-row items-center py-3 text-xs sm:text-sm">
             <Calendar className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
@@ -825,6 +831,11 @@ const AdminDashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Members Tab */}
+        <TabsContent value="members" className="space-y-6 animate-page-enter">
+          <MembersManager />
         </TabsContent>
 
         {/* Events Tab */}
