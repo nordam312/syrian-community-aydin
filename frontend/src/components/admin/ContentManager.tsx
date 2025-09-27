@@ -139,6 +139,8 @@ const ContentManager = () => {
                     prev ? { ...prev, home_title: e.target.value } : null,
                   )
                 }
+                dir="auto"
+                style={{ unicodeBidi: 'plaintext' }}
               />
             </div>
             <div>
@@ -152,6 +154,8 @@ const ContentManager = () => {
                     prev ? { ...prev, home_description: e.target.value } : null,
                   )
                 }
+                dir="auto"
+                style={{ unicodeBidi: 'plaintext' }}
               />
             </div>
             <Button
@@ -189,6 +193,8 @@ const ContentManager = () => {
                     prev ? { ...prev, about_title: e.target.value } : null,
                   )
                 }
+                dir="auto"
+                style={{ unicodeBidi: 'plaintext' }}
               />
             </div>
             <div>
@@ -202,6 +208,8 @@ const ContentManager = () => {
                     prev ? { ...prev, about_content: e.target.value } : null,
                   )
                 }
+                dir="auto"
+                style={{ unicodeBidi: 'plaintext' }}
               />
             </div>
             <Button
@@ -265,6 +273,8 @@ const ContentManager = () => {
                   prev ? { ...prev, contact_address: e.target.value } : null,
                 )
               }
+              dir="auto"
+              style={{ unicodeBidi: 'plaintext' }}
             />
           </div>
           <Button

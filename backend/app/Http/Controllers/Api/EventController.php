@@ -51,7 +51,7 @@ class EventController extends Controller
             'location' => 'nullable|string|max:255',
             'max_attendees' => 'nullable|integer|min:1',
             'status' => 'nullable|string|in:active,cancelled,completed',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048'
+            'image' => 'nullable|image'
         ]);
 
         $data = $request->except('image');

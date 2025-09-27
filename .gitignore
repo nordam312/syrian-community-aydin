@@ -41,23 +41,7 @@ yarn-error.log*
 # Temporary files
 *.tmp
 *.temp
-hostinger-upload/
-SIMPLE_ALTERNATIVE.md
-SESSION_MANAGEMENT.md
-SECURITY_FIXES.md
-LAUNCH_EMAIL_STRATEGY.md
-Notes.txt
-HOSTINGER_DEPLOYMENT.md
-HOSTINGER_DEPLOYMENT_FINAL.md
-FRONTEND_SECURITY_FIXES.md
-EMAIL_SETUP_GUIDE.md
-EMAIL_LIMIT_SYSTEM.md
-EMAIL_DOMAIN_SETUP.md
-EASY_DEPLOYMENT.md
-DEPLOYMENT.md
-DEPLOYMENT_GUIDE.md
-DEPLOYMENT_CHECKLIST.md
-BREVO_SETUP.md
+/instructions
 frontend/.env.production
 
 # Syrian Students Data
@@ -65,10 +49,4 @@ frontend/.env.production
 
 convert_excel_to_csv.py
 frontend/src/pages/About.tsx
-FIX_IMAGE_UPLOAD.md
-GITHUB_TO_HOSTINGER.md
-cmdLinesImportant.txt
-cookies.txt
-HOSTINGER_DEPLOY_COMMANDS.md
-deploy-to-hostinger.sh
-DNS-SETUP-GUIDE.md
+

@@ -46,7 +46,7 @@ class LogoController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048|dimensions:max_width=2000,max_height=2000',
+            'image' => 'required|image',
             'alt_text' => 'nullable|string|max:255',
             'position' => 'nullable|in:header,footer,mobile',
         ]);
@@ -107,7 +107,7 @@ public function update(Request $request, Logo $logo)
 {
     $validator = Validator::make($request->all(), [
         'name' => 'nullable|string|max:255',
-        'image_path' => 'nullable|image|mimes:jpeg,png,jpg|max:2048|dimensions:max_width=2000,max_height=2000',
+        'image_path' => 'nullable|image',
         'alt_text' => 'nullable|string|max:255',
         'position' => 'nullable|in:header,footer,mobile',
         'is_active' => 'boolean',

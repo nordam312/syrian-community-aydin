@@ -13,31 +13,31 @@ import { useToast } from '@/components/ui/use-toast';
 const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [developerText, setDeveloperText] = useState('مطور الصفحة');
-  const [isAnimating, setIsAnimating] = useState(false);
+  // const [developerText, setDeveloperText] = useState('مطور الصفحة');
+  // const [isAnimating, setIsAnimating] = useState(false);
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const { toast } = useToast();
 
   // Toggle developer text between Arabic and English every 5 seconds with animation
-  useEffect(() => {
-    const texts = [
-      'مطور الصفحة',
-      'Developer',
-      ];
-    let currentIndex = 0;
+  // useEffect(() => {
+  //   const texts = [
+  //     'مطور الصفحة',
+  //     'Developer',
+  //   ];
+  //   let currentIndex = 0;
 
-    const interval = setInterval(() => {
-      setIsAnimating(true);
-      setTimeout(() => {
-        currentIndex = (currentIndex + 1) % texts.length;
-        setDeveloperText(texts[currentIndex]);
-        setIsAnimating(false);
-      }, 400);
-    }, 10000);
+  //   const interval = setInterval(() => {
+  //     setIsAnimating(true);
+  //     setTimeout(() => {
+  //       currentIndex = (currentIndex + 1) % texts.length;
+  //       setDeveloperText(texts[currentIndex]);
+  //       setIsAnimating(false);
+  //     }, 400);
+  //   }, 10000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -63,10 +63,10 @@ const Navbar = () => {
         description: (
           <div className="text-center">
             <span className="text-syria-green-600 font-bold animate-pulse"
-                  style={{
-                    textShadow: '0 0 10px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3)',
-                    display: 'inline-block'
-                  }}>
+              style={{
+                textShadow: '0 0 10px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3)',
+                display: 'inline-block'
+              }}>
               إلى اللقاء {userName} 👋
             </span>
             <br />
@@ -85,12 +85,14 @@ const Navbar = () => {
   const getNavLinks = () => {
     const baseLinks = [
       { name: 'الرئيسية', path: '/' },
-      { name: 'About', path: '/about' },
       { name: 'اسألنا', path: '/faq' },
       { name: 'حاسبة المعدل', path: '/gpa-calculator' },
       { name: 'الانتخابات', path: '/elections' },
       { name: 'الفعاليات', path: '/events' },
-      { name: developerText, path: '/developer' },
+      { name: 'About', path: '/about' },
+      { name: 'الأعضاء', path: '/members' },
+
+      // { name: developerText, path: '/developer' },
     ];
 
     if (isAuthenticated && user?.role === 'admin') {
@@ -129,16 +131,15 @@ const Navbar = () => {
                   className={`px-2 py-1 rounded-md text-xs font-medium transition-all duration-500 ${isActive(link.path)
                     ? 'bg-syria-green-100 text-syria-green-600'
                     : 'text-gray-700 hover:bg-syria-green-50 hover:text-syria-green-600'
-                    } ${link.path === '/developer' ? 'min-w-[100px] text-center' : ''}`}
+                    }`}
                 >
-                  {link.path === '/developer' ? (
+                  {/* {link.path === '/developer' ? (
                     <div className="relative inline-block">
                       <span
-                        className={`inline-block transition-all ease-in-out ${
-                          isAnimating
+                        className={`inline-block transition-all ease-in-out ${isAnimating
                             ? 'duration-500 opacity-0 transform translate-x-2 -translate-y-3 scale-50 rotate-180 blur-sm'
                             : 'duration-700 opacity-100 transform translate-x-0 translate-y-0 scale-100 rotate-0 blur-0'
-                        }`}
+                          }`}
                         style={{
                           textShadow: isAnimating
                             ? '0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(34, 197, 94, 0.4)'
@@ -161,7 +162,9 @@ const Navbar = () => {
                     </div>
                   ) : (
                     <span>{link.name}</span>
-                  )}
+                  )} */}
+                  <span>{link.name}</span>
+
                 </Link>
               ))}
 
@@ -213,7 +216,7 @@ const Navbar = () => {
                     : 'text-gray-700 hover:bg-syria-green-50 hover:text-syria-green-600'
                     }`}
                 >
-                  {link.path === '/developer' ? (
+                  {/* {link.path === '/developer' ? (
                     <div className="relative inline-block">
                       <span
                         className={`inline-block transition-all ease-in-out ${
@@ -243,7 +246,9 @@ const Navbar = () => {
                     </div>
                   ) : (
                     <span>{link.name}</span>
-                  )}
+                  )} */}
+                  <span>{link.name}</span>
+
                 </Link>
               ))}
 

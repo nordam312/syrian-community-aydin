@@ -33,7 +33,7 @@ class BannerController extends Controller
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'boolean',
-            'image' => 'required|image|mimes:jpeg,png,jpg'
+            'image' => 'required|image'
         ]);
         
         // Secure file upload with sanitized filename
@@ -65,7 +65,7 @@ class BannerController extends Controller
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048|dimensions:max_width=2000,max_height=2000'
+            'image' => 'nullable|image'
         ]);
 
         if ($request->hasFile('image')) {

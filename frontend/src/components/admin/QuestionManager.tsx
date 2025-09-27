@@ -282,6 +282,8 @@ const QuestionManager = () => {
                   placeholder="اكتب إجابتك هنا..."
                   rows={4}
                   className="mt-1"
+                  dir="auto"
+                  style={{ unicodeBidi: 'plaintext' }}
                 />
               </div>
 

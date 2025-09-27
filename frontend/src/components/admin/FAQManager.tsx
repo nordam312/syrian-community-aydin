@@ -321,6 +321,8 @@ const FAQManager = () => {
                       }
                     )
                   }
+                  dir="auto"
+                  style={{ unicodeBidi: 'plaintext' }}
                 />
               </div>
               <div className="grid gap-2">
@@ -340,6 +342,8 @@ const FAQManager = () => {
                       }
                     )
                   }
+                  dir="auto"
+                  style={{ unicodeBidi: 'plaintext' }}
                 />
               </div>
               <div className="grid gap-2 ">
@@ -450,9 +454,9 @@ const FAQManager = () => {
                       <span className="text-xs bg-syria-green-100 text-syria-green-800 px-2 py-1 rounded-full">
                         {item.category}
                       </span>
-                      <h3 className="font-semibold text-lg">{sanitizeInput(item.question)}</h3>
+                      <h3 className="font-semibold text-lg" dir="auto" style={{ unicodeBidi: 'plaintext' }}>{sanitizeInput(item.question)}</h3>
                     </div>
-                    <p className="text-muted-foreground whitespace-pre-line">
+                    <p className="text-muted-foreground whitespace-pre-line" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
                       <Linkify text={sanitizeInput(item.answer)} />
                     </p>
                   </div>

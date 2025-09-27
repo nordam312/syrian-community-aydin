@@ -472,7 +472,7 @@ const EventManager = () => {
       )}
       <CardHeader>
         <CardTitle className="text-lg flex justify-between items-start">
-          <span>{sanitizeInput(event.title)}</span>
+          <span dir="auto" style={{ unicodeBidi: 'plaintext' }}>{sanitizeInput(event.title)}</span>
           <Badge variant={new Date(event.date) > now ? "default" : "secondary"}>
             {new Date(event.date) > now ? "قادمة" : "منتهية"}
           </Badge>
@@ -485,13 +485,13 @@ const EventManager = () => {
           {event.location && (
             <div className="flex items-center">
               <span className="ml-1">📍</span>
-              {sanitizeInput(event.location)}
+              <span dir="auto" style={{ unicodeBidi: 'plaintext' }}>{sanitizeInput(event.location)}</span>
             </div>
           )}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
           {sanitizeInput(event.description)}
         </p>
         <div className="flex justify-between items-center mb-4">
@@ -615,6 +615,8 @@ const EventManager = () => {
                 onChange={handleEventChange}
                 placeholder="أدخل عنوان الفعالية"
                 required
+                dir="auto"
+                style={{ unicodeBidi: 'plaintext' }}
               />
             </div>
 
@@ -627,6 +629,8 @@ const EventManager = () => {
                 placeholder="أدخل وصفاً للفعالية"
                 required
                 rows={3}
+                dir="auto"
+                style={{ unicodeBidi: 'plaintext' }}
               />
             </div>
 
@@ -648,6 +652,8 @@ const EventManager = () => {
                 value={eventForm.location}
                 onChange={handleEventChange}
                 placeholder="أدخل موقع الفعالية"
+                dir="auto"
+                style={{ unicodeBidi: 'plaintext' }}
               />
             </div>
 

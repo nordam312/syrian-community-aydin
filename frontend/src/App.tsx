@@ -25,7 +25,7 @@ const Developer = lazy(() => import('./pages/Developer'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
-
+const Members = lazy(() => import('./pages/Members'));
 const queryClient = new QueryClient();
 
 // Loading component for Suspense fallback
@@ -42,7 +42,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthProvider> {/* 🔥 ضع AuthProvider هنا */}
+          <AuthProvider> {/* AuthProvider مهم جداا هنا */}
             <MaintenanceChecker>
             <SessionTimeoutProvider>
               <Suspense fallback={<PageLoader />}>
@@ -55,6 +55,7 @@ const App = () => (
                     <Admin />
                   </ProtectedRoute>
                 } />
+                <Route path="/members" element={<Members />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/verify-email/:token" element={<VerifyEmail />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

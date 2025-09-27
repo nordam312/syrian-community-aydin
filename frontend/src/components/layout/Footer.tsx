@@ -19,11 +19,11 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
             {/* معلومات المجتمع */}
             <div className="lg:col-span-2 space-y-6" dir="rtl">
               <div>
-                <h2 className="text-3xl font-bold text-white mb-4 flex items-center">
+                <h2 className="text-3xl font-bold text-white mb-4 flex items-center" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
                   <div className="w-1 h-8 bg-gradient-to-b from-white to-gray-200 rounded-full ml-3"></div>
                   {content?.about_title || 'المجتمع السوري في أيدن'}
                 </h2>
-                <p className="text-gray-200 leading-relaxed text-base">
+                <p className="text-gray-200 leading-relaxed text-base" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
                   {content?.about_content || 'مجتمع داعم ومترابط للسوريين في مدينة أيدن، تركيا. نهدف إلى تقديم الدعم والمساعدة لجميع أفراد الجالية السورية وتعزيز الروابط الاجتماعية والثقافية.'}
                 </p>
 
@@ -228,15 +228,17 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                   <Heart className="h-4 w-4 text-red-400 animate-pulse" />
                   <span>by</span>
                 </div>
-                <Link
-                  to="/developer"
+                <a
+                  href="https://www.linkedin.com/in/muhammednur-damlahi-59044b382/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center space-x-1 text-white hover:text-gray-300 transition-all duration-300 font-medium relative group"
                 >
                   <Code className="h-4 w-4" />
                   <span className="relative">
                     <span className="relative z-10 drop-shadow-lg" style={{ textShadow: '0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3), 0 0 30px rgba(255,255,255,0.1)' }}>Mohammed Nour Damlakhi</span>
                   </span>
-                </Link>
+                </a>
               </div>
 
               <p className="text-xs text-syria-green-300 mb-2 opacity-75">
@@ -253,15 +255,6 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                   aria-label="Email"
                 >
                   <Mail className="h-3.5 w-3.5" />
-                </a>
-                <a
-                  href="https://wa.me/905388647079"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/60 hover:text-white transition-colors duration-300"
-                  aria-label="WhatsApp"
-                >
-                  <MessageCircle className="h-3.5 w-3.5" />
                 </a>
                 <a
                   href="https://github.com/mohamednour2019"

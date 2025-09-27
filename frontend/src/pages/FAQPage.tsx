@@ -321,7 +321,7 @@ const FAQPage = () => {
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="px-6 pb-4">
-                      <p className="text-gray-700 leading-relaxed text-right">
+                      <p className="text-gray-700 leading-relaxed text-right" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
                         <Linkify text={faq.answer} />
                       </p>
                     </AccordionContent>
@@ -386,7 +386,7 @@ const FAQPage = () => {
                                 <MessageCircle className="h-5 w-5 text-syria-green-600" />
                                 <span className="text-sm font-medium text-syria-green-700">السؤال:</span>
                               </div>
-                              <h3 className="font-medium text-syria-green-800 text-right text-lg">
+                              <h3 className="font-medium text-syria-green-800 text-right text-lg" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
                                 {question.question}
                               </h3>
                             </div>
@@ -398,7 +398,7 @@ const FAQPage = () => {
                                   <HelpCircle className="h-5 w-5 text-green-600" />
                                   <span className="text-sm font-medium text-green-700">الإجابة:</span>
                                 </div>
-                                <p className="text-gray-800 text-right leading-relaxed">
+                                <p className="text-gray-800 text-right leading-relaxed" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
                                   <Linkify text={question.answer} />
                                 </p>
                               </div>
@@ -500,6 +500,8 @@ const FAQPage = () => {
                     className="mb-4 min-h-32 text-right border-syria-green-200 focus:border-syria-green-400"
                     required
                     disabled={isSubmitting}
+                    dir="auto"
+                    style={{ unicodeBidi: 'plaintext' }}
                   />
                   <Button
                     type="submit"

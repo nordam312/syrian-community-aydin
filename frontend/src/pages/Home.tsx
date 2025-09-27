@@ -147,7 +147,7 @@ const Home = () => {
                     <div className="text-center mb-6">
                         <h2 className="text-3xl font-bold text-syria-green-800">أهلاً بكم زوارنا الأعزاء</h2>
                     </div>
-                    <p className="text-xl text-gray-700 mb-8 whitespace-pre-line leading-relaxed">
+                    <p className="text-xl text-gray-700 mb-8 whitespace-pre-line leading-relaxed" dir="auto" style={{ unicodeBidi: 'plaintext' }}>
                       {content?.home_description}
                     </p>
                     
