@@ -249,11 +249,10 @@ const EventCarousel = ({
             {Array.from({ length: Math.ceil(events.length / visibleCards) }).map((_, idx) => (
               <button
                 key={idx}
-                className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                  Math.floor(current / visibleCards) === idx
+                className={`h-2 w-2 rounded-full transition-all duration-300 ${Math.floor(current / visibleCards) === idx
                     ? 'bg-syria-green-600 w-6'
                     : 'bg-syria-green-300'
-                }`}
+                  }`}
                 onClick={() => {
                   setCurrent(idx * visibleCards);
                   resetInterval();
@@ -305,7 +304,7 @@ const EventGallery = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-syria-green-50/30 via-transparent to-syria-green-50/30"></div>
       <div className="absolute top-0 left-0 w-96 h-96 bg-syria-green-100/20 rounded-full -translate-x-48 -translate-y-48"></div>
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-syria-green-100/20 rounded-full translate-x-40 translate-y-40"></div>
-      
+
       <div className="page-container max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center p-2 bg-gradient-to-r from-syria-green-600 to-syria-green-500 rounded-full mb-6">
@@ -349,7 +348,7 @@ const EventGallery = () => {
             emptyText="لا يوجد فعاليات قادمة حالياً"
           />
         </div>
-        
+
         {/* Previous Events */}
         <div>
           <div className="relative mb-12">
