@@ -90,7 +90,7 @@ const Navbar = () => {
       { name: 'الانتخابات', path: '/elections' },
       { name: 'الفعاليات', path: '/events' },
       { name: 'About', path: '/about' },
-      { name: 'الأعضاء', path: '/members' },
+      { name: 'Members', path: '/members' },
 
       // { name: developerText, path: '/developer' },
     ];
