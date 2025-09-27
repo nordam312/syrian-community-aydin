@@ -257,7 +257,7 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                   <Mail className="h-3.5 w-3.5" />
                 </a>
                 <a
-                  href="https://github.com/mohamednour2019"
+                  href="https://github.com/nordam312"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/60 hover:text-white transition-colors duration-300"
