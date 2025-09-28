@@ -87,10 +87,20 @@ class EventController extends Controller
             'location' => 'nullable|string|max:255',
             'max_attendees' => 'nullable|integer|min:1',
             'status' => 'nullable|string|in:active,cancelled,completed',
-            'image' => 'nullable|string'
+            'image' => 'nullable|image|max:5120'
         ]);
 
-        $event->update($request->all());
+        $data = $request->except('image');
+
+        if ($request->hasFile('image')) {
+            // حذف الصورة القديمة إذا كانت موجودة
+            if ($event->image) {
+                \Storage::disk('public')->delete($event->image);
+            }
+            $data['image'] = $request->file('image')->store('events', 'public');
+        }
+
+        $event->update($data);
 
         return response()->json([
             'message' => 'تم تحديث الفعالية بنجاح',
