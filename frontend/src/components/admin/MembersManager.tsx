@@ -79,7 +79,7 @@ const MembersManager = () => {
   const fetchMembers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/members`, {
+      const response = await axios.get(`${API_URL}/admin/members`, {
         withCredentials: true,
         headers: { Accept: 'application/json' },
       });
@@ -151,7 +151,7 @@ const MembersManager = () => {
         submitData.append('display_order', formData.display_order.toString());
         if (imageFile) submitData.append('image', imageFile);
 
-        const response = await axios.post(`${API_URL}/members`, submitData, {
+        const response = await axios.post(`${API_URL}/admin/members`, submitData, {
           withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -219,7 +219,7 @@ const MembersManager = () => {
         if (imageFile) submitData.append('image', imageFile);
         submitData.append('_method', 'PUT');
 
-        const response = await axios.post(`${API_URL}/members/${selectedMember.id}`, submitData, {
+        const response = await axios.post(`${API_URL}/admin/members/${selectedMember.id}`, submitData, {
           withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -270,7 +270,7 @@ const MembersManager = () => {
 
     try {
       await CsrfService.withCsrf(async (csrfToken) => {
-        const response = await axios.delete(`${API_URL}/members/${selectedMember.id}`, {
+        const response = await axios.delete(`${API_URL}/admin/members/${selectedMember.id}`, {
           withCredentials: true,
           headers: {
             Accept: 'application/json',

@@ -187,7 +187,8 @@ Route::middleware(['web', 'auth', 'admin'])->group(function () {
     });
 
     // Members Management - Admin only
-    Route::prefix('members')->group(function () {
+    Route::prefix('admin/members')->group(function () {
+        Route::get('/', [MemberController::class, 'adminIndex']); // Admin listing with all data
         Route::post('/', [MemberController::class, 'store']);
         Route::put('/{id}', [MemberController::class, 'update']);
         Route::delete('/{id}', [MemberController::class, 'destroy']);

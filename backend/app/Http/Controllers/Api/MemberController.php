@@ -44,7 +44,20 @@ class MemberController extends Controller
             });
         }
 
-        return response()->json($query->get());
+        // For public access, hide sensitive information
+        $members = $query->get()->map(function ($member) {
+            $member->makeHidden([
+                'user_id',
+                'student_id',
+                'created_at',
+                'updated_at',
+                'user'  // Hide the entire user relation
+            ]);
+
+            return $member;
+        });
+
+        return response()->json($members);
     }
 
     /**
@@ -187,6 +200,43 @@ class MemberController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Failed to delete member'], 500);
         }
+    }
+
+    /**
+     * Display a listing of members for admin.
+     */
+    public function adminIndex(Request $request)
+    {
+        $query = Member::with('user')->active()->ordered();
+
+        // Filter by role
+        if ($request->has('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // Filter by department
+        if ($request->has('department')) {
+            $query->where('department', $request->department);
+        }
+
+        // Filter by leadership
+        if ($request->has('is_leader')) {
+            $query->where('is_leader', filter_var($request->is_leader, FILTER_VALIDATE_BOOLEAN));
+        }
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%")
+                  ->orWhere('major', 'like', "%{$search}%")
+                  ->orWhere('student_id', 'like', "%{$search}%");
+            });
+        }
+
+        // Return all data for admin
+        return response()->json($query->get());
     }
 
     /**
