@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تفعيل حسابك - المجتمع السوري في أيدن</title>
+    <title>تفعيل حسابك - الجالية السورية في جامعة اسطنبول أيدن</title>
     <style>
         * {
             margin: 0;
@@ -271,7 +271,7 @@
     <div class="container">
         <div class="header">
             <h1>
-                المجتمع السوري في أيدن
+                الجالية السورية في جامعة اسطنبول أيدن
             </h1>
         </div>
         
@@ -311,7 +311,7 @@
         </div>
         
         <div class="footer">
-            <p>© {{ date('Y') }} المجتمع السوري في أيدن. جميع الحقوق محفوظة.</p>
+            <p>© {{ date('Y') }} االجالية السورية في جامعة اسطنبول أيدن. جميع الحقوق محفوظة.</p>
             <p class="small">هذا البريد مرسل تلقائياً، يرجى عدم الرد عليه.</p>
         </div>
     </div>
