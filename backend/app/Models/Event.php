@@ -16,7 +16,9 @@ class Event extends Model
         'location',
         'max_attendees',
         'status',
-        'image'
+        'image',
+        'one_day_reminder_sent',
+        'two_hour_reminder_sent'
     ];
 
 
